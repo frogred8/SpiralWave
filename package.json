@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tool": "node skill-tree-tool.js"
   },
   "dependencies": {
     "phaser": "^3.60.0"

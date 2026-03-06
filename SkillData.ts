@@ -7,7 +7,7 @@ export interface SkillData {
     researchTimes: number[]; // 레벨별 연구 시간 (초)
     description: string;
     prerequisites?: { id: string, level: number }[]; // 다중 선행 조건 시스템
-    effectProperty: 'radius' | 'force' | 'highDimProb' | 'maxArms' | 'autoArm' | 'armSpeed' | 'maxResearchSlots' | 'spawnRate' | 'researchBonus'; // 어떤 스탯을 변경할지
+    effectProperty: 'radius' | 'force' | 'highDimProb' | 'maxArms' | 'autoArm' | 'armSpeed' | 'maxResearchSlots' | 'spawnRate' | 'researchBonus' | 'moveSpeed'; // 어떤 스탯을 변경할지
     effectValue: number; // 얼마나 변경할지
     maxLevel: number; // 최대 레벨
 }

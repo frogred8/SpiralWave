@@ -66,21 +66,46 @@ export class SkillTreeUI {
                 this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})${nextLevelEffect}`);
                 this.costLines.forEach(l => l.setText('').setVisible(false));
                 let currentY = this.tipText.y + this.tipText.height + 10;
+                let lineIdx = 0;
+                // Add prerequisites
+                if (skill.prerequisites && skill.prerequisites.length > 0) {
+                    const prereqTitle = this.costLines[lineIdx++];
+                    prereqTitle.setText('Prerequisites:')
+                        .setColor('#cccccc')
+                        .setPosition(10, currentY)
+                        .setVisible(true);
+                    currentY += 18;
+                    skill.prerequisites.forEach(pre => {
+                        const preSkill = this.skillTreeData.find(s => s.id === pre.id);
+                        const currentPreLevel = this.gameStats.skillLevels[pre.id];
+                        const isSatisfied = currentPreLevel >= pre.level;
+                        const line = this.costLines[lineIdx++];
+                        if (line && preSkill) {
+                            line.setText(` - ${preSkill.name} Lv.${pre.level}`)
+                                .setColor(isSatisfied ? '#00ff00' : '#ff0000')
+                                .setPosition(10, currentY)
+                                .setVisible(true);
+                            currentY += 18;
+                        }
+                    });
+                    currentY += 5; // Extra padding
+                }
                 if (currentLevel < skill.maxLevel) {
                     const costs = skill.costs[currentLevel];
                     const resourceTypes = ['wood', 'rock', 'iron'];
-                    let lineIdx = 0;
                     resourceTypes.forEach(type => {
                         const required = costs[type];
                         if (required) {
                             const current = this.gameStats.collected[type];
                             const isEnough = current >= required;
                             const line = this.costLines[lineIdx++];
-                            line.setText(`${type.toUpperCase()}: ${current}/${required}`)
-                                .setColor(isEnough ? '#00ff00' : '#ff0000')
-                                .setPosition(10, currentY)
-                                .setVisible(true);
-                            currentY += 18;
+                            if (line) {
+                                line.setText(`${type.toUpperCase()}: ${current}/${required}`)
+                                    .setColor(isEnough ? '#00ff00' : '#ff0000')
+                                    .setPosition(10, currentY)
+                                    .setVisible(true);
+                                currentY += 18;
+                            }
                         }
                     });
                     // Add research time line
@@ -119,18 +144,21 @@ export class SkillTreeUI {
         const data = btn.skillButtonData;
         if (!data || !data.bg)
             return;
-        // 1초 감소 시 흰색으로 반짝이는 효과
+        // 버튼 주변에 살짝 빛나는 후광 효과 추가
+        const glow = this.scene.add.rectangle(btn.x, btn.y, this.buttonWidth + 10, this.buttonHeight + 10, 0x00ffff, 0.7)
+            .setOrigin(0.5)
+            .setDepth(btn.depth - 1);
+        this.skillContainer.add(glow);
+        this.skillContainer.sendToBack(glow);
+        // 반짝임 및 후광 애니메이션
         this.scene.tweens.add({
-            targets: data.bg,
-            fillAlpha: 0.5,
-            duration: 50,
-            yoyo: true,
-            onStart: () => {
-                data.bg.setStrokeStyle(4, 0xffffff);
-            },
-            onComplete: () => {
-                this.refreshSkillTreeUI(); // 원래 색상으로 복구
-            }
+            targets: glow,
+            alpha: 0,
+            scaleX: 1.2,
+            scaleY: 1.2,
+            duration: 400,
+            ease: 'Sine.easeOut',
+            onComplete: () => glow.destroy()
         });
     }
     isSkillUnlocked(skill) {
@@ -146,8 +174,13 @@ export class SkillTreeUI {
             return;
         }
         // Check if already in queue
-        if (this.gameStats.activeResearches.some(r => r.skillId === skill.id)) {
-            this.scene.cameras.main.flash(200, 255, 165, 0, true);
+        const researchIndex = this.gameStats.activeResearches.findIndex(r => r.skillId === skill.id);
+        if (researchIndex !== -1) {
+            const { isActiveResearch } = this.getResearchState(researchIndex);
+            // Cancel research if already in queue
+            if (!isActiveResearch && this.gameStats.cancelResearch(skill)) {
+                this.scene.cameras.main.flash(200, 255, 165, 0, true); // Orange flash for cancel
+            }
             return;
         }
         if (this.gameStats.startResearch(skill)) {
@@ -161,6 +194,8 @@ export class SkillTreeUI {
         this.lineGraphics.clear();
         this.skillTreeData.forEach(skill => {
             const btn = this.skillButtons[skill.id];
+            if (!btn)
+                return;
             const data = btn.skillButtonData;
             if (!data)
                 return;
@@ -170,12 +205,11 @@ export class SkillTreeUI {
             const canAfford = this.gameStats.canAfford(currentCosts);
             const isMaxLevel = lv >= skill.maxLevel;
             const researchIndex = this.gameStats.activeResearches.findIndex(r => r.skillId === skill.id);
-            const isResearching = researchIndex !== -1;
-            const isActiveResearch = isResearching && researchIndex < this.gameStats.maxResearchSlots;
+            const { isActiveResearch, isResearching } = this.getResearchState(researchIndex);
             if (isActiveResearch) {
                 const research = this.gameStats.activeResearches[researchIndex];
                 const progress = 1 - (research.remainingTime / research.totalTime);
-                data.lvTxt.setText(`${Math.floor(progress * 100)}%`);
+                data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s (${Math.floor(progress * 100)}%)`);
                 data.lvTxt.setColor('#ffff00');
             }
             else if (isResearching) {
@@ -242,6 +276,11 @@ export class SkillTreeUI {
                 });
             }
         });
+    }
+    getResearchState(researchIndex) {
+        const isResearching = researchIndex !== -1;
+        const isActiveResearch = isResearching && researchIndex < this.gameStats.maxResearchSlots;
+        return { isActiveResearch, isResearching };
     }
     getEdgePoint(from, to) {
         const dx = to.x - from.x;

@@ -14,6 +14,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public armSpeedFactor: number;
     public spawnRateFactor: number;
     public researchBonus: number;
+    public moveSpeed: number;
     public skillLevels: Record<string, number>;
     public maxResearchSlots: number;
     public activeResearches: { skillId: string, remainingTime: number, totalTime: number }[] = [];
@@ -33,6 +34,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.armSpeedFactor = 1.0;
         this.spawnRateFactor = 1.0;
         this.researchBonus = 0;
+        this.moveSpeed = 1.25; // 5 / 4 = 1.25
         this.skillLevels = {};
         this.maxResearchSlots = 1;
 
@@ -226,6 +228,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
             this.spawnRateFactor += skill.effectValue;
         } else if (skill.effectProperty === 'researchBonus') {
             this.researchBonus += skill.effectValue;
+        } else if (skill.effectProperty === 'moveSpeed') {
+            this.moveSpeed += skill.effectValue;
         }
         this.emit('skillUpgraded', skill.id); // Emit a specific event for skill upgrades
         this.emit('updateScore'); // Also update general score display

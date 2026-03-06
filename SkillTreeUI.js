@@ -1,11 +1,14 @@
-import { SKILL_TREE_DATA } from './SkillData';
 export class SkillTreeUI {
     scene;
     gameStats;
     skillContainer;
     lineGraphics;
     tooltip;
+    tipBg;
+    tipText;
+    costLines = [];
     skillButtons = {};
+    skillTreeData;
     startX = 50;
     startY = 80;
     spacingX = 140;
@@ -18,100 +21,185 @@ export class SkillTreeUI {
     buttonDisabledBgColor = 0x111111;
     buttonDisabledTextColor = '#555555';
     maxSkillLevel = 20; // Max level for all skills
-    constructor(scene, uiContainer, gameStats) {
+    constructor(scene, uiContainer, gameStats, skillTreeData) {
         this.scene = scene;
         this.gameStats = gameStats;
+        this.skillTreeData = skillTreeData;
         this.skillContainer = this.scene.add.container(this.startX, this.startY);
         this.lineGraphics = this.scene.add.graphics();
         this.skillContainer.add(this.lineGraphics);
+        // 툴팁 구성 요소 초기화
         this.tooltip = this.scene.add.container(0, 0).setVisible(false).setDepth(100);
-        const tipBg = this.scene.add.rectangle(0, 0, 200, 80, 0x111111, 0.9).setStrokeStyle(2, 0x444444).setOrigin(0);
-        const tipText = this.scene.add.text(10, 10, '', { fontSize: '14px', color: '#ffffff', wordWrap: { width: 180 } });
-        this.tooltip.add([tipBg, tipText]);
+        this.tipBg = this.scene.add.rectangle(0, 0, 200, 100, 0x111111, 0.9).setStrokeStyle(2, 0x444444).setOrigin(0);
+        this.tipText = this.scene.add.text(10, 10, '', { fontSize: '14px', color: '#ffffff', wordWrap: { width: 180 } });
+        this.tooltip.add([this.tipBg, this.tipText]);
+        // 자원별 비용 표시를 위한 텍스트 객체들 (최대 5종류)
+        for (let i = 0; i < 5; i++) {
+            const line = this.scene.add.text(10, 0, '', { fontSize: '12px', fontStyle: 'bold' });
+            this.costLines.push(line);
+            this.tooltip.add(line);
+        }
         uiContainer.add([this.skillContainer, this.tooltip]);
         this.createSkillButtons();
         this.setupEventListeners();
         this.refreshSkillTreeUI(); // Initial refresh
     }
     createSkillButtons() {
-        SKILL_TREE_DATA.forEach(skill => {
+        // 1단계: 버튼 객체들을 먼저 생성하여 참조 가능하게 함
+        this.skillTreeData.forEach(skill => {
             const x = skill.tree * this.spacingX;
             const y = skill.row * this.spacingY;
             const btn = this.scene.add.container(x, y);
             const bg = this.scene.add.rectangle(0, 0, this.buttonWidth, this.buttonHeight, this.buttonBgColor).setStrokeStyle(3, this.buttonStrokeColor);
-            const nameTxt = this.scene.add.text(0, -10, skill.name, { fontSize: '12px', fontStyle: 'bold' }).setOrigin(0.5);
-            const lvTxt = this.scene.add.text(0, 15, `Lv. 0/${this.maxSkillLevel}`, { fontSize: '14px', color: '#00ff00' }).setOrigin(0.5);
+            const nameTxt = this.scene.add.text(0, -10, skill.name, { fontSize: '10px', fontStyle: 'bold' }).setOrigin(0.5);
+            const lvTxt = this.scene.add.text(0, 15, `Lv. 0/${skill.maxLevel}`, { fontSize: '14px', color: '#00ff00' }).setOrigin(0.5);
+            btn.skillButtonData = { bg, nameTxt, lvTxt };
             btn.add([bg, nameTxt, lvTxt]);
             btn.setSize(this.buttonWidth, this.buttonHeight).setInteractive({ useHandCursor: true });
             btn.on('pointerdown', () => this.handleSkillUpgrade(skill));
             btn.on('pointerover', (p) => {
-                bg.setStrokeStyle(3, this.buttonHoverStrokeColor);
-                this.tooltip.setVisible(true).setPosition(p.x + 10, p.y + 10);
+                const data = btn.skillButtonData;
+                if (data)
+                    data.bg.setStrokeStyle(3, this.buttonHoverStrokeColor);
                 const currentLevel = this.gameStats.skillLevels[skill.id];
                 const nextLevelEffect = currentLevel < skill.maxLevel ? `\nNext: ${skill.description}` : '\nMax Level';
-                this.tooltip.getAt(1).setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})${nextLevelEffect}\nCost: ${skill.baseCost} ${skill.costType}`);
+                this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})${nextLevelEffect}`);
+                this.costLines.forEach(l => l.setText('').setVisible(false));
+                let currentY = this.tipText.y + this.tipText.height + 10;
+                if (currentLevel < skill.maxLevel) {
+                    const costs = skill.costs[currentLevel];
+                    const resourceTypes = ['wood', 'rock', 'iron'];
+                    let lineIdx = 0;
+                    resourceTypes.forEach(type => {
+                        const required = costs[type];
+                        if (required) {
+                            const current = this.gameStats.collected[type];
+                            const isEnough = current >= required;
+                            const line = this.costLines[lineIdx++];
+                            line.setText(`${type.toUpperCase()}: ${current}/${required}`)
+                                .setColor(isEnough ? '#00ff00' : '#ff0000')
+                                .setPosition(10, currentY)
+                                .setVisible(true);
+                            currentY += 18;
+                        }
+                    });
+                    // Add research time line
+                    const timeLine = this.costLines[lineIdx++];
+                    if (timeLine) {
+                        const seconds = skill.researchTimes[currentLevel];
+                        timeLine.setText(`Research Time: ${seconds}s`)
+                            .setColor('#ffff00')
+                            .setPosition(10, currentY)
+                            .setVisible(true);
+                        currentY += 18;
+                    }
+                }
+                this.tipBg.height = currentY + 10;
+                this.tooltip.setVisible(true).setPosition(p.x + 10, p.y + 10);
             });
             btn.on('pointerout', () => {
-                bg.setStrokeStyle(3, this.buttonStrokeColor);
+                const data = btn.skillButtonData;
+                if (data)
+                    data.bg.setStrokeStyle(3, this.buttonStrokeColor);
                 this.tooltip.setVisible(false);
             });
             this.skillButtons[skill.id] = btn;
             this.skillContainer.add(btn);
-            // Draw lines between skills
-            if (skill.prereq) {
-                const parent = SKILL_TREE_DATA.find(s => s.id === skill.prereq);
-                if (parent) {
-                    this.lineGraphics.lineStyle(2, 0x333333);
-                    // Adjust line start/end points to connect to the center of buttons
-                    const parentBtn = this.skillButtons[parent.id];
-                    const currentBtn = this.skillButtons[skill.id];
-                    this.lineGraphics.lineBetween(parentBtn.x + parentBtn.width / 2, parentBtn.y + parentBtn.height / 2, currentBtn.x + currentBtn.width / 2, currentBtn.y + currentBtn.height / 2);
-                }
-            }
         });
     }
     setupEventListeners() {
         this.gameStats.on('updateScore', this.refreshSkillTreeUI, this);
         this.gameStats.on('skillUpgraded', this.onSkillUpgraded, this);
+        this.gameStats.on('researchTimeReduced', this.onResearchTimeReduced, this);
+    }
+    onResearchTimeReduced(skillId) {
+        const btn = this.skillButtons[skillId];
+        if (!btn)
+            return;
+        const data = btn.skillButtonData;
+        if (!data || !data.bg)
+            return;
+        // 1초 감소 시 흰색으로 반짝이는 효과
+        this.scene.tweens.add({
+            targets: data.bg,
+            fillAlpha: 0.5,
+            duration: 50,
+            yoyo: true,
+            onStart: () => {
+                data.bg.setStrokeStyle(4, 0xffffff);
+            },
+            onComplete: () => {
+                this.refreshSkillTreeUI(); // 원래 색상으로 복구
+            }
+        });
     }
     isSkillUnlocked(skill) {
-        if (!skill.prereq)
+        if (!skill.prerequisites || skill.prerequisites.length === 0)
             return true;
-        return this.gameStats.skillLevels[skill.prereq] > 0;
+        // 모든 선행 조건을 만족해야 함
+        return skill.prerequisites.every(pre => this.gameStats.skillLevels[pre.id] >= pre.level);
     }
     handleSkillUpgrade(skill) {
         const currentLevel = this.gameStats.skillLevels[skill.id];
         if (currentLevel >= skill.maxLevel || !this.isSkillUnlocked(skill)) {
-            this.scene.cameras.main.flash(200, 255, 0, 0, true); // Red flash for failed upgrade
+            this.scene.cameras.main.flash(200, 255, 0, 0, true);
             return;
         }
-        if (this.gameStats.canAfford(skill.costType, skill.baseCost)) {
-            this.gameStats.consumeResources(skill.costType, skill.baseCost);
-            this.gameStats.applySkillUpgrade(skill);
-            this.scene.cameras.main.flash(200, 0, 255, 0, true); // Green flash for successful upgrade
+        // Check if already in queue
+        if (this.gameStats.activeResearches.some(r => r.skillId === skill.id)) {
+            this.scene.cameras.main.flash(200, 255, 165, 0, true);
+            return;
+        }
+        if (this.gameStats.startResearch(skill)) {
+            this.scene.cameras.main.flash(200, 0, 255, 0, true);
         }
         else {
-            this.scene.cameras.main.flash(200, 255, 0, 0, true); // Red flash for insufficient resources
+            this.scene.cameras.main.flash(200, 255, 0, 0, true);
         }
     }
     refreshSkillTreeUI() {
-        SKILL_TREE_DATA.forEach(skill => {
+        this.lineGraphics.clear();
+        this.skillTreeData.forEach(skill => {
             const btn = this.skillButtons[skill.id];
+            const data = btn.skillButtonData;
+            if (!data)
+                return;
             const lv = this.gameStats.skillLevels[skill.id];
             const isUnlocked = this.isSkillUnlocked(skill);
-            const canAfford = this.gameStats.canAfford(skill.costType, skill.baseCost);
+            const currentCosts = lv < skill.maxLevel ? skill.costs[lv] : {};
+            const canAfford = this.gameStats.canAfford(currentCosts);
             const isMaxLevel = lv >= skill.maxLevel;
-            btn.list[2].setText(`Lv. ${lv}/${skill.maxLevel}`);
-            const bg = btn.list[0];
-            const nameTxt = btn.list[1];
-            const lvTxt = btn.list[2];
-            if (isMaxLevel) {
+            const researchIndex = this.gameStats.activeResearches.findIndex(r => r.skillId === skill.id);
+            const isResearching = researchIndex !== -1;
+            const isActiveResearch = isResearching && researchIndex < this.gameStats.maxResearchSlots;
+            if (isActiveResearch) {
+                const research = this.gameStats.activeResearches[researchIndex];
+                const progress = 1 - (research.remainingTime / research.totalTime);
+                data.lvTxt.setText(`${Math.floor(progress * 100)}%`);
+                data.lvTxt.setColor('#ffff00');
+            }
+            else if (isResearching) {
+                data.lvTxt.setText(`Queued (${researchIndex + 1})`);
+                data.lvTxt.setColor('#00ffff');
+            }
+            else {
+                data.lvTxt.setText(`Lv. ${lv}/${skill.maxLevel}`);
+                data.lvTxt.setColor(isMaxLevel ? '#ffffff' : '#00ff00');
+            }
+            const { bg, nameTxt, lvTxt } = data;
+            if (isResearching) {
                 btn.setAlpha(1);
-                bg.setFillStyle(0x006600); // Dark green for maxed out
-                bg.setStrokeStyle(3, 0x00ff00); // Bright green border
+                bg.setFillStyle(isActiveResearch ? 0x444400 : 0x004444);
+                bg.setStrokeStyle(3, isActiveResearch ? 0xffff00 : 0x00ffff);
                 nameTxt.setColor('#ffffff');
-                lvTxt.setColor('#ffffff');
-                btn.disableInteractive(); // Cannot interact if max level
+                btn.setInteractive({ useHandCursor: false });
+            }
+            else if (isMaxLevel) {
+                btn.setAlpha(1);
+                bg.setFillStyle(0x006600);
+                bg.setStrokeStyle(3, 0x00ff00);
+                nameTxt.setColor('#ffffff');
+                btn.disableInteractive();
             }
             else if (!isUnlocked) {
                 btn.setAlpha(0.5);
@@ -119,39 +207,81 @@ export class SkillTreeUI {
                 bg.setStrokeStyle(3, this.buttonStrokeColor);
                 nameTxt.setColor('#aaaaaa');
                 lvTxt.setColor(this.buttonDisabledTextColor);
-                btn.disableInteractive();
+                btn.setInteractive({ useHandCursor: true }); // Enable interaction for tooltip
             }
             else if (!canAfford) {
                 btn.setAlpha(0.7);
                 bg.setFillStyle(this.buttonBgColor);
-                bg.setStrokeStyle(3, 0x880000); // Red border for not affordable
+                bg.setStrokeStyle(3, 0x880000);
                 nameTxt.setColor('#ffffff');
                 lvTxt.setColor('#ff8888');
-                btn.setInteractive({ useHandCursor: true }); // Still interactive to show tooltip
+                btn.setInteractive({ useHandCursor: true });
             }
             else {
                 btn.setAlpha(1);
                 bg.setFillStyle(this.buttonBgColor);
                 bg.setStrokeStyle(3, this.buttonStrokeColor);
                 nameTxt.setColor('#ffffff');
-                lvTxt.setColor('#00ff00');
                 btn.setInteractive({ useHandCursor: true });
+            }
+            // Draw prerequisite lines
+            if (skill.prerequisites) {
+                skill.prerequisites.forEach(pre => {
+                    const parentBtn = this.skillButtons[pre.id];
+                    if (parentBtn) {
+                        const parentSkill = this.skillTreeData.find(s => s.id === pre.id);
+                        const parentLevel = parentSkill ? this.gameStats.skillLevels[parentSkill.id] : 0;
+                        const isSatisfied = parentLevel >= pre.level;
+                        // Calculate start and end points at the edges of buttons
+                        const start = this.getEdgePoint(parentBtn, btn);
+                        const end = this.getEdgePoint(btn, parentBtn);
+                        // Brighten colors for dark background: Active (Green), Inactive (Lighter Grey)
+                        this.lineGraphics.lineStyle(2, isSatisfied ? 0x00ff00 : 0x555555, isSatisfied ? 1.0 : 0.4);
+                        this.lineGraphics.lineBetween(start.x, start.y, end.x, end.y);
+                    }
+                });
             }
         });
     }
-    onSkillUpgraded(skillId) {
-        // Optionally add a visual effect to the upgraded skill button
-        const btn = this.skillButtons[skillId];
-        if (btn) {
-            const bg = btn.list[0];
-            this.scene.tweens.add({
-                targets: bg,
-                scaleX: 1.1,
-                scaleY: 1.1,
-                duration: 100,
-                yoyo: true,
-                ease: 'Sine.easeInOut'
-            });
+    getEdgePoint(from, to) {
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const angle = Math.atan2(dy, dx);
+        // Rect dimensions are 100x60, so half is 50x30
+        const halfW = 50;
+        const halfH = 30;
+        // Find which edge the line intersects
+        const absCos = Math.abs(Math.cos(angle));
+        const absSin = Math.abs(Math.sin(angle));
+        let x, y;
+        if (halfW * absSin <= halfH * absCos) {
+            // Hits left or right edge
+            x = from.x + (dx > 0 ? halfW : -halfW);
+            y = from.y + (dx > 0 ? halfW : -halfW) * Math.tan(angle);
         }
+        else {
+            // Hits top or bottom edge
+            // Avoid division by zero
+            const tan = Math.tan(angle);
+            x = from.x + (dy > 0 ? halfH : -halfH) / (tan === 0 ? 0.0001 : tan);
+            y = from.y + (dy > 0 ? halfH : -halfH);
+        }
+        return { x, y };
+    }
+    onSkillUpgraded(skillId) {
+        const btn = this.skillButtons[skillId];
+        if (!btn)
+            return;
+        const data = btn.skillButtonData;
+        if (!data || !data.bg)
+            return;
+        this.scene.tweens.add({
+            targets: data.bg,
+            scaleX: 1.1,
+            scaleY: 1.1,
+            duration: 100,
+            yoyo: true,
+            ease: 'Sine.easeInOut'
+        });
     }
 }

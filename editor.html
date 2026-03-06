@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skill Tree WYSIWYG Editor</title>
+<style>
+  body { display: flex; margin: 0; height: 100vh; font-family: sans-serif; background: #222; color: #fff; }
+  #canvas-container { flex: 1; position: relative; overflow: auto; background: #1a1a1a; }
+  #editor-panel { width: 400px; background: #333; padding: 20px; box-sizing: border-box; overflow-y: auto; border-left: 2px solid #444; }
+  .node { position: absolute; width: 120px; height: 60px; background: #444; border: 2px solid #777; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none; z-index: 10; border-radius: 4px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); transition: background 0.1s, border-color 0.1s; }
+  .node:hover { background: #555; border-color: #999; }
+  .node.selected { border-color: #0ff; background: #555; box-shadow: 0 0 10px rgba(0,255,255,0.5); }
+  .node .name { font-weight: bold; font-size: 12px; text-align: center; padding: 0 4px; pointer-events: none; }
+  .node .id { font-size: 10px; color: #aaa; margin-top: 4px; pointer-events: none; }
+  svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+  input, select, textarea { width: 100%; background: #222; color: #fff; border: 1px solid #555; padding: 6px; margin-bottom: 8px; box-sizing: border-box; font-family: monospace; }
+  button { background: #555; color: #fff; border: 1px solid #777; padding: 8px 12px; cursor: pointer; border-radius: 4px; }
+  button:hover { background: #666; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #ccc; }
+  .btn-group { display: flex; gap: 8px; margin-top: 16px; }
+  
+  /* Dragging instructions */
+  #instructions { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 4px; z-index: 20; pointer-events: none; font-size: 12px; color: #aaa; }
+</style>
+</head>
+<body>
+<div id="canvas-container">
+  <div id="instructions">Drag nodes to move them.<br>Click to edit.</div>
+  <svg id="lines"></svg>
+  <div id="nodes"></div>
+</div>
+<div id="editor-panel">
+  <h2>Editor</h2>
+  <div class="btn-group" style="margin-bottom: 20px;">
+    <button onclick="addNode()">+ Add Skill</button>
+    <button onclick="saveData()" style="background: #282; border-color: #3a3; font-weight: bold;">💾 Save Changes</button>
+  </div>
+  <div id="form-container" style="display: none;">
+    <div class="form-group"><label>ID</label><input type="text" id="f-id" onchange="updateNode()"></div>
+    <div class="form-group"><label>Name</label><input type="text" id="f-name" onchange="updateNode()"></div>
+    <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:1;"><label>Tree (Column)</label><input type="number" id="f-tree" onchange="updateNode()"></div>
+        <div class="form-group" style="flex:1;"><label>Row (Vertical)</label><input type="number" id="f-row" onchange="updateNode()"></div>
+    </div>
+    <div class="form-group"><label>Max Level</label><input type="number" id="f-maxLevel" onchange="updateNode()"></div>
+    <div class="form-group"><label>Description</label><input type="text" id="f-description" onchange="updateNode()"></div>
+    <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:1;"><label>Effect Property</label><input type="text" id="f-effectProperty" onchange="updateNode()"></div>
+        <div class="form-group" style="flex:1;"><label>Effect Value</label><input type="number" step="any" id="f-effectValue" onchange="updateNode()"></div>
+    </div>
+    <div class="form-group"><label>Prerequisites (Comma separated IDs. Use ID:Level for specific level. e.g., w1, w2:2)</label><input type="text" id="f-prereq" onchange="updateNode()" placeholder="e.g. w1, w2:2"></div>
+    <div class="form-group"><label>Costs & Research Times (JSON)</label><textarea id="f-json" rows="12" onchange="updateNodeFromJson()"></textarea></div>
+    <div class="btn-group">
+      <button onclick="deleteNode()" style="background: #a22; border-color: #c44;">Delete Skill</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let skills = [];
+let selectedId = null;
+
+const startX = 50;
+const startY = 80;
+const spacingX = 160;
+const spacingY = 120;
+const nodeW = 120;
+const nodeH = 60;
+
+async function loadData() {
+  const res = await fetch('/data');
+  skills = await res.json();
+  render();
+}
+
+function render() {
+  const nodesDiv = document.getElementById('nodes');
+  const linesSvg = document.getElementById('lines');
+  nodesDiv.innerHTML = '';
+  linesSvg.innerHTML = '';
+
+  let maxX = 0, maxY = 0;
+
+  skills.forEach(skill => {
+    const x = startX + skill.tree * spacingX;
+    const y = startY + skill.row * spacingY;
+    
+    maxX = Math.max(maxX, x + nodeW);
+    maxY = Math.max(maxY, y + nodeH);
+
+    const div = document.createElement('div');
+    div.className = 'node' + (selectedId === skill.id ? ' selected' : '');
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+    div.innerHTML = `<div class="name">${skill.name}</div><div class="id">${skill.id}</div>`;
+    
+    // Setup Dragging
+    let isDragging = false;
+    let hasMoved = false;
+    let startXPos, startYPos;
+
+    div.onmousedown = (e) => {
+      isDragging = true;
+      hasMoved = false;
+      startXPos = e.clientX;
+      startYPos = e.clientY;
+      
+      // 즉시 선택 상태 표시
+      selectedId = skill.id;
+      document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+      div.classList.add('selected');
+      
+      // 마우스 이동 시 실시간 위치 업데이트를 위해 이벤트 리스너를 윈도우에 등록
+      const onMouseMove = (me) => {
+        if (!isDragging) return;
+        const dx = me.clientX - startXPos;
+        const dy = me.clientY - startYPos;
+        
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          hasMoved = true;
+          div.style.left = (x + dx) + 'px';
+          div.style.top = (y + dy) + 'px';
+          div.style.zIndex = 100;
+        }
+      };
+      
+      const onMouseUp = (me) => {
+        isDragging = false;
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        
+        div.style.zIndex = 10;
+        
+        if (hasMoved) {
+          const dx = me.clientX - startXPos;
+          const dy = me.clientY - startYPos;
+          const finalX = x + dx;
+          const finalY = y + dy;
+
+          const newTree = Math.max(0, Math.round((finalX - startX) / spacingX));
+          const newRow = Math.max(0, Math.round((finalY - startY) / spacingY));
+          
+          if (skill.tree !== newTree || skill.row !== newRow) {
+             const targetSkill = skills.find(s => s.id !== skill.id && s.tree === newTree && s.row === newRow);
+             if (targetSkill) {
+               const oldId = skill.id;
+               const targetId = targetSkill.id;
+
+               // 1. 위치 교체
+               targetSkill.tree = skill.tree;
+               targetSkill.row = skill.row;
+               skill.tree = newTree;
+               skill.row = newRow;
+
+               // 2. 각자의 선행 조건(본인이 필요한 것들) 교체
+               const tempPrereq = skill.prerequisites;
+               skill.prerequisites = targetSkill.prerequisites;
+               targetSkill.prerequisites = tempPrereq;
+
+               // 3. 다른 스킬들이 참조하는 선행 조건 ID 교체 (ID 참조 관계 업데이트)
+               skills.forEach(s => {
+                 if (s.prerequisites) {
+                   s.prerequisites.forEach(p => {
+                     if (p.id === oldId) p.id = "TEMP_SWAP_ID";
+                   });
+                 }
+               });
+               skills.forEach(s => {
+                 if (s.prerequisites) {
+                   s.prerequisites.forEach(p => {
+                     if (p.id === targetId) p.id = oldId;
+                   });
+                 }
+               });
+               skills.forEach(s => {
+                 if (s.prerequisites) {
+                   s.prerequisites.forEach(p => {
+                     if (p.id === "TEMP_SWAP_ID") p.id = targetId;
+                   });
+                 }
+               });
+             } else {
+               skill.tree = newTree;
+               skill.row = newRow;
+             }
+             render();
+             selectNode(skill.id); 
+          } else {
+             render(); // 원래 자리로
+          }
+        } else {
+           // 이동이 없었으면 단순 클릭으로 간주하여 폼만 열기
+           selectNode(skill.id);
+        }
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    };
+
+    nodesDiv.appendChild(div);
+
+    // Draw lines
+    if (skill.prerequisites) {
+      skill.prerequisites.forEach(pre => {
+        const parent = skills.find(s => s.id === pre.id);
+        if (parent) {
+          const px = startX + parent.tree * spacingX + nodeW / 2;
+          const py = startY + parent.row * spacingY + nodeH / 2;
+          const cx = x + nodeW / 2;
+          const cy = y + nodeH / 2;
+          
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", px);
+          line.setAttribute("y1", py);
+          line.setAttribute("x2", cx);
+          line.setAttribute("y2", cy);
+          line.setAttribute("stroke", "#666");
+          line.setAttribute("stroke-width", "3");
+          linesSvg.appendChild(line);
+        }
+      });
+    }
+  });
+
+  linesSvg.style.width = (maxX + 100) + 'px';
+  linesSvg.style.height = (maxY + 100) + 'px';
+}
+
+function selectNode(id) {
+  selectedId = id;
+  render();
+  const skill = skills.find(s => s.id === id);
+  if (!skill) return;
+
+  document.getElementById('form-container').style.display = 'block';
+  document.getElementById('f-id').value = skill.id;
+  document.getElementById('f-name').value = skill.name;
+  document.getElementById('f-tree').value = skill.tree;
+  document.getElementById('f-row').value = skill.row;
+  document.getElementById('f-maxLevel').value = skill.maxLevel;
+  document.getElementById('f-description').value = skill.description || '';
+  document.getElementById('f-effectProperty').value = skill.effectProperty || '';
+  document.getElementById('f-effectValue').value = skill.effectValue || 0;
+  
+  let prereqStr = '';
+  if (skill.prerequisites) {
+    prereqStr = skill.prerequisites.map(p => p.level === 1 ? p.id : `${p.id}:${p.level}`).join(', ');
+  }
+  document.getElementById('f-prereq').value = prereqStr;
+
+  const jsonView = {
+      costs: skill.costs || [],
+      researchTimes: skill.researchTimes || []
+  };
+  document.getElementById('f-json').value = JSON.stringify(jsonView, null, 2);
+}
+
+function updateNode() {
+  if (!selectedId) return;
+  const skill = skills.find(s => s.id === selectedId);
+  if (!skill) return;
+
+  const newId = document.getElementById('f-id').value;
+  if (newId !== skill.id) {
+    skills.forEach(s => {
+      if (s.prerequisites) {
+         s.prerequisites.forEach(p => { if (p.id === skill.id) p.id = newId; });
+      }
+    });
+    skill.id = newId;
+    selectedId = newId;
+  }
+  
+  skill.name = document.getElementById('f-name').value;
+  skill.tree = parseInt(document.getElementById('f-tree').value) || 0;
+  skill.row = parseInt(document.getElementById('f-row').value) || 0;
+  skill.maxLevel = parseInt(document.getElementById('f-maxLevel').value) || 1;
+  skill.description = document.getElementById('f-description').value;
+  skill.effectProperty = document.getElementById('f-effectProperty').value;
+  skill.effectValue = parseFloat(document.getElementById('f-effectValue').value) || 0;
+
+  const preStr = document.getElementById('f-prereq').value;
+  if (preStr.trim()) {
+    skill.prerequisites = preStr.split(',').map(s => {
+      const parts = s.trim().split(':');
+      return { id: parts[0], level: parts.length > 1 ? parseInt(parts[1]) : 1 };
+    });
+  } else {
+    delete skill.prerequisites;
+  }
+
+  render();
+}
+
+function updateNodeFromJson() {
+  if (!selectedId) return;
+  const skill = skills.find(s => s.id === selectedId);
+  if (!skill) return;
+
+  try {
+    const parsed = JSON.parse(document.getElementById('f-json').value);
+    if (parsed.costs) skill.costs = parsed.costs;
+    if (parsed.researchTimes) skill.researchTimes = parsed.researchTimes;
+  } catch(e) {
+    alert('Invalid JSON in Costs & Research Times. Reverting.');
+    selectNode(selectedId); // revert view
+  }
+}
+
+function addNode() {
+  const newSkill = {
+    id: 'new_skill_' + Math.floor(Math.random()*1000),
+    name: 'New Skill',
+    tree: 0,
+    row: 0,
+    maxLevel: 1,
+    description: '',
+    effectProperty: '',
+    effectValue: 0,
+    costs: [{}],
+    researchTimes: [10]
+  };
+  skills.push(newSkill);
+  selectNode(newSkill.id);
+}
+
+function deleteNode() {
+  if (!selectedId) return;
+  if (!confirm('Are you sure you want to delete this skill?')) return;
+  skills = skills.filter(s => s.id !== selectedId);
+  skills.forEach(s => {
+    if (s.prerequisites) {
+       s.prerequisites = s.prerequisites.filter(p => p.id !== selectedId);
+       if (s.prerequisites.length === 0) delete s.prerequisites;
+    }
+  });
+  selectedId = null;
+  document.getElementById('form-container').style.display = 'none';
+  render();
+}
+
+async function saveData() {
+  try {
+    const res = await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(skills, null, 4)
+    });
+    if (res.ok) alert('Saved successfully!');
+    else alert('Error saving data');
+  } catch(e) {
+    alert('Error saving data');
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>

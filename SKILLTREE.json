@@ -1,18 +1,91 @@
 [
     {
         "id": "q1",
-        "name": "Quantum Resonance",
+        "name": "Big Resource I",
         "tree": 0,
         "row": 0,
         "costs": [
-            { "wood": 2 }, { "wood": 5, "rock": 2 }, { "wood": 10, "rock": 5 }, { "wood": 20, "rock": 10, "iron": 5 }, { "wood": 40, "rock": 20, "iron": 10 }
+            {
+                "wood": 2
+            },
+            {
+                "wood": 5,
+                "rock": 2
+            },
+            {
+                "wood": 10,
+                "rock": 5
+            },
+            {
+                "wood": 20,
+                "rock": 10,
+                "iron": 5
+            },
+            {
+                "wood": 40,
+                "rock": 20,
+                "iron": 10
+            }
         ],
         "researchTimes": [
-            10, 20, 40, 80, 160
+            10,
+            20,
+            40,
+            80,
+            160
         ],
-        "description": "High Dimension resource probability +3% (Max +15%)",
+        "description": "Big resource probability +3% (Max +15%)",
         "effectProperty": "highDimProb",
         "effectValue": 0.03,
+        "maxLevel": 5
+    },
+    {
+        "id": "q2",
+        "name": "Boost Resource",
+        "tree": 0,
+        "row": 1,
+        "costs": [
+            {
+                "wood": 10,
+                "rock": 5
+            },
+            {
+                "wood": 20,
+                "rock": 10,
+                "iron": 5
+            },
+            {
+                "wood": 40,
+                "rock": 20,
+                "iron": 10
+            },
+            {
+                "wood": 80,
+                "rock": 40,
+                "iron": 20
+            },
+            {
+                "wood": 160,
+                "rock": 80,
+                "iron": 40
+            }
+        ],
+        "researchTimes": [
+            15,
+            30,
+            60,
+            120,
+            240
+        ],
+        "description": "Resource spawn frequency +30% (Max +100%)",
+        "effectProperty": "spawnRate",
+        "effectValue": 0.3,
+        "prerequisites": [
+            {
+                "id": "q1",
+                "level": 1
+            }
+        ],
         "maxLevel": 5
     },
     {
@@ -21,19 +94,36 @@
         "tree": 1,
         "row": 0,
         "costs": [
-            { "rock": 1 }, { "rock": 1 }, { "rock": 2, "iron": 1 }, { "rock": 3, "iron": 1 }, { "rock": 4, "iron": 1 },
-            { "rock": 5, "iron": 2 }, { "rock": 6, "iron": 2 }, { "rock": 8, "iron": 3 }, { "rock": 10, "iron": 4 }, { "rock": 12, "iron": 5 },
-            { "rock": 15, "iron": 6 }, { "rock": 18, "iron": 7 }, { "rock": 22, "iron": 8 }, { "rock": 26, "iron": 10 }, { "rock": 31, "iron": 12 },
-            { "rock": 36, "iron": 14 }, { "rock": 42, "iron": 16 }, { "rock": 48, "iron": 19 }, { "wood": 55, "rock": 22 }, { "wood": 63, "rock": 25 }
+            {
+                "rock": 1
+            },
+            {
+                "rock": 1
+            },
+            {
+                "rock": 2,
+                "iron": 1
+            },
+            {
+                "rock": 3,
+                "iron": 1
+            },
+            {
+                "rock": 4,
+                "iron": 1
+            }
         ],
         "researchTimes": [
-            3, 5, 8, 12, 18, 25, 35, 45, 60, 80,
-            100, 125, 150, 180, 210, 240, 270, 300, 330, 360
+            3,
+            5,
+            8,
+            12,
+            18
         ],
-        "description": "Force +0.2",
-        "effectProperty": "force",
-        "effectValue": 0.2,
-        "maxLevel": 20
+        "description": "Max Research Queue +1",
+        "effectProperty": "maxResearchSlots",
+        "effectValue": 1,
+        "maxLevel": 1
     },
     {
         "id": "r2",
@@ -41,19 +131,118 @@
         "tree": 1,
         "row": 1,
         "costs": [
-            { "rock": 2, "iron": 1 }, { "rock": 4, "iron": 2 }, { "rock": 6, "iron": 4 }, { "rock": 8, "iron": 6 }, { "rock": 11, "iron": 8 },
-            { "rock": 15, "iron": 11 }, { "rock": 19, "iron": 14 }, { "rock": 25, "iron": 19 }, { "rock": 31, "iron": 24 }, { "rock": 39, "iron": 30 },
-            { "rock": 49, "iron": 38 }, { "rock": 60, "iron": 47 }, { "rock": 73, "iron": 58 }, { "rock": 88, "iron": 70 }, { "rock": 105, "iron": 84 },
-            { "rock": 125, "iron": 100 }, { "rock": 148, "iron": 120 }, { "rock": 174, "iron": 142 }, { "rock": 204, "iron": 168 }, { "rock": 238, "iron": 198 }
+            {
+                "rock": 2,
+                "iron": 1
+            },
+            {
+                "rock": 4,
+                "iron": 2
+            },
+            {
+                "rock": 6,
+                "iron": 4
+            },
+            {
+                "rock": 8,
+                "iron": 6
+            },
+            {
+                "rock": 11,
+                "iron": 8
+            },
+            {
+                "rock": 15,
+                "iron": 11
+            },
+            {
+                "rock": 19,
+                "iron": 14
+            },
+            {
+                "rock": 25,
+                "iron": 19
+            },
+            {
+                "rock": 31,
+                "iron": 24
+            },
+            {
+                "rock": 39,
+                "iron": 30
+            },
+            {
+                "rock": 49,
+                "iron": 38
+            },
+            {
+                "rock": 60,
+                "iron": 47
+            },
+            {
+                "rock": 73,
+                "iron": 58
+            },
+            {
+                "rock": 88,
+                "iron": 70
+            },
+            {
+                "rock": 105,
+                "iron": 84
+            },
+            {
+                "rock": 125,
+                "iron": 100
+            },
+            {
+                "rock": 148,
+                "iron": 120
+            },
+            {
+                "rock": 174,
+                "iron": 142
+            },
+            {
+                "rock": 204,
+                "iron": 168
+            },
+            {
+                "rock": 238,
+                "iron": 198
+            }
         ],
         "researchTimes": [
-            10, 15, 22, 30, 40, 55, 75, 100, 130, 165,
-            200, 240, 285, 335, 390, 450, 515, 585, 660, 740
+            10,
+            15,
+            22,
+            30,
+            40,
+            55,
+            75,
+            100,
+            130,
+            165,
+            200,
+            240,
+            285,
+            335,
+            390,
+            450,
+            515,
+            585,
+            660,
+            740
         ],
         "description": "Force +0.5",
         "effectProperty": "force",
         "effectValue": 0.5,
-        "prerequisites": [{ "id": "r1", "level": 1 }],
+        "prerequisites": [
+            {
+                "id": "r1",
+                "level": 1
+            }
+        ],
         "maxLevel": 20
     },
     {
@@ -62,10 +251,19 @@
         "tree": 2,
         "row": 0,
         "costs": [
-            { "iron": 5, "wood": 2 },
-            { "iron": 15, "wood": 6 }
+            {
+                "iron": 5,
+                "wood": 2
+            },
+            {
+                "iron": 15,
+                "wood": 6
+            }
         ],
-        "researchTimes": [30, 60],
+        "researchTimes": [
+            30,
+            60
+        ],
         "description": "Max Arms +1",
         "effectProperty": "maxArms",
         "effectValue": 1,
@@ -77,14 +275,28 @@
         "tree": 2,
         "row": 1,
         "costs": [
-            { "iron": 30, "rock": 10 },
-            { "iron": 60, "rock": 25 }
+            {
+                "iron": 30,
+                "rock": 10
+            },
+            {
+                "iron": 60,
+                "rock": 25
+            }
         ],
-        "researchTimes": [120, 240],
+        "researchTimes": [
+            120,
+            240
+        ],
         "description": "Max Arms +1",
         "effectProperty": "maxArms",
         "effectValue": 1,
-        "prerequisites": [{ "id": "f1", "level": 1 }],
+        "prerequisites": [
+            {
+                "id": "f1",
+                "level": 1
+            }
+        ],
         "maxLevel": 2
     },
     {
@@ -93,15 +305,27 @@
         "tree": 2,
         "row": 2,
         "costs": [
-            { "wood": 1, "rock": 1, "iron": 1 }
+            {
+                "wood": 1,
+                "rock": 1,
+                "iron": 1
+            }
         ],
-        "researchTimes": [60],
+        "researchTimes": [
+            60
+        ],
         "description": "Auto-activates idle arms",
         "effectProperty": "autoArm",
         "effectValue": 1,
         "prerequisites": [
-            { "id": "r2", "level": 1 },
-            { "id": "f2", "level": 2 }
+            {
+                "id": "r2",
+                "level": 1
+            },
+            {
+                "id": "f2",
+                "level": 2
+            }
         ],
         "maxLevel": 1
     },
@@ -111,17 +335,86 @@
         "tree": 2,
         "row": 3,
         "costs": [
-            { "wood": 2, "rock": 2, "iron": 2 },
-            { "wood": 5, "rock": 5, "iron": 5 },
-            { "wood": 10, "rock": 10, "iron": 10 },
-            { "wood": 20, "rock": 20, "iron": 20 },
-            { "wood": 40, "rock": 40, "iron": 40 }
+            {
+                "wood": 2,
+                "rock": 2,
+                "iron": 2
+            },
+            {
+                "wood": 5,
+                "rock": 5,
+                "iron": 5
+            },
+            {
+                "wood": 10,
+                "rock": 10,
+                "iron": 10
+            },
+            {
+                "wood": 20,
+                "rock": 20,
+                "iron": 20
+            },
+            {
+                "wood": 40,
+                "rock": 40,
+                "iron": 40
+            }
         ],
-        "researchTimes": [20, 45, 90, 180, 360],
+        "researchTimes": [
+            20,
+            45,
+            90,
+            180,
+            360
+        ],
         "description": "Arm Speed +40%",
         "effectProperty": "armSpeed",
         "effectValue": 0.4,
-        "prerequisites": [{ "id": "auto_arm", "level": 1 }],
+        "prerequisites": [
+            {
+                "id": "auto_arm",
+                "level": 1
+            }
+        ],
         "maxLevel": 5
+    },
+    {
+        "id": "arm_sync",
+        "name": "Quantum Sync",
+        "tree": 2,
+        "row": 4,
+        "costs": [
+            {
+                "wood": 20,
+                "rock": 20,
+                "iron": 50
+            },
+            {
+                "wood": 50,
+                "rock": 50,
+                "iron": 120
+            },
+            {
+                "wood": 100,
+                "rock": 100,
+                "iron": 250
+            }
+        ],
+        "researchTimes": [
+            60,
+            120,
+            240
+        ],
+        "description": "Arm collection reduces research time by +1s",
+        "effectProperty": "researchBonus",
+        "effectValue": 1,
+        "prerequisites": [
+            {
+                "id": "arm_speed",
+                "level": 1
+            }
+        ],
+        "maxLevel": 3
     }
 ]

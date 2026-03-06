@@ -422,7 +422,8 @@ export class GameScene extends Phaser.Scene {
         if (!this.gameStats.isColorUnlocked) res.setTint(0x444444);
         
         const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Phaser.Math.Angle.Between(x, y, Math.random()*this.scale.width, Math.random()*this.scale.height);
-        const speed = (isWhiteHole ? Phaser.Math.Between(150, 250) : Phaser.Math.Between(50, 100)) * (isHighDim ? 0.5 : 1);
+        const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(50, 100);
+        const speed = baseSpeed * (isHighDim ? 0.5 : 1);
         res.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
         res.body.setAngularVelocity(Phaser.Math.Between(45, 180));
     }

@@ -89,15 +89,6 @@ export class RoboticArm {
         this.state = 'retracting';
         if (!this.grabbedResource) return;
 
-        // 특수 아이템(화이트홀, 부스트)인 경우 즉시 콜백을 실행하고 빈 손으로 돌아옴
-        if (this.grabbedResource.itemType === 'special') {
-            const res = this.grabbedResource;
-            this.grabbedResource = null; // 잡은 자원 해제
-            collectCallback(res, true);
-            this.retractWithoutResource(null as any); // 빈 팔로 회수
-            return;
-        }
-
         this.grabbedResource.body.setEnable(false);
         const isHighDim = this.grabbedResource.isHighDim || false;
         const distance = Phaser.Math.Distance.Between(this.target.x, this.target.y, this.spiralCenter.x, this.spiralCenter.y);

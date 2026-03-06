@@ -25,7 +25,7 @@ export class GameScene extends Phaser.Scene {
     private uiContainer!: Phaser.GameObjects.Container;
     private gameStats!: GameStats;
     private skillTreeUI!: SkillTreeUI;
-    private renderer!: GameRenderer;
+    private gameRenderer!: GameRenderer;
     private arms: RoboticArm[] = [];
     private whiteHoles: Phaser.GameObjects.Container[] = [];
     private radiusMultiplier: number = 1.0;
@@ -52,9 +52,10 @@ export class GameScene extends Phaser.Scene {
         this.uiContainer = this.add.container(0, 0);
 
         // Renderer 초기화 (모든 시각 요소 위임)
-        this.renderer = new GameRenderer(this, this.worldContainer, this.uiContainer, this.gameStats, this.spiralCenter);
+        this.gameRenderer = new GameRenderer(this, this.worldContainer, this.uiContainer, this.gameStats, this.spiralCenter);
 
         // 로봇팔 초기화
+        this.arms = [];
         for (let i = 0; i < 5; i++) {
             this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter));
         }
@@ -83,7 +84,7 @@ export class GameScene extends Phaser.Scene {
 
         this.physics.add.collider(this.resources, this.resources, (obj1, obj2) => {
             const r1 = obj1 as any;
-            this.renderer.emitCollisionSpark(r1.x, r1.y);
+            this.gameRenderer.emitCollisionSpark(r1.x, r1.y);
             
             const angle = Phaser.Math.Angle.Between(r1.x, r1.y, (obj2 as any).x, (obj2 as any).y);
             const pushForce = 150;
@@ -174,7 +175,7 @@ export class GameScene extends Phaser.Scene {
 
         // 화살표 키로 블랙홀 이동
         if (this.cursors) {
-            const moveSpeed = 5;
+            const moveSpeed = this.gameStats.moveSpeed;
             if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
             if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
             if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
@@ -184,7 +185,7 @@ export class GameScene extends Phaser.Scene {
             this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
             this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
             
-            this.renderer.updateSpiralPosition();
+            this.gameRenderer.updateSpiralPosition();
         }
 
         // 화이트 홀 로직
@@ -197,11 +198,11 @@ export class GameScene extends Phaser.Scene {
         });
 
         // 로봇팔 업데이트
-        this.renderer.clearArmGraphics();
-        this.arms.forEach(arm => arm.update(delta, this.renderer, this.collectResource.bind(this)));
+        this.gameRenderer.clearArmGraphics();
+        this.arms.forEach(arm => arm.update(delta, this.gameRenderer, this.collectResource.bind(this)));
 
         // 시각 요소 업데이트
-        this.renderer.drawBoundaries(this.radiusMultiplier);
+        this.gameRenderer.drawBoundaries(this.radiusMultiplier);
 
         // 물리 및 수집 로직
         this.processResources();
@@ -276,7 +277,7 @@ export class GameScene extends Phaser.Scene {
         }
 
         const isHighDim = collectible.isHighDim || false;
-        this.renderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.getParticleTint(collectible));
+        this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.getParticleTint(collectible));
         
         this.gameStats.addCollected(collectible.resourceType, isHighDim ? 5 : 1);
         
@@ -296,7 +297,7 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        if (item.specialType === 'whitehole') this.spawnWhiteHole(item.x, item.y);
+        if (item.specialType === 'whitehole') this.spawnWhiteHole();
         else if (item.specialType === 'boost') this.triggerRadiusBoost();
         
         item.destroy();
@@ -305,7 +306,7 @@ export class GameScene extends Phaser.Scene {
 
     private triggerRadiusBoost() {
         // 기존 축소 애니메이션 제거
-        this.tweens.killTweensOf(this, 'radiusMultiplier');
+        this.tweens.killTweensOf(this);
 
         // 기존에 대기 중인 타이머가 있다면 제거 (중첩 실행 방지)
         if (this.boostTimerEvent) {
@@ -378,7 +379,7 @@ export class GameScene extends Phaser.Scene {
         this.worldContainer.add(wh);
         
         // 빅뱅 파티클 효과 방출
-        this.renderer.emitWhiteHoleSpawn(targetX, targetY);
+        this.gameRenderer.emitWhiteHoleSpawn(targetX, targetY);
         
         wh.setScale(0);
         this.tweens.add({ targets: wh, scale: 1, duration: 500, ease: 'Back.Out' });

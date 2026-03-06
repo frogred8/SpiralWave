@@ -11,6 +11,8 @@ export class GameRenderer {
     private roboticArmGraphics: Phaser.GameObjects.Graphics;
     private sparks: Phaser.GameObjects.Particles.ParticleEmitter;
     private spiralCenter: Phaser.Math.Vector2;
+    private blackHole!: Phaser.GameObjects.Arc;
+    private glow!: Phaser.GameObjects.Arc;
 
     constructor(scene: Phaser.Scene, worldContainer: Phaser.GameObjects.Container, uiContainer: Phaser.GameObjects.Container, stats: GameStats, spiralCenter: Phaser.Math.Vector2) {
         this.scene = scene;
@@ -44,18 +46,25 @@ export class GameRenderer {
     }
 
     private createSpiralVisuals() {
-        const blackHole = this.scene.add.circle(this.spiralCenter.x, this.spiralCenter.y, 8, 0x000000, 1);
-        const glow = this.scene.add.circle(this.spiralCenter.x, this.spiralCenter.y, 18, 0xffffff, 0.2);
-        this.worldContainer.add([blackHole, glow]);
+        this.blackHole = this.scene.add.circle(this.spiralCenter.x, this.spiralCenter.y, 8, 0x000000, 1);
+        this.glow = this.scene.add.circle(this.spiralCenter.x, this.spiralCenter.y, 18, 0xffffff, 0.2);
+        this.worldContainer.add([this.blackHole, this.glow]);
         
         this.scene.tweens.add({
-            targets: glow,
+            targets: this.glow,
             alpha: 0.5,
             scale: 1.3,
             duration: 1500,
             yoyo: true,
             loop: -1
         });
+    }
+
+    public updateSpiralPosition() {
+        if (this.blackHole && this.glow) {
+            this.blackHole.setPosition(this.spiralCenter.x, this.spiralCenter.y);
+            this.glow.setPosition(this.spiralCenter.x, this.spiralCenter.y);
+        }
     }
 
     private createParticleEmitter(): Phaser.GameObjects.Particles.ParticleEmitter {

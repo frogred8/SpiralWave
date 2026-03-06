@@ -31,6 +31,7 @@ export class GameScene extends Phaser.Scene {
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
     private spawnTimer!: Phaser.Time.TimerEvent;
+    private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
     constructor() {
         super('GameScene');
@@ -67,6 +68,10 @@ export class GameScene extends Phaser.Scene {
 
         this.input.on('pointerdown', this.handleInput, this);
         this.gameStats.on('skillUpgraded', this.updateSpawnTimer, this);
+        
+        if (this.input.keyboard) {
+            this.cursors = this.input.keyboard.createCursorKeys();
+        }
     }
 
     private setupPhysics() {
@@ -166,6 +171,21 @@ export class GameScene extends Phaser.Scene {
 
     update(time: number, delta: number) {
         this.gameStats.update(delta, this.cache.json.get('skillTreeData'));
+
+        // 화살표 키로 블랙홀 이동
+        if (this.cursors) {
+            const moveSpeed = 5;
+            if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
+            if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
+            if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
+            if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
+            
+            // 화면 경계 제한
+            this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
+            this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
+            
+            this.renderer.updateSpiralPosition();
+        }
 
         // 화이트 홀 로직
         this.whiteHoles.forEach(wh => {

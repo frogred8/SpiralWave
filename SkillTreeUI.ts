@@ -79,15 +79,9 @@ export class SkillTreeUI {
                 const currentLevel = this.gameStats.skillLevels[skill.id];
                 const isMaxLevel = currentLevel >= skill.maxLevel;
                 
-                // 수치 변화 계산
-                const currentVal = this.getFormattedValue(skill, currentLevel);
-                const nextVal = !isMaxLevel ? this.getFormattedValue(skill, currentLevel + 1) : '';
-                const bonusVal = this.getFormattedBonus(skill, currentLevel);
-                const propertyName = this.getPropertyName(skill.effectProperty);
+                const dynamicDesc = this.getDynamicDescription(skill, currentLevel);
+                this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})\n${dynamicDesc}`);
                 
-                const effectText = !isMaxLevel ? `\nEffect: ${currentVal} -> ${nextVal}` : `\n${propertyName} ${bonusVal}`;
-                
-                this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})${effectText}\n${skill.description}`);
                 this.costLines.forEach(l => l.setText('').setVisible(false));
 
                 let currentY = this.tipText.y + this.tipText.height + 10;
@@ -378,6 +372,26 @@ export class SkillTreeUI {
             yoyo: true,
             ease: 'Sine.easeInOut'
         });
+    }
+
+    private getDynamicDescription(skill: SkillData, level: number): string {
+        const isMaxLevel = level >= skill.maxLevel;
+        if (isMaxLevel) {
+            const propertyName = this.getPropertyName(skill.effectProperty);
+            const bonusVal = this.getFormattedBonus(skill, level);
+            return `${skill.description}\n(Total: ${propertyName} ${bonusVal})`;
+        }
+
+        const currentVal = this.getFormattedValue(skill, level);
+        const nextVal = this.getFormattedValue(skill, level + 1);
+        
+        // 숫자가 포함된 부분(+1, 0.5, 3% 등)을 찾아 "현재값 -> 다음값"으로 변환
+        const regex = /[+-]?\d+(\.\d+)?%?/;
+        if (regex.test(skill.description)) {
+            return skill.description.replace(regex, `${currentVal} -> ${nextVal}`);
+        }
+        
+        return skill.description;
     }
 
     private getFormattedValue(skill: SkillData, level: number): string {

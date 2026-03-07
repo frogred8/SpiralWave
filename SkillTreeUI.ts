@@ -156,7 +156,8 @@ export class SkillTreeUI {
                     }
                 }
 
-                this.tipBg.height = currentY + 10;
+                // 배경 크기 및 외곽선 업데이트
+                this.tipBg.setSize(200, currentY + 10);
                 this.tooltip.setVisible(true).setPosition(p.x + 10, p.y + 10);
             });
             btn.on('pointerout', () => {

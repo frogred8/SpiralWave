@@ -34,6 +34,8 @@ export class RoboticArm {
     public update(delta: number, renderer: GameRenderer, collectCallback: (res: Collectible, byArm: boolean) => void) {
         if (this.state === 'extending') {
             this.handleExtending(delta, collectCallback, renderer);
+        } else if (this.state === 'retracting') {
+            this.handleRetracting(delta, collectCallback);
         }
 
         if (this.state === 'idle') return;
@@ -65,24 +67,35 @@ export class RoboticArm {
         }
     }
 
+    private handleRetracting(delta: number, collectCallback: (res: Collectible, byArm: boolean) => void) {
+        const factor = this.stats.armSpeedFactor;
+        const isHighDim = this.grabbedResource?.isHighDim || false;
+        const baseRetractSpeed = 800;
+        const speedMultiplier = isHighDim ? 0.25 : 1.0;
+        const speed = baseRetractSpeed * factor * speedMultiplier;
+
+        const distance = Phaser.Math.Distance.Between(this.target.x, this.target.y, this.spiralCenter.x, this.spiralCenter.y);
+        const moveStep = (speed * delta) / 1000;
+
+        if (distance <= moveStep) {
+            this.target.copy(this.spiralCenter);
+            if (this.grabbedResource) {
+                collectCallback(this.grabbedResource, true);
+                this.grabbedResource = null;
+            }
+            this.state = 'idle';
+            this.extensionProgress = 0;
+        } else {
+            const dirX = (this.spiralCenter.x - this.target.x) / distance;
+            const dirY = (this.spiralCenter.y - this.target.y) / distance;
+            this.target.x += dirX * moveStep;
+            this.target.y += dirY * moveStep;
+        }
+    }
+
     private retractWithoutResource(renderer: GameRenderer) {
         this.state = 'retracting';
         this.grabbedResource = null;
-        const distance = Phaser.Math.Distance.Between(this.target.x, this.target.y, this.spiralCenter.x, this.spiralCenter.y);
-        const factor = this.stats.armSpeedFactor;
-        const retractDuration = (distance / (800 * factor)) * 1000;
-
-        this.scene.tweens.add({
-            targets: this.target,
-            x: this.spiralCenter.x,
-            y: this.spiralCenter.y,
-            duration: retractDuration,
-            ease: 'Linear',
-            onComplete: () => {
-                this.state = 'idle';
-                this.extensionProgress = 0;
-            }
-        });
     }
 
     private startRetracting(collectCallback: (res: Collectible, byArm: boolean) => void) {
@@ -90,27 +103,6 @@ export class RoboticArm {
         if (!this.grabbedResource) return;
 
         this.grabbedResource.body.setEnable(false);
-        const isHighDim = this.grabbedResource.isHighDim || false;
-        const distance = Phaser.Math.Distance.Between(this.target.x, this.target.y, this.spiralCenter.x, this.spiralCenter.y);
-        const factor = this.stats.armSpeedFactor;
-        const speedMultiplier = isHighDim ? 0.25 : 1.0;
-        const retractDuration = (distance / (800 * factor * speedMultiplier)) * 1000;
-
-        this.scene.tweens.add({
-            targets: this.target,
-            x: this.spiralCenter.x,
-            y: this.spiralCenter.y,
-            duration: retractDuration,
-            ease: 'Linear',
-            onComplete: () => {
-                if (this.grabbedResource) {
-                    collectCallback(this.grabbedResource, true);
-                    this.grabbedResource = null;
-                }
-                this.state = 'idle';
-                this.extensionProgress = 0;
-            }
-        });
     }
 
     public fire(target: Collectible, time: number) {

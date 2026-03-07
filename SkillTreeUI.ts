@@ -257,7 +257,7 @@ export class SkillTreeUI {
                 data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s (${Math.floor(progress * 100)}%)`);
                 data.lvTxt.setColor('#ffff00');
             } else if (isResearching) {
-                data.lvTxt.setText(`Queued (${researchIndex + 1})`);
+                data.lvTxt.setText(`Queued (${researchIndex})`);
                 data.lvTxt.setColor('#00ffff');
             } else {
                 data.lvTxt.setText(`Lv. ${lv}/${skill.maxLevel}`);
@@ -277,7 +277,8 @@ export class SkillTreeUI {
                 bg.setFillStyle(0x006600); 
                 bg.setStrokeStyle(3, 0x00ff00); 
                 nameTxt.setColor('#ffffff');
-                btn.disableInteractive(); 
+                // 인터랙션은 유지하되(툴팁용), 클릭 손가락 커서는 비활성화
+                btn.setInteractive({ useHandCursor: false }); 
             } else if (!isUnlocked) {
                 btn.setAlpha(0.5);
                 bg.setFillStyle(this.buttonDisabledBgColor);

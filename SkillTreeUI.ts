@@ -78,9 +78,13 @@ export class SkillTreeUI {
                 
                 const currentLevel = this.gameStats.skillLevels[skill.id];
                 const isMaxLevel = currentLevel >= skill.maxLevel;
-                const nextLevelEffect = !isMaxLevel ? `\nNext: ${skill.description}` : `\n(Active: ${skill.description})`;
                 
-                this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})${nextLevelEffect}`);
+                // 수치 변화 계산
+                const currentVal = this.getFormattedValue(skill, currentLevel);
+                const nextVal = !isMaxLevel ? this.getFormattedValue(skill, currentLevel + 1) : '';
+                const effectText = !isMaxLevel ? `\nEffect: ${currentVal} -> ${nextVal}` : `\nTotal Bonus: ${currentVal}`;
+                
+                this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})${effectText}\n${skill.description}`);
                 this.costLines.forEach(l => l.setText('').setVisible(false));
 
                 let currentY = this.tipText.y + this.tipText.height + 10;
@@ -371,5 +375,40 @@ export class SkillTreeUI {
             yoyo: true,
             ease: 'Sine.easeInOut'
         });
+    }
+
+    private getFormattedValue(skill: SkillData, level: number): string {
+        const base = this.getInitialValue(skill.effectProperty);
+        const total = base + (skill.effectValue * level);
+        
+        switch(skill.effectProperty) {
+            case 'radius': return `${Math.floor(total)}`;
+            case 'force': return `${total.toFixed(1)}`;
+            case 'highDimProb': return `${(total * 100).toFixed(0)}%`;
+            case 'maxArms': return `${total}`;
+            case 'autoArm': return level > 0 ? 'ON' : 'OFF';
+            case 'armSpeed': return `${total.toFixed(1)}x`;
+            case 'maxResearchSlots': return `${total}`;
+            case 'spawnRate': return `${total.toFixed(1)}x`;
+            case 'researchBonus': return `+${total}s`;
+            case 'moveSpeed': return `${total.toFixed(2)}`;
+            default: return `${total}`;
+        }
+    }
+
+    private getInitialValue(property: string): number {
+        switch(property) {
+            case 'radius': return 200;
+            case 'force': return 0.5;
+            case 'highDimProb': return 0.0;
+            case 'maxArms': return 1;
+            case 'autoArm': return 0;
+            case 'armSpeed': return 1.0;
+            case 'maxResearchSlots': return 1;
+            case 'spawnRate': return 1.0;
+            case 'researchBonus': return 0;
+            case 'moveSpeed': return 0;
+            default: return 0;
+        }
     }
 }

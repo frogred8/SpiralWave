@@ -35,6 +35,7 @@
   <div class="btn-group" style="margin-bottom: 20px;">
     <button onclick="addNode()">+ Add Skill</button>
     <button onclick="saveData()" style="background: #282; border-color: #3a3; font-weight: bold;">💾 Save Changes</button>
+    <button onclick="deleteNode()" style="background: #a22; border-color: #c44;">Delete Skill</button>
   </div>
   <div id="form-container" style="display: none;">
     <div class="form-group"><label>ID</label><input type="text" id="f-id" onchange="updateNode()"></div>
@@ -52,6 +53,8 @@
     <div class="form-group"><label>Prerequisites (Comma separated IDs. Use ID:Level for specific level. e.g., w1, w2:2)</label><input type="text" id="f-prereq" onchange="updateNode()" placeholder="e.g. w1, w2:2"></div>
     <div class="form-group"><label>Costs & Research Times (JSON)</label><textarea id="f-json" rows="12" onchange="updateNodeFromJson()"></textarea></div>
     <div class="btn-group">
+      <button onclick="addNode()">+ Add Skill</button>
+      <button onclick="saveData()" style="background: #282; border-color: #3a3; font-weight: bold;">💾 Save Changes</button>
       <button onclick="deleteNode()" style="background: #a22; border-color: #c44;">Delete Skill</button>
     </div>
   </div>

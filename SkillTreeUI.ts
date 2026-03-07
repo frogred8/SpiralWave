@@ -77,7 +77,8 @@ export class SkillTreeUI {
                 if (data) data.bg.setStrokeStyle(3, this.buttonHoverStrokeColor);
                 
                 const currentLevel = this.gameStats.skillLevels[skill.id];
-                const nextLevelEffect = currentLevel < skill.maxLevel ? `\nNext: ${skill.description}` : '\nMax Level';
+                const isMaxLevel = currentLevel >= skill.maxLevel;
+                const nextLevelEffect = !isMaxLevel ? `\nNext: ${skill.description}` : `\n(Active: ${skill.description})`;
                 
                 this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})${nextLevelEffect}`);
                 this.costLines.forEach(l => l.setText('').setVisible(false));
@@ -85,8 +86,8 @@ export class SkillTreeUI {
                 let currentY = this.tipText.y + this.tipText.height + 10;
                 let lineIdx = 0;
 
-                // Add prerequisites
-                if (skill.prerequisites && skill.prerequisites.length > 0) {
+                // Add prerequisites (Always show if not satisfied or if still upgrading)
+                if (skill.prerequisites && skill.prerequisites.length > 0 && !isMaxLevel) {
                     const prereqTitle = this.costLines[lineIdx++];
                     prereqTitle.setText('Prerequisites:')
                         .setColor('#cccccc')
@@ -111,7 +112,7 @@ export class SkillTreeUI {
                     currentY += 5; // Extra padding
                 }
 
-                if (currentLevel < skill.maxLevel) {
+                if (!isMaxLevel) {
                     const costs = skill.costs[currentLevel];
                     const resourceTypes: ('wood' | 'rock' | 'iron')[] = ['wood', 'rock', 'iron'];
 
@@ -139,6 +140,16 @@ export class SkillTreeUI {
                         const seconds = skill.researchTimes[currentLevel];
                         timeLine.setText(`Research Time: ${seconds}s`)
                             .setColor('#ffff00')
+                            .setPosition(10, currentY)
+                            .setVisible(true);
+                        currentY += 18;
+                    }
+                } else {
+                    // Max Level specific message
+                    const maxLine = this.costLines[lineIdx++];
+                    if (maxLine) {
+                        maxLine.setText('MAX LEVEL REACHED')
+                            .setColor('#00ff00')
                             .setPosition(10, currentY)
                             .setVisible(true);
                         currentY += 18;

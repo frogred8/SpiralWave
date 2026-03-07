@@ -247,23 +247,43 @@
     },
     {
         "id": "r3",
-        "name": "Core Mobility",
+        "name": "Core Propulsion",
         "tree": 1,
         "row": 2,
         "costs": [
-            { "rock": 5, "iron": 2 },
+            { "rock": 5, "iron": 2 }
+        ],
+        "researchTimes": [ 20 ],
+        "description": "Unlock black hole movement",
+        "effectProperty": "moveSpeed",
+        "effectValue": 1.25,
+        "prerequisites": [
+            {
+                "id": "r2",
+                "level": 1
+            }
+        ],
+        "maxLevel": 1
+    },
+    {
+        "id": "r4",
+        "name": "Core Mobility",
+        "tree": 1,
+        "row": 3,
+        "costs": [
             { "rock": 10, "iron": 5 },
             { "rock": 20, "iron": 10 },
             { "rock": 40, "iron": 20 },
-            { "rock": 80, "iron": 40 }
+            { "rock": 80, "iron": 40 },
+            { "rock": 160, "iron": 80 }
         ],
-        "researchTimes": [ 15, 30, 60, 120, 240 ],
+        "researchTimes": [ 30, 60, 120, 240, 480 ],
         "description": "Black hole move speed +0.75",
         "effectProperty": "moveSpeed",
         "effectValue": 0.75,
         "prerequisites": [
             {
-                "id": "r2",
+                "id": "r3",
                 "level": 1
             }
         ],

@@ -34,7 +34,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.armSpeedFactor = 1.0;
         this.spawnRateFactor = 1.0;
         this.researchBonus = 0;
-        this.moveSpeed = 1.25; // 5 / 4 = 1.25
+        this.moveSpeed = 0; // 초기 이동 불가
         this.skillLevels = {};
         this.maxResearchSlots = 1;
 

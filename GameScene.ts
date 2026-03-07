@@ -201,6 +201,52 @@ export class GameScene extends Phaser.Scene {
         this.gameRenderer.clearArmGraphics();
         this.arms.forEach(arm => arm.update(delta, this.gameRenderer, this.collectResource.bind(this)));
 
+        // 자동 로봇팔 로직
+        if (this.gameStats.isAutoArmEnabled) {
+            const activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
+            if (activeArmsCount < this.gameStats.maxArms) {
+                this.arms.forEach(arm => {
+                    // 발사 가능한(idle이며 쿨타임이 지난) 팔 탐색
+                    if (arm.state === 'idle' && time > arm.lastFireTime + 5000) {
+                        let bestHighDim: Collectible | null = null;
+                        let bestNormal: Collectible | null = null;
+                        let minHighDimDist = 400;
+                        let minNormalDist = 400;
+
+                        this.resources.getChildren().forEach((child) => {
+                            const collectible = child as Collectible;
+                            if (!collectible.active) return;
+                            
+                            // 이미 다른 팔에 잡힌 자원은 제외
+                            const isAlreadyGrabbed = this.arms.some(a => a.grabbedResource === collectible);
+                            if (isAlreadyGrabbed) return;
+
+                            const distance = Phaser.Math.Distance.Between(this.spiralCenter.x, this.spiralCenter.y, collectible.x, collectible.y);
+                            const isHighDim = (collectible as any).isHighDim || false;
+
+                            if (isHighDim) {
+                                if (distance < minHighDimDist) {
+                                    minHighDimDist = distance;
+                                    bestHighDim = collectible;
+                                }
+                            } else {
+                                if (distance < minNormalDist) {
+                                    minNormalDist = distance;
+                                    bestNormal = collectible;
+                                }
+                            }
+                        });
+
+                        // 큰 자원 우선, 없으면 일반 자원 발사
+                        const targetResource = bestHighDim || bestNormal;
+                        if (targetResource) {
+                            arm.fire(targetResource, time);
+                        }
+                    }
+                });
+            }
+        }
+
         // 시각 요소 업데이트
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
 

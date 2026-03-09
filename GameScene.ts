@@ -192,8 +192,8 @@ export class GameScene extends Phaser.Scene {
         // 자동 그물 로직 (5초마다 커서 방향으로)
         if (this.gameStats.isNetEnabled) {
             this.netTimerAccumulator += delta;
-            if (this.netTimerAccumulator >= 5000) {
-                this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY);
+            if (this.netTimerAccumulator >= 1000) {
+                this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, 800);
                 this.netTimerAccumulator = 0;
             }
         }
@@ -346,11 +346,10 @@ export class GameScene extends Phaser.Scene {
         collectible.destroy();
     }
 
-    private fireNet(targetX: number, targetY: number) {
-        this.gameRenderer.drawNet(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
+    private fireNet(targetX: number, targetY: number, distance: number) {
+        this.gameRenderer.drawNet(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY, distance);
 
         const angleToTarget = Phaser.Math.Angle.Between(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
-        const distance = 300;
         const spread = Math.PI / 4;
 
         this.resources.getChildren().forEach((child) => {
@@ -364,7 +363,21 @@ export class GameScene extends Phaser.Scene {
             const diff = Phaser.Math.Angle.ShortestBetween(Phaser.Math.RadToDeg(angleToTarget), Phaser.Math.RadToDeg(angleToRes));
 
             if (Math.abs(diff) <= Phaser.Math.RadToDeg(spread) / 2) {
-                this.collectResource(res, true);
+                // 물리 엔진 정지 및 중심으로 끌어당기기
+                res.body.setEnable(false);
+                
+                this.tweens.add({
+                    targets: res,
+                    x: this.spiralCenter.x,
+                    y: this.spiralCenter.y,
+                    duration: 600, // 로봇팔보다는 빠르게 끌어옴
+                    ease: 'Power2',
+                    onComplete: () => {
+                        if (res.active) {
+                            this.collectResource(res, true);
+                        }
+                    }
+                });
             }
         });
     }

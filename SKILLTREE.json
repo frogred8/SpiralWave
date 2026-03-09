@@ -89,6 +89,32 @@
         "maxLevel": 5
     },
     {
+        "id": "q3",
+        "name": "Resource Net",
+        "tree": 0,
+        "row": 2,
+        "costs": [
+            {
+                "wood": 50,
+                "rock": 30,
+                "iron": 10
+            }
+        ],
+        "researchTimes": [
+            60
+        ],
+        "description": "Auto-fires a cone net every 5s towards cursor",
+        "effectProperty": "net",
+        "effectValue": 1,
+        "prerequisites": [
+            {
+                "id": "q2",
+                "level": 1
+            }
+        ],
+        "maxLevel": 1
+    },
+    {
         "id": "r1",
         "name": "Dense Core",
         "tree": 1,
@@ -343,7 +369,7 @@
         "id": "f2",
         "name": "Extra Arm II",
         "tree": 2,
-        "row": 1,
+        "row": 4,
         "costs": [
             {
                 "iron": 5,
@@ -356,14 +382,14 @@
         ],
         "researchTimes": [
             3,
-            15
+            10
         ],
         "description": "Max Arms +1",
         "effectProperty": "maxArms",
         "effectValue": 1,
         "prerequisites": [
             {
-                "id": "f1",
+                "id": "arm_speed",
                 "level": 1
             }
         ],
@@ -382,7 +408,7 @@
             }
         ],
         "researchTimes": [
-            20
+            10
         ],
         "description": "Auto-activates idle arms",
         "effectProperty": "autoArm",
@@ -393,8 +419,8 @@
                 "level": 1
             },
             {
-                "id": "f2",
-                "level": 2
+                "id": "arm_sync",
+                "level": 1
             }
         ],
         "maxLevel": 1
@@ -432,7 +458,7 @@
             }
         ],
         "researchTimes": [
-            20,
+            10,
             45,
             90,
             180,
@@ -453,33 +479,23 @@
         "id": "arm_sync",
         "name": "Quantum Sync",
         "tree": 2,
-        "row": 4,
+        "row": 1,
         "costs": [
             {
-                "wood": 20,
-                "rock": 20,
-                "iron": 50
-            },
-            {
-                "wood": 50,
-                "rock": 50,
-                "iron": 120
-            },
-            {
-                "wood": 100,
-                "rock": 100,
-                "iron": 250
+                "wood": 10,
+                "rock": 10,
+                "iron": 10
             }
         ],
         "researchTimes": [
-            60
+            10
         ],
-        "description": "Arm collection reduces research time by +1s",
+        "description": "Arm collection reduces research time by 1s",
         "effectProperty": "researchBonus",
         "effectValue": 1,
         "prerequisites": [
             {
-                "id": "arm_speed",
+                "id": "f1",
                 "level": 1
             }
         ],

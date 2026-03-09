@@ -142,4 +142,35 @@ export class GameRenderer {
         });
         this.sparks.emitParticle(30, x, y);
     }
+
+    public drawNet(startX: number, startY: number, targetX: number, targetY: number) {
+        const graphics = this.scene.add.graphics();
+        this.worldContainer.add(graphics);
+
+        const angle = Phaser.Math.Angle.Between(startX, startY, targetX, targetY);
+        const distance = 300; // 그물 사거리
+        const spread = Math.PI / 4; // 45도
+
+        this.scene.tweens.add({
+            targets: { progress: 0 },
+            progress: 1,
+            duration: 500,
+            onUpdate: (tween) => {
+                const p = (tween as any).getValue();
+                graphics.clear();
+                graphics.lineStyle(2, 0x00ffff, 1 - p);
+                graphics.fillStyle(0x00ffff, (1 - p) * 0.2);
+
+                graphics.beginPath();
+                graphics.moveTo(startX, startY);
+                graphics.arc(startX, startY, distance * p, angle - spread / 2, angle + spread / 2);
+                graphics.closePath();
+                graphics.fillPath();
+                graphics.strokePath();
+            },
+            onComplete: () => {
+                graphics.destroy();
+            }
+        });
+    }
 }

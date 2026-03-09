@@ -80,7 +80,7 @@ export class SkillTreeUI {
                 const isMaxLevel = currentLevel >= skill.maxLevel;
                 
                 const dynamicDesc = this.getDynamicDescription(skill, currentLevel);
-                this.tipText.setText(`${skill.name} (Lv. ${currentLevel}/${skill.maxLevel})\n${dynamicDesc}`);
+                this.tipText.setText(`${dynamicDesc}`);
                 
                 this.costLines.forEach(l => l.setText('').setVisible(false));
 
@@ -237,6 +237,7 @@ export class SkillTreeUI {
     private refreshSkillTreeUI() {
         this.lineGraphics.clear();
 
+        let queueIndex = 0;
         this.skillTreeData.forEach(skill => {
             const btn = this.skillButtons[skill.id];
             if (!btn) return;
@@ -252,13 +253,15 @@ export class SkillTreeUI {
             const researchIndex = this.gameStats.activeResearches.findIndex(r => r.skillId === skill.id);
             const { isActiveResearch, isResearching } = this.getResearchState(researchIndex);
 
+
             if (isActiveResearch) {
                 const research = this.gameStats.activeResearches[researchIndex];
                 const progress = 1 - (research.remainingTime / research.totalTime);
                 data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s (${Math.floor(progress * 100)}%)`);
                 data.lvTxt.setColor('#ffff00');
             } else if (isResearching) {
-                data.lvTxt.setText(`Queued (${researchIndex})`);
+                queueIndex++;
+                data.lvTxt.setText(`Queued (${researchIndex - this.gameStats.maxResearchSlots + 1})`);
                 data.lvTxt.setColor('#00ffff');
             } else {
                 data.lvTxt.setText(`Lv. ${lv}/${skill.maxLevel}`);
@@ -375,11 +378,12 @@ export class SkillTreeUI {
     }
 
     private getDynamicDescription(skill: SkillData, level: number): string {
+        let text = `${skill.name} (Lv. ${level}/${skill.maxLevel})\n`;
         const isMaxLevel = level >= skill.maxLevel;
         if (isMaxLevel) {
             const propertyName = this.getPropertyName(skill.effectProperty);
             const bonusVal = this.getFormattedBonus(skill, level);
-            return `${skill.description}\n(Total: ${propertyName} ${bonusVal})`;
+            return `${text}${propertyName} ${bonusVal}`;
         }
 
         const currentVal = this.getFormattedValue(skill, level);
@@ -388,10 +392,10 @@ export class SkillTreeUI {
         // 숫자가 포함된 부분(+1, 0.5, 3% 등)을 찾아 "현재값 -> 다음값"으로 변환
         const regex = /[+-]?\d+(\.\d+)?%?/;
         if (regex.test(skill.description)) {
-            return skill.description.replace(regex, `${currentVal} -> ${nextVal}`);
+            return `${text}${skill.description.replace(regex, `${currentVal} -> ${nextVal}`)}`;
         }
         
-        return skill.description;
+        return `${text}${skill.description}`;
     }
 
     private getFormattedValue(skill: SkillData, level: number): string {
@@ -407,7 +411,7 @@ export class SkillTreeUI {
             case 'armSpeed': return `${total.toFixed(1)}x`;
             case 'maxResearchSlots': return `${total}`;
             case 'spawnRate': return `${total.toFixed(1)}x`;
-            case 'researchBonus': return `+${total}s`;
+            case 'researchBonus': return `${total}s reduction`;
             case 'moveSpeed': return `${total.toFixed(2)}`;
             default: return `${total}`;
         }
@@ -439,8 +443,9 @@ export class SkillTreeUI {
             case 'armSpeed': return 'Arm Speed';
             case 'maxResearchSlots': return 'Max Research Slots';
             case 'spawnRate': return 'Spawn Rate';
-            case 'researchBonus': return 'Research Bonus';
+            case 'researchBonus': return 'Research Reduction';
             case 'moveSpeed': return 'Move Speed';
+            case 'net': return 'Resource Net';
             default: return property;
         }
     }
@@ -452,9 +457,10 @@ export class SkillTreeUI {
         switch(skill.effectProperty) {
             case 'highDimProb': return `${sign}${(bonus * 100).toFixed(0)}%`;
             case 'autoArm': return level > 0 ? 'Enabled' : 'Disabled';
+            case 'net': return level > 0 ? 'Activated' : 'Locked';
             case 'armSpeed': 
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;
-            case 'researchBonus': return `${sign}${bonus}s`;
+            case 'researchBonus': return `${bonus}s reduction`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }
     }

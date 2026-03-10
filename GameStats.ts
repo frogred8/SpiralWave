@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { SkillData } from './SkillData';
+import { INITIAL_STATS } from './Constants';
 
 export class GameStats extends Phaser.Events.EventEmitter {
     public force: number;
@@ -23,22 +24,22 @@ export class GameStats extends Phaser.Events.EventEmitter {
 
     constructor(skillTreeData: SkillData[]) {
         super();
-        this.force = 0.5;
-        this.radius = 200;
-        this.highDimProb = 0.0;
+        this.force = INITIAL_STATS.FORCE;
+        this.radius = INITIAL_STATS.RADIUS;
+        this.highDimProb = INITIAL_STATS.HIGH_DIM_PROB;
         this.collected = { rock: 0, wood: 0, iron: 0 };
         this.isInitialPhase = false;
         this.isColorUnlocked = false;
-        this.maxResources = 300;
-        this.maxArms = 1;
+        this.maxResources = INITIAL_STATS.MAX_RESOURCES;
+        this.maxArms = INITIAL_STATS.MAX_ARMS;
         this.isAutoArmEnabled = false;
-        this.armSpeedFactor = 1.0;
-        this.spawnRateFactor = 1.0;
-        this.researchBonus = 0;
-        this.moveSpeed = 0; // 초기 이동 불가
+        this.armSpeedFactor = INITIAL_STATS.ARM_SPEED_FACTOR;
+        this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
+        this.researchBonus = INITIAL_STATS.RESEARCH_BONUS;
+        this.moveSpeed = INITIAL_STATS.MOVE_SPEED;
         this.isNetEnabled = false;
         this.skillLevels = {};
-        this.maxResearchSlots = 1;
+        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
 
         // Initialize all skill levels to 0
         skillTreeData.forEach(skill => {

@@ -3,6 +3,7 @@ import { GameStats } from './GameStats';
 import { SkillTreeUI } from './SkillTreeUI';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm, Collectible } from './RoboticArm';
+import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG } from './Constants';
 
 interface Resource extends Phaser.GameObjects.Text {
     resourceType: 'rock' | 'wood' | 'iron';
@@ -15,8 +16,6 @@ interface SpecialItem extends Phaser.GameObjects.Text {
     specialType: 'whitehole' | 'boost';
     body: Phaser.Physics.Arcade.Body;
 }
-
-const WHITE_HOLE_DURATION = 2000; // 화이트홀 유지 시간 (ms)
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -88,19 +87,19 @@ export class GameScene extends Phaser.Scene {
             this.gameRenderer.emitCollisionSpark(r1.x, r1.y);
             
             const angle = Phaser.Math.Angle.Between(r1.x, r1.y, (obj2 as any).x, (obj2 as any).y);
-            const pushForce = 150;
+            const pushForce = PHYSICS_CONFIG.PUSH_FORCE;
             r1.body.velocity.x -= Math.cos(angle) * pushForce;
             r1.body.velocity.y -= Math.sin(angle) * pushForce;
             (obj2 as any).body.velocity.x += Math.cos(angle) * pushForce;
             (obj2 as any).body.velocity.y += Math.sin(angle) * pushForce;
         });
 
-        (this.physics.world as any).OVERLAP_BIAS = 100;
+        (this.physics.world as any).OVERLAP_BIAS = PHYSICS_CONFIG.OVERLAP_BIAS;
     }
 
     private setupTimers() {
         this.spawnTimer = this.time.addEvent({ 
-            delay: Math.max(100, 1000 / (this.gameStats.spawnRateFactor || 1)), 
+            delay: Math.max(100, RESOURCE_CONFIG.SPAWN_INTERVAL_BASE / (this.gameStats.spawnRateFactor || 1)), 
             callback: this.spawnResource, 
             callbackScope: this, 
             loop: true 
@@ -114,7 +113,7 @@ export class GameScene extends Phaser.Scene {
         });
 
         this.time.addEvent({ 
-            delay: 15000, 
+            delay: DURATIONS.SPECIAL_ITEM_SPAWN, 
             callback: this.spawnSpecialItem, 
             callbackScope: this, 
             loop: true 
@@ -126,7 +125,7 @@ export class GameScene extends Phaser.Scene {
             this.spawnTimer.remove();
         }
         this.spawnTimer = this.time.addEvent({
-            delay: Math.max(100, 1000 / (this.gameStats.spawnRateFactor || 1)),
+            delay: Math.max(100, RESOURCE_CONFIG.SPAWN_INTERVAL_BASE / (this.gameStats.spawnRateFactor || 1)),
             callback: this.spawnResource,
             callbackScope: this,
             loop: true

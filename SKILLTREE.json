@@ -3,7 +3,7 @@
         "id": "q1",
         "name": "Big Resource I",
         "tree": 0,
-        "row": 0,
+        "row": 2,
         "costs": [
             {
                 "wood": 2
@@ -37,7 +37,13 @@
         "description": "Big resource probability +3% (Max +15%)",
         "effectProperty": "highDimProb",
         "effectValue": 0.03,
-        "maxLevel": 5
+        "maxLevel": 5,
+        "prerequisites": [
+            {
+                "id": "q2",
+                "level": 1
+            }
+        ]
     },
     {
         "id": "q2",
@@ -82,7 +88,7 @@
         "effectValue": 0.3,
         "prerequisites": [
             {
-                "id": "q1",
+                "id": "q3",
                 "level": 1
             }
         ],
@@ -92,26 +98,18 @@
         "id": "q3",
         "name": "Resource Net",
         "tree": 0,
-        "row": 2,
+        "row": 0,
         "costs": [
             {
-                "wood": 50,
-                "rock": 30,
-                "iron": 10
+                "iron": 1
             }
         ],
         "researchTimes": [
-            60
+            2
         ],
-        "description": "Auto-fires a cone net every 5s towards cursor",
+        "description": "Auto-fires a cone net every 1s towards cursor",
         "effectProperty": "net",
         "effectValue": 1,
-        "prerequisites": [
-            {
-                "id": "q2",
-                "level": 1
-            }
-        ],
         "maxLevel": 1
     },
     {

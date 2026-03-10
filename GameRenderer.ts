@@ -143,12 +143,11 @@ export class GameRenderer {
         this.sparks.emitParticle(30, x, y);
     }
 
-    public drawNet(startX: number, startY: number, targetX: number, targetY: number) {
+    public drawNet(startX: number, startY: number, targetX: number, targetY: number, distance: number) {
         const graphics = this.scene.add.graphics();
         this.worldContainer.add(graphics);
 
         const angle = Phaser.Math.Angle.Between(startX, startY, targetX, targetY);
-        const distance = 300; // 그물 사거리
         const spread = Math.PI / 4; // 45도
 
         this.scene.tweens.add({

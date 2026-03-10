@@ -1,0 +1,164 @@
+import Phaser from 'phaser';
+import { GameStats } from './GameStats';
+import { GameRenderer } from './GameRenderer';
+import { Utils } from './Utils';
+import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS } from './Constants';
+import { Collectible } from './RoboticArm';
+
+export interface Resource extends Phaser.GameObjects.Text {
+    resourceType: 'rock' | 'wood' | 'iron';
+    isHighDim: boolean;
+    body: Phaser.Physics.Arcade.Body;
+}
+
+export interface SpecialItem extends Phaser.GameObjects.Text {
+    itemType: 'special';
+    specialType: 'whitehole' | 'boost';
+    body: Phaser.Physics.Arcade.Body;
+}
+
+export class ResourceManager {
+    private scene: Phaser.Scene;
+    private stats: GameStats;
+    private renderer: GameRenderer;
+    private resources: Phaser.Physics.Arcade.Group;
+    private worldContainer: Phaser.GameObjects.Container;
+    private spiralCenter: Phaser.Math.Vector2;
+    private whiteHoles: Phaser.GameObjects.Container[] = [];
+
+    constructor(scene: Phaser.Scene, stats: GameStats, renderer: GameRenderer, worldContainer: Phaser.GameObjects.Container, spiralCenter: Phaser.Math.Vector2) {
+        this.scene = scene;
+        this.stats = stats;
+        this.renderer = renderer;
+        this.worldContainer = worldContainer;
+        this.spiralCenter = spiralCenter;
+
+        this.resources = this.scene.physics.add.group({
+            bounceX: 0.8,
+            bounceY: 0.8,
+            collideWorldBounds: false
+        });
+    }
+
+    public getGroup(): Phaser.Physics.Arcade.Group {
+        return this.resources;
+    }
+
+    public getWhiteHoles(): Phaser.GameObjects.Container[] {
+        return this.whiteHoles;
+    }
+
+    public spawnResource() {
+        if (this.resources.getLength() >= INITIAL_STATS.MAX_RESOURCES) return;
+
+        const { width, height } = this.scene.scale;
+        const { x, y } = Utils.getRandomEdgePosition(width, height);
+        this.createResourceAt(x, y);
+    }
+
+    public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {
+        const types = RESOURCE_CONFIG.TYPES;
+        const type = types[Phaser.Math.Between(0, types.length - 1)];
+        const isHighDim = Math.random() < this.stats.highDimProb;
+        
+        const icon = this.getIcon(type);
+        const res = this.scene.add.text(x, y, icon, { 
+            fontSize: isHighDim ? '60px' : '24px' 
+        }).setOrigin(0.5) as Resource;
+        
+        res.resourceType = type;
+        res.isHighDim = isHighDim;
+        this.scene.physics.add.existing(res);
+        this.resources.add(res);
+        this.worldContainer.add(res);
+        
+        const radius = isHighDim ? 30 : 12;
+        res.body.setCircle(radius, (res.width - radius * 2) / 2, (res.height - radius * 2) / 2);
+        
+        if (!this.stats.isColorUnlocked) res.setTint(0x444444);
+        
+        const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Utils.getAngle(x, y, Math.random() * this.scene.scale.width, Math.random() * this.scene.scale.height);
+        const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(150, 250);
+        const speed = baseSpeed * (isHighDim ? 0.5 : 1);
+        
+        res.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+        res.body.setAngularVelocity(Phaser.Math.Between(45, 180));
+    }
+
+    public spawnSpecialItem() {
+        const { width, height } = this.scene.scale;
+        const { x, y } = Utils.getRandomEdgePosition(width, height);
+
+        const type = Math.random() > 0.5 ? 'whitehole' : 'boost';
+        const item = this.scene.add.text(x, y, this.getIcon(type), { fontSize: '40px' }).setOrigin(0.5) as SpecialItem;
+        item.itemType = 'special';
+        item.specialType = type;
+        
+        this.scene.physics.add.existing(item);
+        this.resources.add(item);
+        this.worldContainer.add(item);
+        item.body.setCircle(20);
+
+        const randomAngle = Math.random() * Math.PI * 2;
+        const targetX = this.spiralCenter.x + Math.cos(randomAngle) * this.stats.radius;
+        const targetY = this.spiralCenter.y + Math.sin(randomAngle) * this.stats.radius;
+        
+        const dir = new Phaser.Math.Vector2(targetX - x, targetY - y).normalize();
+        const speed = 120;
+        item.body.setVelocity(dir.x * speed, dir.y * speed);
+        item.body.setAngularVelocity(90);
+
+        this.scene.tweens.add({ targets: item, scale: 1.3, alpha: 0.7, duration: 800, yoyo: true, loop: -1 });
+    }
+
+    public spawnWhiteHole(x?: number, y?: number) {
+        const { width, height } = this.scene.scale;
+        let targetX = x;
+        let targetY = y;
+
+        if (targetX === undefined || targetY === undefined) {
+            let dist;
+            do {
+                targetX = Phaser.Math.Between(200, width - 200);
+                targetY = Phaser.Math.Between(200, height - 200);
+                dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
+            } while (dist < this.stats.radius || dist > 600);
+        }
+
+        const wh = this.scene.add.container(targetX, targetY);
+        wh.add([this.scene.add.circle(0, 0, 15, 0xcfcfcf, 0.8), this.scene.add.circle(0, 0, 20, 0xffffff, 0.2).setStrokeStyle(2, 0xffffff)]);
+        this.worldContainer.add(wh);
+        
+        this.renderer.emitWhiteHoleSpawn(targetX, targetY);
+        
+        wh.setScale(0);
+        this.scene.tweens.add({ targets: wh, scale: 1, duration: 500, ease: 'Back.Out' });
+        (wh as any).lastSpawnTime = 0;
+        this.whiteHoles.push(wh);
+
+        this.scene.time.delayedCall(DURATIONS.WHITE_HOLE - DURATIONS.WHITE_HOLE_SHRINK, () => {
+            this.scene.tweens.add({ targets: wh, scale: 0, alpha: 0, duration: DURATIONS.WHITE_HOLE_SHRINK, onComplete: () => {
+                this.whiteHoles = this.whiteHoles.filter(h => h !== wh);
+                wh.destroy();
+            }});
+        });
+    }
+
+    public updateWhiteHoles(time: number) {
+        this.whiteHoles.forEach(wh => {
+            if (time > (wh as any).lastSpawnTime + 100) {
+                this.createResourceAt(wh.x, wh.y, true);
+                (wh as any).lastSpawnTime = time;
+            }
+        });
+    }
+
+    public getIcon(type: string): string {
+        return (RESOURCE_CONFIG.ICONS as any)[type] || RESOURCE_CONFIG.ICONS.default;
+    }
+
+    public getParticleTint(res: any): number {
+        const type = res.resourceType;
+        return (RESOURCE_CONFIG.COLORS as any)[type] || RESOURCE_CONFIG.COLORS.default;
+    }
+}

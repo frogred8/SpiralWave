@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
-
 export type Collectible = Phaser.GameObjects.GameObject & { 
     x: number; 
     y: number; 

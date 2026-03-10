@@ -5,29 +5,18 @@ import { GameRenderer } from './GameRenderer';
 import { RoboticArm, Collectible } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from './Constants';
 import { Utils } from './Utils';
-
-interface Resource extends Phaser.GameObjects.Text {
-    resourceType: 'rock' | 'wood' | 'iron';
-    isHighDim: boolean;
-    body: Phaser.Physics.Arcade.Body;
-}
-
-interface SpecialItem extends Phaser.GameObjects.Text {
-    itemType: 'special';
-    specialType: 'whitehole' | 'boost';
-    body: Phaser.Physics.Arcade.Body;
-}
+import { ResourceManager, Resource, SpecialItem } from './ResourceManager';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
-    private resources!: Phaser.Physics.Arcade.Group;
     private worldContainer!: Phaser.GameObjects.Container;
     private uiContainer!: Phaser.GameObjects.Container;
     private gameStats!: GameStats;
     private skillTreeUI!: SkillTreeUI;
     private gameRenderer!: GameRenderer;
+    private resourceManager!: ResourceManager;
     private arms: RoboticArm[] = [];
-    private whiteHoles: Phaser.GameObjects.Container[] = [];
+    
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
     private spawnTimer!: Phaser.Time.TimerEvent;
@@ -52,8 +41,11 @@ export class GameScene extends Phaser.Scene {
         this.worldContainer = this.add.container(0, 0);
         this.uiContainer = this.add.container(0, 0);
 
-        // Renderer 초기화 (모든 시각 요소 위임)
+        // Renderer 초기화
         this.gameRenderer = new GameRenderer(this, this.worldContainer, this.uiContainer, this.gameStats, this.spiralCenter);
+
+        // ResourceManager 초기화
+        this.resourceManager = new ResourceManager(this, this.gameStats, this.gameRenderer, this.worldContainer, this.spiralCenter);
 
         // 로봇팔 초기화
         this.arms = [];
@@ -77,13 +69,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupPhysics() {
-        this.resources = this.physics.add.group({
-            bounceX: 0.8,
-            bounceY: 0.8,
-            collideWorldBounds: false
-        });
-
-        this.physics.add.collider(this.resources, this.resources, (obj1, obj2) => {
+        const resources = this.resourceManager.getGroup();
+        
+        this.physics.add.collider(resources, resources, (obj1, obj2) => {
             const r1 = obj1 as any;
             this.gameRenderer.emitCollisionSpark(r1.x, r1.y);
             
@@ -101,21 +89,21 @@ export class GameScene extends Phaser.Scene {
     private setupTimers() {
         this.spawnTimer = this.time.addEvent({ 
             delay: Math.max(100, RESOURCE_CONFIG.SPAWN_INTERVAL_BASE / (this.gameStats.spawnRateFactor || 1)), 
-            callback: this.spawnResource, 
+            callback: () => this.resourceManager.spawnResource(), 
             callbackScope: this, 
             loop: true 
         });
         
         this.time.addEvent({ 
             delay: 5000, 
-            callback: this.spawnWhiteHole, 
+            callback: () => this.resourceManager.spawnWhiteHole(), 
             callbackScope: this, 
             loop: true 
         });
 
         this.time.addEvent({ 
             delay: DURATIONS.SPECIAL_ITEM_SPAWN, 
-            callback: this.spawnSpecialItem, 
+            callback: () => this.resourceManager.spawnSpecialItem(), 
             callbackScope: this, 
             loop: true 
         });
@@ -127,7 +115,7 @@ export class GameScene extends Phaser.Scene {
         }
         this.spawnTimer = this.time.addEvent({
             delay: Math.max(100, RESOURCE_CONFIG.SPAWN_INTERVAL_BASE / (this.gameStats.spawnRateFactor || 1)),
-            callback: this.spawnResource,
+            callback: () => this.resourceManager.spawnResource(),
             callbackScope: this,
             loop: true
         });
@@ -145,7 +133,7 @@ export class GameScene extends Phaser.Scene {
 
         this.gameStats.once('colorsUnlocked', () => {
             this.cameras.main.flash(1000, 255, 255, 255);
-            this.resources.getChildren().forEach(child => (child as any).clearTint());
+            this.resourceManager.getGroup().getChildren().forEach(child => (child as any).clearTint());
         });
 
         this.gameStats.emit('updateScore');
@@ -161,7 +149,7 @@ export class GameScene extends Phaser.Scene {
         let closest: Collectible | null = null;
         let minDistance = 200;
 
-        this.resources.getChildren().forEach(child => {
+        this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as Collectible;
             if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
             const dist = Utils.getDistance(pointer.worldX, pointer.worldY, res.x, res.y);
@@ -189,7 +177,7 @@ export class GameScene extends Phaser.Scene {
             this.gameRenderer.updateSpiralPosition();
         }
 
-        // 자동 그물 로직 (5초마다 커서 방향으로)
+        // 자동 그물 로직
         if (this.gameStats.isNetEnabled) {
             this.netTimerAccumulator += delta;
             if (this.netTimerAccumulator >= DURATIONS.NET_COOLDOWN) {
@@ -198,14 +186,8 @@ export class GameScene extends Phaser.Scene {
             }
         }
 
-        // 화이트 홀 로직
-        this.whiteHoles.forEach(wh => {
-            //wh.setScale(1 + Math.sin(time / 1000) * 0.1);
-            if (time > (wh as any).lastSpawnTime + 100) {
-                this.createResourceAt(wh.x, wh.y, true);
-                (wh as any).lastSpawnTime = time;
-            }
-        });
+        // 화이트 홀 로직 위임
+        this.resourceManager.updateWhiteHoles(time);
 
         // 로봇팔 업데이트
         this.gameRenderer.clearArmGraphics();
@@ -216,42 +198,28 @@ export class GameScene extends Phaser.Scene {
             const activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
             if (activeArmsCount < this.gameStats.maxArms) {
                 this.arms.forEach(arm => {
-                    // 발사 가능한(idle이며 쿨타임이 지난) 팔 탐색
-                    if (arm.state === 'idle' && time > arm.lastFireTime + 8000) {
+                    if (arm.state === 'idle' && time > arm.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN) {
                         let bestHighDim: Collectible | null = null;
                         let bestNormal: Collectible | null = null;
                         let minHighDimDist = 400;
                         let minNormalDist = 400;
 
-                        this.resources.getChildren().forEach((child) => {
+                        this.resourceManager.getGroup().getChildren().forEach((child) => {
                             const collectible = child as Collectible;
-                            if (!collectible.active) return;
-                            
-                            // 이미 다른 팔에 잡힌 자원은 제외
-                            const isAlreadyGrabbed = this.arms.some(a => a.grabbedResource === collectible);
-                            if (isAlreadyGrabbed) return;
+                            if (!collectible.active || this.arms.some(a => a.grabbedResource === collectible)) return;
 
                             const distance = Utils.getDistance(this.spiralCenter.x, this.spiralCenter.y, collectible.x, collectible.y);
                             const isHighDim = (collectible as any).isHighDim || false;
 
                             if (isHighDim) {
-                                if (distance < minHighDimDist) {
-                                    minHighDimDist = distance;
-                                    bestHighDim = collectible;
-                                }
+                                if (distance < minHighDimDist) { minHighDimDist = distance; bestHighDim = collectible; }
                             } else {
-                                if (distance < minNormalDist) {
-                                    minNormalDist = distance;
-                                    bestNormal = collectible;
-                                }
+                                if (distance < minNormalDist) { minNormalDist = distance; bestNormal = collectible; }
                             }
                         });
 
-                        // 큰 자원 우선, 없으면 일반 자원 발사
                         const targetResource = bestHighDim || bestNormal;
-                        if (targetResource) {
-                            arm.fire(targetResource, time);
-                        }
+                        if (targetResource) arm.fire(targetResource, time);
                     }
                 });
             }
@@ -271,21 +239,21 @@ export class GameScene extends Phaser.Scene {
     private processResources() {
         const effectiveRadius = this.getCurrentRadius();
 
-        this.resources.getChildren().forEach(child => {
+        this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as any;
             if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
 
             if (res.itemType === 'special') {
-                if (Phaser.Math.Distance.BetweenPoints(res, this.spiralCenter) > 1200) res.destroy();
+                if (Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y) > 1200) res.destroy();
                 return;
             }
 
-            const dist = Phaser.Math.Distance.BetweenPoints(res, this.spiralCenter);
+            const dist = Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y);
             if (dist < effectiveRadius) {
                 this.applyGravity(res, dist, effectiveRadius);
             }
 
-            const collectionRadius = res.isHighDim ? 45 : 30;
+            const collectionRadius = res.isHighDim ? RESOURCE_CONFIG.COLLECTION_RADIUS.HIGH_DIM : RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL;
             if (dist < collectionRadius) {
                 this.collectResource(res);
             } else if (dist > 1200) {
@@ -299,7 +267,7 @@ export class GameScene extends Phaser.Scene {
     private applyGravity(res: any, dist: number, radius: number) {
         const dir = new Phaser.Math.Vector2(this.spiralCenter.x - res.x, this.spiralCenter.y - res.y).normalize();
         const tangent = new Phaser.Math.Vector2(-dir.y, dir.x);
-        const force = (1 - (dist / radius)) * this.gameStats.force * 90;
+        const force = (1 - (dist / radius)) * this.gameStats.force * PHYSICS_CONFIG.ACCEL_BASE;
         const boost = dist < 150 ? Math.pow((150 - dist) / 150, 2) * 5 : 0;
         const accel = force * (1 + boost);
         const spiral = 0.2 * Math.pow(dist / radius, 2);
@@ -307,13 +275,13 @@ export class GameScene extends Phaser.Scene {
         res.body.velocity.x += (dir.x * accel + tangent.x * accel * spiral);
         res.body.velocity.y += (dir.y * accel + tangent.y * accel * spiral);
 
-        if (dist < 150) res.body.setDrag(50 * res.body.mass);
+        if (dist < 150) res.body.setDrag(PHYSICS_CONFIG.DRAG_BASE * res.body.mass);
         else res.body.setDrag(0);
     }
 
     private limitSpeed(res: any, dist: number) {
-        const min = dist < 100 ? 10 : 30;
-        const max = 240;
+        const min = dist < 100 ? PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER : PHYSICS_CONFIG.MIN_SPEED_NORMAL;
+        const max = PHYSICS_CONFIG.MAX_SPEED;
         const vel = res.body.velocity;
         const speedSq = vel.lengthSq();
 
@@ -333,9 +301,9 @@ export class GameScene extends Phaser.Scene {
         }
 
         const isHighDim = collectible.isHighDim || false;
-        this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.getParticleTint(collectible));
+        this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.resourceManager.getParticleTint(collectible));
         
-        this.gameStats.addCollected(collectible.resourceType, isHighDim ? 5 : 1);
+        this.gameStats.addCollected(collectible.resourceType, isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1);
         
         if (byArm && this.gameStats.researchBonus > 0) {
             this.gameStats.reduceResearchTime(this.gameStats.researchBonus);
@@ -352,31 +320,25 @@ export class GameScene extends Phaser.Scene {
         const angleToTarget = Utils.getAngle(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
         const spread = Math.PI / 4;
 
-        this.resources.getChildren().forEach((child) => {
+        this.resourceManager.getGroup().getChildren().forEach((child) => {
             const res = child as any;
             if (!res.active) return;
 
-            const dist = Phaser.Math.Distance.BetweenPoints(res, this.spiralCenter);
+            const dist = Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y);
             if (dist > distance) return;
 
             const angleToRes = Utils.getAngle(this.spiralCenter.x, this.spiralCenter.y, res.x, res.y);
             const diff = Phaser.Math.Angle.ShortestBetween(Phaser.Math.RadToDeg(angleToTarget), Phaser.Math.RadToDeg(angleToRes));
 
             if (Math.abs(diff) <= Phaser.Math.RadToDeg(spread) / 2) {
-                // 물리 엔진 정지 및 중심으로 끌어당기기
                 res.body.setEnable(false);
-                
                 this.tweens.add({
                     targets: res,
                     x: this.spiralCenter.x,
                     y: this.spiralCenter.y,
-                    duration: 600, // 로봇팔보다는 빠르게 끌어옴
+                    duration: DURATIONS.NET_PULL, 
                     ease: 'Power2',
-                    onComplete: () => {
-                        if (res.active) {
-                            this.collectResource(res, true);
-                        }
-                    }
+                    onComplete: () => { if (res.active) this.collectResource(res, true); }
                 });
             }
         });
@@ -389,7 +351,7 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        if (item.specialType === 'whitehole') this.spawnWhiteHole();
+        if (item.specialType === 'whitehole') this.resourceManager.spawnWhiteHole();
         else if (item.specialType === 'boost') this.triggerRadiusBoost();
         
         item.destroy();
@@ -397,147 +359,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     private triggerRadiusBoost() {
-        // 기존 축소 애니메이션 제거
         this.tweens.killTweensOf(this);
-
-        // 기존에 대기 중인 타이머가 있다면 제거 (중첩 실행 방지)
-        if (this.boostTimerEvent) {
-            this.boostTimerEvent.remove();
-        }
+        if (this.boostTimerEvent) this.boostTimerEvent.remove();
 
         this.radiusMultiplier = 2.0;
-        // this.cameras.main.flash(500, 0, 255, 255);
-
-        // 5초 대기 후 서서히 축소 시작
-        this.boostTimerEvent = this.time.delayedCall(5000, () => {
-            this.tweens.add({ 
-                targets: this, 
-                radiusMultiplier: 1.0, 
-                duration: 2000, 
-                ease: 'Power1' 
-            });
+        this.boostTimerEvent = this.time.delayedCall(DURATIONS.RADIUS_BOOST, () => {
+            this.tweens.add({ targets: this, radiusMultiplier: 1.0, duration: DURATIONS.RADIUS_BOOST_SHRINK, ease: 'Power1' });
             this.boostTimerEvent = undefined;
         });
-    }
-
-    private spawnSpecialItem() {
-        const { width, height } = this.scale;
-        const edge = Phaser.Math.Between(0, 3);
-        let x = 0, y = 0;
-        if (edge === 0) { x = Phaser.Math.Between(0, width); y = 0; }
-        else if (edge === 1) { x = width; y = Phaser.Math.Between(0, height); }
-        else if (edge === 2) { x = Phaser.Math.Between(0, width); y = height; }
-        else { x = 0; y = Phaser.Math.Between(0, height); }
-
-        const type = Math.random() > 0.5 ? 'whitehole' : 'boost';
-        const item = this.add.text(x, y, this.getIcon(type), { fontSize: '40px' }).setOrigin(0.5) as SpecialItem;
-        item.itemType = 'special';
-        item.specialType = type;
-        
-        this.physics.add.existing(item);
-        this.resources.add(item);
-        this.worldContainer.add(item);
-        item.body.setCircle(20);
-
-        // 블랙홀 중심이 아닌, radius 경계면 위의 무작위 지점을 목표로 설정
-        const randomAngle = Math.random() * Math.PI * 2;
-        const targetX = this.spiralCenter.x + Math.cos(randomAngle) * this.gameStats.radius;
-        const targetY = this.spiralCenter.y + Math.sin(randomAngle) * this.gameStats.radius;
-        
-        const dir = new Phaser.Math.Vector2(targetX - x, targetY - y).normalize();
-        const speed = 120;
-        item.body.setVelocity(dir.x * speed, dir.y * speed);
-        item.body.setAngularVelocity(90);
-
-        this.tweens.add({ targets: item, scale: 1.3, alpha: 0.7, duration: 800, yoyo: true, loop: -1 });
-    }
-
-    private spawnWhiteHole(x?: number, y?: number) {
-        const { width, height } = this.scale;
-        let targetX = x;
-        let targetY = y;
-
-        if (targetX === undefined || targetY === undefined) {
-            let dist;
-            do {
-                targetX = Phaser.Math.Between(200, width - 200);
-                targetY = Phaser.Math.Between(200, height - 200);
-                dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
-            } while (dist < this.gameStats.radius || dist > 600);
-        }
-
-        const wh = this.add.container(targetX, targetY);
-        wh.add([this.add.circle(0, 0, 15, 0xcfcfcf, 0.8), this.add.circle(0, 0, 20, 0xffffff, 0.2).setStrokeStyle(2, 0xffffff)]);
-        this.worldContainer.add(wh);
-        
-        // 빅뱅 파티클 효과 방출
-        this.gameRenderer.emitWhiteHoleSpawn(targetX, targetY);
-        
-        wh.setScale(0);
-        this.tweens.add({ targets: wh, scale: 1, duration: 500, ease: 'Back.Out' });
-        (wh as any).lastSpawnTime = 0;
-        this.whiteHoles.push(wh);
-
-        this.time.delayedCall(DURATIONS.WHITE_HOLE - DURATIONS.WHITE_HOLE_SHRINK, () => {
-            this.tweens.add({ targets: wh, scale: 0, alpha: 0, duration: DURATIONS.WHITE_HOLE_SHRINK, onComplete: () => {
-                this.whiteHoles = this.whiteHoles.filter(h => h !== wh);
-                wh.destroy();
-            }});
-        });
-    }
-
-    private spawnResource() {
-        if (this.resources.getLength() >= 300) return;
-
-        const edge = Phaser.Math.Between(0, 3);
-        let x = 0, y = 0;
-        if (edge === 0) { x = Phaser.Math.Between(0, this.scale.width); y = 0; }
-        else if (edge === 1) { x = this.scale.width; y = Phaser.Math.Between(0, this.scale.height); }
-        else if (edge === 2) { x = Phaser.Math.Between(0, this.scale.width); y = this.scale.height; }
-        else { x = 0; y = Phaser.Math.Between(0, this.scale.height); }
-        this.createResourceAt(x, y);
-    }
-
-    private createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {
-        const types: ('rock' | 'wood' | 'iron')[] = ['rock', 'wood', 'iron'];
-        const type = types[Phaser.Math.Between(0, types.length - 1)];
-        const isHighDim = Math.random() < this.gameStats.highDimProb;
-        const res = this.add.text(x, y, this.getIcon(type), { fontSize: isHighDim ? '60px' : '24px' }).setOrigin(0.5) as Resource;
-        
-        res.resourceType = type;
-        res.isHighDim = isHighDim;
-        this.physics.add.existing(res);
-        this.resources.add(res);
-        this.worldContainer.add(res);
-        res.body.setCircle(isHighDim ? 30 : 12);
-        if (!this.gameStats.isColorUnlocked) res.setTint(0x444444);
-        
-        const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Utils.getAngle(x, y, Math.random()*this.scale.width, Math.random()*this.scale.height);
-        // const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(50, 100);
-        const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(150, 250);
-        const speed = baseSpeed * (isHighDim ? 0.5 : 1);
-        res.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
-        res.body.setAngularVelocity(Phaser.Math.Between(45, 180));
-    }
-
-    private getIcon(type: string): string {
-        switch(type) {
-            case 'rock': return '🪨';
-            case 'wood': return '🪵';
-            case 'iron': return '🪙';
-            case 'whitehole': return '🌀';
-            case 'boost': return '⚡';
-            default: return '✨';
-        }
-    }
-
-    private getParticleTint(res: any): number {
-        const type = res.resourceType;
-        switch(type) {
-            case 'rock': return 0xaaaaaa;
-            case 'wood': return 0x8b4513;
-            case 'iron': return 0x778899;
-            default: return 0xffffff;
-        }
     }
 }

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
+import { Utils } from './Utils';
 
 export type Collectible = Phaser.GameObjects.GameObject & { 
     x: number; 
@@ -54,7 +55,7 @@ export class RoboticArm {
         }
 
         const factor = this.stats.armSpeedFactor;
-        const distanceToTarget = Phaser.Math.Distance.Between(this.spiralCenter.x, this.spiralCenter.y, this.grabbedResource.x, this.grabbedResource.y);
+        const distanceToTarget = Utils.getDistance(this.spiralCenter.x, this.spiralCenter.y, this.grabbedResource.x, this.grabbedResource.y);
         const baseExtendSpeed = 600;
         const extensionStep = (baseExtendSpeed * factor * (delta / 1000)) / Math.max(distanceToTarget, 1);
         
@@ -74,7 +75,7 @@ export class RoboticArm {
         const speedMultiplier = isHighDim ? 0.25 : 1.0;
         const speed = baseRetractSpeed * factor * speedMultiplier;
 
-        const distance = Phaser.Math.Distance.Between(this.target.x, this.target.y, this.spiralCenter.x, this.spiralCenter.y);
+        const distance = Utils.getDistance(this.target.x, this.target.y, this.spiralCenter.x, this.spiralCenter.y);
         const moveStep = (speed * delta) / 1000;
 
         if (distance <= moveStep) {

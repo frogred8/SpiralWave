@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { SkillData } from './SkillData';
 import { GameStats } from './GameStats';
+import { INITIAL_STATS } from './Constants';
+import { Utils } from './Utils';
 
 export class SkillTreeUI {
     private scene: Phaser.Scene;
@@ -401,34 +403,22 @@ export class SkillTreeUI {
     private getFormattedValue(skill: SkillData, level: number): string {
         const base = this.getInitialValue(skill.effectProperty);
         const total = base + (skill.effectValue * level);
-        
-        switch(skill.effectProperty) {
-            case 'radius': return `${Math.floor(total)}`;
-            case 'force': return `${total.toFixed(1)}`;
-            case 'highDimProb': return `${(total * 100).toFixed(0)}%`;
-            case 'maxArms': return `${total}`;
-            case 'autoArm': return level > 0 ? 'ON' : 'OFF';
-            case 'armSpeed': return `${total.toFixed(1)}x`;
-            case 'maxResearchSlots': return `${total}`;
-            case 'spawnRate': return `${total.toFixed(1)}x`;
-            case 'researchBonus': return `${total}s reduction`;
-            case 'moveSpeed': return `${total.toFixed(2)}`;
-            default: return `${total}`;
-        }
+        return Utils.formatStatValue(skill.effectProperty, total, level);
     }
 
     private getInitialValue(property: string): number {
         switch(property) {
-            case 'radius': return 200;
-            case 'force': return 0.5;
-            case 'highDimProb': return 0.0;
-            case 'maxArms': return 1;
+            case 'radius': return INITIAL_STATS.RADIUS;
+            case 'force': return INITIAL_STATS.FORCE;
+            case 'highDimProb': return INITIAL_STATS.HIGH_DIM_PROB;
+            case 'maxArms': return INITIAL_STATS.MAX_ARMS;
             case 'autoArm': return 0;
-            case 'armSpeed': return 1.0;
-            case 'maxResearchSlots': return 1;
-            case 'spawnRate': return 1.0;
-            case 'researchBonus': return 0;
-            case 'moveSpeed': return 0;
+            case 'armSpeed': return INITIAL_STATS.ARM_SPEED_FACTOR;
+            case 'maxResearchSlots': return INITIAL_STATS.MAX_RESEARCH_SLOTS;
+            case 'spawnRate': return INITIAL_STATS.SPAWN_RATE_FACTOR;
+            case 'researchBonus': return INITIAL_STATS.RESEARCH_BONUS;
+            case 'moveSpeed': return INITIAL_STATS.MOVE_SPEED;
+            case 'net': return 0;
             default: return 0;
         }
     }
@@ -452,16 +442,6 @@ export class SkillTreeUI {
 
     private getFormattedBonus(skill: SkillData, level: number): string {
         const bonus = skill.effectValue * level;
-        const sign = bonus >= 0 ? '+' : '';
-        
-        switch(skill.effectProperty) {
-            case 'highDimProb': return `${sign}${(bonus * 100).toFixed(0)}%`;
-            case 'autoArm': return level > 0 ? 'Enabled' : 'Disabled';
-            case 'net': return level > 0 ? 'Activated' : 'Locked';
-            case 'armSpeed': 
-            case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;
-            case 'researchBonus': return `${bonus}s reduction`;
-            default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
-        }
+        return Utils.formatBonusValue(skill.effectProperty, bonus, level);
     }
 }

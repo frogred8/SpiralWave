@@ -3,7 +3,8 @@ import { GameStats } from './GameStats';
 import { SkillTreeUI } from './SkillTreeUI';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm, Collectible } from './RoboticArm';
-import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG } from './Constants';
+import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from './Constants';
+import { Utils } from './Utils';
 
 interface Resource extends Phaser.GameObjects.Text {
     resourceType: 'rock' | 'wood' | 'iron';
@@ -86,7 +87,7 @@ export class GameScene extends Phaser.Scene {
             const r1 = obj1 as any;
             this.gameRenderer.emitCollisionSpark(r1.x, r1.y);
             
-            const angle = Phaser.Math.Angle.Between(r1.x, r1.y, (obj2 as any).x, (obj2 as any).y);
+            const angle = Utils.getAngle(r1.x, r1.y, (obj2 as any).x, (obj2 as any).y);
             const pushForce = PHYSICS_CONFIG.PUSH_FORCE;
             r1.body.velocity.x -= Math.cos(angle) * pushForce;
             r1.body.velocity.y -= Math.sin(angle) * pushForce;
@@ -163,7 +164,7 @@ export class GameScene extends Phaser.Scene {
         this.resources.getChildren().forEach(child => {
             const res = child as Collectible;
             if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
-            const dist = Phaser.Math.Distance.Between(pointer.worldX, pointer.worldY, res.x, res.y);
+            const dist = Utils.getDistance(pointer.worldX, pointer.worldY, res.x, res.y);
             if (dist < minDistance) { minDistance = dist; closest = res; }
         });
 
@@ -191,8 +192,8 @@ export class GameScene extends Phaser.Scene {
         // 자동 그물 로직 (5초마다 커서 방향으로)
         if (this.gameStats.isNetEnabled) {
             this.netTimerAccumulator += delta;
-            if (this.netTimerAccumulator >= 1000) {
-                this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, 800);
+            if (this.netTimerAccumulator >= DURATIONS.NET_COOLDOWN) {
+                this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, DURATIONS.NET_DISTANCE);
                 this.netTimerAccumulator = 0;
             }
         }
@@ -230,7 +231,7 @@ export class GameScene extends Phaser.Scene {
                             const isAlreadyGrabbed = this.arms.some(a => a.grabbedResource === collectible);
                             if (isAlreadyGrabbed) return;
 
-                            const distance = Phaser.Math.Distance.Between(this.spiralCenter.x, this.spiralCenter.y, collectible.x, collectible.y);
+                            const distance = Utils.getDistance(this.spiralCenter.x, this.spiralCenter.y, collectible.x, collectible.y);
                             const isHighDim = (collectible as any).isHighDim || false;
 
                             if (isHighDim) {
@@ -348,7 +349,7 @@ export class GameScene extends Phaser.Scene {
     private fireNet(targetX: number, targetY: number, distance: number) {
         this.gameRenderer.drawNet(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY, distance);
 
-        const angleToTarget = Phaser.Math.Angle.Between(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
+        const angleToTarget = Utils.getAngle(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
         const spread = Math.PI / 4;
 
         this.resources.getChildren().forEach((child) => {
@@ -358,7 +359,7 @@ export class GameScene extends Phaser.Scene {
             const dist = Phaser.Math.Distance.BetweenPoints(res, this.spiralCenter);
             if (dist > distance) return;
 
-            const angleToRes = Phaser.Math.Angle.Between(this.spiralCenter.x, this.spiralCenter.y, res.x, res.y);
+            const angleToRes = Utils.getAngle(this.spiralCenter.x, this.spiralCenter.y, res.x, res.y);
             const diff = Phaser.Math.Angle.ShortestBetween(Phaser.Math.RadToDeg(angleToTarget), Phaser.Math.RadToDeg(angleToRes));
 
             if (Math.abs(diff) <= Phaser.Math.RadToDeg(spread) / 2) {
@@ -461,7 +462,7 @@ export class GameScene extends Phaser.Scene {
             do {
                 targetX = Phaser.Math.Between(200, width - 200);
                 targetY = Phaser.Math.Between(200, height - 200);
-                dist = Phaser.Math.Distance.Between(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
+                dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
             } while (dist < this.gameStats.radius || dist > 600);
         }
 
@@ -477,9 +478,8 @@ export class GameScene extends Phaser.Scene {
         (wh as any).lastSpawnTime = 0;
         this.whiteHoles.push(wh);
 
-        const shrinkDuration = 500;
-        this.time.delayedCall(WHITE_HOLE_DURATION - shrinkDuration, () => {
-            this.tweens.add({ targets: wh, scale: 0, alpha: 0, duration: shrinkDuration, onComplete: () => {
+        this.time.delayedCall(DURATIONS.WHITE_HOLE - DURATIONS.WHITE_HOLE_SHRINK, () => {
+            this.tweens.add({ targets: wh, scale: 0, alpha: 0, duration: DURATIONS.WHITE_HOLE_SHRINK, onComplete: () => {
                 this.whiteHoles = this.whiteHoles.filter(h => h !== wh);
                 wh.destroy();
             }});
@@ -512,7 +512,7 @@ export class GameScene extends Phaser.Scene {
         res.body.setCircle(isHighDim ? 30 : 12);
         if (!this.gameStats.isColorUnlocked) res.setTint(0x444444);
         
-        const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Phaser.Math.Angle.Between(x, y, Math.random()*this.scale.width, Math.random()*this.scale.height);
+        const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Utils.getAngle(x, y, Math.random()*this.scale.width, Math.random()*this.scale.height);
         // const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(50, 100);
         const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(150, 250);
         const speed = baseSpeed * (isHighDim ? 0.5 : 1);

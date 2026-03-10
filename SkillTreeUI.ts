@@ -175,9 +175,9 @@ export class SkillTreeUI {
     }
 
     private setupEventListeners() {
-        this.gameStats.on('updateScore', this.refreshSkillTreeUI, this);
-        this.gameStats.on('skillUpgraded', this.onSkillUpgraded, this);
-        this.gameStats.on('researchTimeReduced', this.onResearchTimeReduced, this);
+        this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, this.refreshSkillTreeUI, this);
+        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, this.onSkillUpgraded, this);
+        this.gameStats.on(GameStats.EVENTS.RESEARCH_REDUCED, this.onResearchTimeReduced, this);
     }
 
     private onResearchTimeReduced(skillId: string) {

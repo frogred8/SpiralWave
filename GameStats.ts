@@ -3,54 +3,77 @@ import { SkillData } from './SkillData';
 import { INITIAL_STATS } from './Constants';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
+/**
+ * 게임의 모든 상태와 스탯을 관리하는 클래스
+ */
 export class GameStats extends Phaser.Events.EventEmitter {
+    // 핵심 스탯
     public force: number;
     public radius: number;
     public highDimProb: number;
+    public moveSpeed: number;
+    
+    // 자원 및 인벤토리
     public collected: Record<ResourceType, number>;
-    public isInitialPhase: boolean;
-    public isColorUnlocked: boolean;
     public maxResources: number;
+    public isColorUnlocked: boolean;
+    
+    // 로봇팔 및 보조 시스템
     public maxArms: number;
     public isAutoArmEnabled: boolean;
     public armSpeedFactor: number;
     public spawnRateFactor: number;
-    public researchBonus: number;
-    public moveSpeed: number;
     public isNetEnabled: boolean;
+    
+    // 연구 및 스킬 트리 상태
     public skillLevels: Record<string, number>;
+    public researchReduction: number; // 기존 researchBonus 명칭 변경 (의미 명확화)
     public maxResearchSlots: number;
     public activeResearches: ActiveResearch[] = [];
+    
     private lastUpdateTime: number = Date.now();
+
+    // 이벤트 상수 정의
+    public static readonly EVENTS = {
+        UPDATE_SCORE: 'updateScore',
+        COLORS_UNLOCKED: 'colorsUnlocked',
+        SKILL_UPGRADED: 'skillUpgraded',
+        RESEARCH_REDUCED: 'researchTimeReduced'
+    };
 
     constructor(skillTreeData: SkillData[]) {
         super();
+        
+        // 초기 스탯 설정 (Constants 참조)
         this.force = INITIAL_STATS.FORCE;
         this.radius = INITIAL_STATS.RADIUS;
         this.highDimProb = INITIAL_STATS.HIGH_DIM_PROB;
+        this.moveSpeed = INITIAL_STATS.MOVE_SPEED;
+        
         this.collected = { rock: 0, wood: 0, iron: 0 };
-        this.isInitialPhase = false;
-        this.isColorUnlocked = false;
         this.maxResources = INITIAL_STATS.MAX_RESOURCES;
+        this.isColorUnlocked = false;
+        
         this.maxArms = INITIAL_STATS.MAX_ARMS;
         this.isAutoArmEnabled = false;
         this.armSpeedFactor = INITIAL_STATS.ARM_SPEED_FACTOR;
         this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
-        this.researchBonus = INITIAL_STATS.RESEARCH_BONUS;
-        this.moveSpeed = INITIAL_STATS.MOVE_SPEED;
         this.isNetEnabled = false;
-        this.skillLevels = {};
+        
+        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;
         this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
-
-        // Initialize all skill levels to 0
+        
+        this.skillLevels = {};
         skillTreeData.forEach(skill => {
             this.skillLevels[skill.id] = 0;
         });
     }
 
+    /**
+     * 프레임 업데이트: 연구 진행도 처리 (백그라운드 캐치업 포함)
+     */
     update(dt: number, skillTreeData: SkillData[]) {
         const now = Date.now();
-        // Use true elapsed time since last update to handle background tab throttling/pausing
         let elapsedSeconds = (now - this.lastUpdateTime) / 1000;
         this.lastUpdateTime = now;
 
@@ -58,23 +81,16 @@ export class GameStats extends Phaser.Events.EventEmitter {
 
         let updated = false;
         
-        // Catch-up logic: Advance time in chunks until all elapsedSeconds are consumed
-        // or no more researches are active.
         while (elapsedSeconds > 0 && this.activeResearches.length > 0) {
             let activeCount = Math.min(this.activeResearches.length, this.maxResearchSlots);
             let minTimeNeeded = Infinity;
             
-            // Find the soonest research to finish among active slots
             for (let i = 0; i < activeCount; i++) {
                 minTimeNeeded = Math.min(minTimeNeeded, this.activeResearches[i].remainingTime);
             }
             
-            // Advance by the smaller of elapsedSeconds or minTimeNeeded
             let timeToAdvance = Math.min(elapsedSeconds, minTimeNeeded);
-            if (timeToAdvance <= 0) {
-                // This could happen if remainingTime is already 0
-                timeToAdvance = 0.001; // Tiny step to avoid infinite loop
-            }
+            if (timeToAdvance <= 0) timeToAdvance = 0.001;
             
             for (let i = 0; i < activeCount; i++) {
                 this.activeResearches[i].remainingTime -= timeToAdvance;
@@ -83,7 +99,6 @@ export class GameStats extends Phaser.Events.EventEmitter {
             elapsedSeconds -= timeToAdvance;
             updated = true;
             
-            // Check for finished researches
             let finishedAny = false;
             for (let i = 0; i < activeCount; i++) {
                 if (this.activeResearches[i].remainingTime <= 0) {
@@ -93,93 +108,80 @@ export class GameStats extends Phaser.Events.EventEmitter {
                     i--;
                     activeCount--;
                     finishedAny = true;
-                    if (skill) {
-                        this.applySkillUpgrade(skill);
-                    }
+                    if (skill) this.applySkillUpgrade(skill);
                 }
             }
-            
-            // If we didn't finish any, and we still have elapsedSeconds, it means 
-            // we've advanced exactly by elapsedSeconds and no research reached 0 yet.
             if (!finishedAny && elapsedSeconds <= 0) break;
         }
         
-        if (updated) {
-            this.emit('updateScore');
-        }
+        if (updated) this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
+    /**
+     * 연구 시간 단축 (로봇팔 수집 보너스 등)
+     */
     reduceResearchTime(seconds: number) {
         if (this.activeResearches.length === 0) return;
 
-        // Reduce time for the first active research
         const research = this.activeResearches[0];
         research.remainingTime = Math.max(0, research.remainingTime - seconds);
-        this.emit('researchTimeReduced', research.skillId);
-        this.emit('updateScore');
+        this.emit(GameStats.EVENTS.RESEARCH_REDUCED, research.skillId);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
-    startResearch(skill: SkillData) {
-        // Can only queue if total researches < max slots * some multiplier or just some limit?
-        // Let's say we can queue as many as we want, but only maxResearchSlots progress.
-        // Wait, the prompt says "skill queue count increases".
-        // Let's allow unlimited queueing but only maxResearchSlots progress.
-        // Actually, some games limit the queue size too.
-        // Let's just limit the active ones for now, OR allow queueing.
-        // "스킬 연구를 여러개 할 수 있게 큐 시스템을 만들어"
-        // I'll allow queueing up to, say, 10 items? Or unlimited.
-        // But the check should be about resources.
-        
+    /**
+     * 연구 시작 요청
+     */
+    startResearch(skill: SkillData): boolean {
         const currentLevel = this.skillLevels[skill.id];
         if (currentLevel >= skill.maxLevel) return false;
-
-        // Check if this skill is already in the queue (anywhere)
         if (this.activeResearches.some(r => r.skillId === skill.id)) return false;
 
         const costs = skill.costs[currentLevel];
         if (!this.canAfford(costs)) return false;
 
-        const researchTime = skill.researchTimes[currentLevel];
-        
         this.consumeResources(costs);
         this.activeResearches.push({
             skillId: skill.id,
-            remainingTime: researchTime,
-            totalTime: researchTime
+            remainingTime: skill.researchTimes[currentLevel],
+            totalTime: skill.researchTimes[currentLevel]
         });
-        this.emit('updateScore');
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
         return true;
     }
 
-    cancelResearch(skill: SkillData) {
+    /**
+     * 대기 중인 연구 취소 및 자원 환불
+     */
+    cancelResearch(skill: SkillData): boolean {
         const index = this.activeResearches.findIndex(r => r.skillId === skill.id);
         if (index === -1) return false;
 
-        // Refund costs
         const currentLevel = this.skillLevels[skill.id];
         const costs = skill.costs[currentLevel];
         
+        // 자원 환불 (최대치 제한)
         if (costs.rock) this.collected.rock = Math.min(this.maxResources, this.collected.rock + costs.rock);
         if (costs.wood) this.collected.wood = Math.min(this.maxResources, this.collected.wood + costs.wood);
         if (costs.iron) this.collected.iron = Math.min(this.maxResources, this.collected.iron + costs.iron);
 
         this.activeResearches.splice(index, 1);
-        this.emit('updateScore');
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
         return true;
     }
 
+    /**
+     * 자원 획득 처리
+     */
     addCollected(type: ResourceType, amount: number = 1) {
-        // Validate input
-        if (amount < 0) {
-            console.warn('Cannot add negative resources');
-            return;
-        }
-        // Cap at maxResources
-        const newTotal = this.collected[type] + amount;
-        this.collected[type] = Math.min(newTotal, this.maxResources);
-        this.emit('updateScore');
+        if (amount < 0) return;
+        this.collected[type] = Math.min(this.collected[type] + amount, this.maxResources);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
+    /**
+     * 자원 구매 가능 여부 확인
+     */
     canAfford(costs: SkillCosts): boolean {
         if (costs.rock && this.collected.rock < costs.rock) return false;
         if (costs.wood && this.collected.wood < costs.wood) return false;
@@ -187,63 +189,52 @@ export class GameStats extends Phaser.Events.EventEmitter {
         return true;
     }
 
-    consumeResources(costs: SkillCosts) {
-        if (!this.canAfford(costs)) {
-            console.warn('Insufficient resources');
-            return;
-        }
+    /**
+     * 자원 소모
+     */
+    private consumeResources(costs: SkillCosts) {
         if (costs.rock) this.collected.rock -= costs.rock;
         if (costs.wood) this.collected.wood -= costs.wood;
         if (costs.iron) this.collected.iron -= costs.iron;
-        this.emit('updateScore');
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
-    applySkillUpgrade(skill: SkillData) {
-        // Validate skill exists
-        if (!skill || !skill.id) {
-            console.error('Invalid skill provided');
-            return;
-        }
-        // Validate effect value is positive
-        if (skill.effectValue < 0 && (skill.effectProperty !== 'autoArm' && skill.effectProperty !== 'armSpeed')) {
-            console.warn('Skill effect value must be non-negative');
-            return;
-        }
+    /**
+     * 스킬 레벨 업 및 실제 스탯 반영
+     */
+    private applySkillUpgrade(skill: SkillData) {
         if (this.skillLevels[skill.id] >= skill.maxLevel) return;
 
         this.skillLevels[skill.id]++;
         
-        // Apply the effect
-        if (skill.effectProperty === 'radius') {
-            this.radius += skill.effectValue;
-        } else if (skill.effectProperty === 'force') {
-            this.force += skill.effectValue;
-        } else if (skill.effectProperty === 'highDimProb') {
-            this.highDimProb += skill.effectValue;
-        } else if (skill.effectProperty === 'maxArms') {
-            this.maxArms += skill.effectValue;
-        } else if (skill.effectProperty === 'autoArm') {
-            this.isAutoArmEnabled = true;
-        } else if (skill.effectProperty === 'armSpeed') {
-            this.armSpeedFactor += skill.effectValue;
-        } else if (skill.effectProperty === 'maxResearchSlots') {
-            this.maxResearchSlots += skill.effectValue;
-        } else if (skill.effectProperty === 'spawnRate') {
-            this.spawnRateFactor += skill.effectValue;
-        } else if (skill.effectProperty === 'researchBonus') {
-            this.researchBonus += skill.effectValue;
-        } else if (skill.effectProperty === 'moveSpeed') {
-            this.moveSpeed += skill.effectValue;
-        } else if (skill.effectProperty === 'net') {
-            this.isNetEnabled = true;
+        // 스탯 반영 로직 (분기 처리 최적화)
+        const prop = skill.effectProperty;
+        const val = skill.effectValue;
+
+        switch (prop) {
+            case 'radius': this.radius += val; break;
+            case 'force': this.force += val; break;
+            case 'highDimProb': this.highDimProb += val; break;
+            case 'maxArms': this.maxArms += val; break;
+            case 'autoArm': this.isAutoArmEnabled = true; break;
+            case 'armSpeed': this.armSpeedFactor += val; break;
+            case 'maxResearchSlots': this.maxResearchSlots += val; break;
+            case 'spawnRate': this.spawnRateFactor += val; break;
+            case 'researchBonus': this.researchReduction += val; break;
+            case 'moveSpeed': this.moveSpeed += val; break;
+            case 'net': this.isNetEnabled = true; break;
         }
-        this.emit('skillUpgraded', skill.id); // Emit a specific event for skill upgrades
-        this.emit('updateScore'); // Also update general score display
+
+        this.emit(GameStats.EVENTS.SKILL_UPGRADED, skill.id);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
     } 
 
+    /**
+     * 색상 시스템 해금
+     */
     unlockColors() {
         if (this.isColorUnlocked) return;
         this.isColorUnlocked = true;
-        this.emit('colorsUnlocked');
+        this.emit(GameStats.EVENTS.COLORS_UNLOCKED);
     }
 }

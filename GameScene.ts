@@ -62,7 +62,7 @@ export class GameScene extends Phaser.Scene {
         this.setupUI(skillData);
 
         this.input.on('pointerdown', this.handleInput, this);
-        this.gameStats.on('skillUpgraded', this.updateSpawnTimer, this);
+        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, this.updateSpawnTimer, this);
         
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
@@ -128,16 +128,16 @@ export class GameScene extends Phaser.Scene {
 
         this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);
 
-        this.gameStats.on('updateScore', () => {
+        this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, () => {
             infoText.setText(`[ WOOD: ${this.gameStats.collected.wood} ]  [ ROCK: ${this.gameStats.collected.rock} ]  [ IRON: ${this.gameStats.collected.iron} ] | Radius: ${Math.floor(this.gameStats.radius)} | Arms: ${this.gameStats.maxArms} | Speed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`);
         });
 
-        this.gameStats.once('colorsUnlocked', () => {
+        this.gameStats.once(GameStats.EVENTS.COLORS_UNLOCKED, () => {
             this.cameras.main.flash(1000, 255, 255, 255);
             this.resourceManager.getGroup().getChildren().forEach(child => (child as any).clearTint());
         });
 
-        this.gameStats.emit('updateScore');
+        this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
     private handleInput(pointer: Phaser.Input.Pointer) {
@@ -306,8 +306,8 @@ export class GameScene extends Phaser.Scene {
         
         this.gameStats.addCollected(collectible.resourceType, isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1);
         
-        if (byArm && this.gameStats.researchBonus > 0) {
-            this.gameStats.reduceResearchTime(this.gameStats.researchBonus);
+        if (byArm && this.gameStats.researchReduction > 0) {
+            this.gameStats.reduceResearchTime(this.gameStats.researchReduction);
         }
         
         if (!this.gameStats.isColorUnlocked) this.gameStats.unlockColors();

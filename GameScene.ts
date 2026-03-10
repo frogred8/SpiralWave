@@ -2,10 +2,11 @@ import Phaser from 'phaser';
 import { GameStats } from './GameStats';
 import { SkillTreeUI } from './SkillTreeUI';
 import { GameRenderer } from './GameRenderer';
-import { RoboticArm, Collectible } from './RoboticArm';
+import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from './Constants';
 import { Utils } from './Utils';
-import { ResourceManager, Resource, SpecialItem } from './ResourceManager';
+import { ResourceManager } from './ResourceManager';
+import { Resource, SpecialItem, Collectible } from './Types';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;

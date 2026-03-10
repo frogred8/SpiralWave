@@ -3,19 +3,7 @@ import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS } from './Constants';
-import { Collectible } from './RoboticArm';
-
-export interface Resource extends Phaser.GameObjects.Text {
-    resourceType: 'rock' | 'wood' | 'iron';
-    isHighDim: boolean;
-    body: Phaser.Physics.Arcade.Body;
-}
-
-export interface SpecialItem extends Phaser.GameObjects.Text {
-    itemType: 'special';
-    specialType: 'whitehole' | 'boost';
-    body: Phaser.Physics.Arcade.Body;
-}
+import { Resource, SpecialItem, Collectible } from './Types';
 
 export class ResourceManager {
     private scene: Phaser.Scene;

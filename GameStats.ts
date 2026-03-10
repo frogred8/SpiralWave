@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
 import { SkillData } from './SkillData';
 import { INITIAL_STATS } from './Constants';
+import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
 export class GameStats extends Phaser.Events.EventEmitter {
     public force: number;
     public radius: number;
     public highDimProb: number;
-    public collected: { rock: number; wood: number; iron: number };
+    public collected: Record<ResourceType, number>;
     public isInitialPhase: boolean;
     public isColorUnlocked: boolean;
     public maxResources: number;
@@ -19,7 +20,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public isNetEnabled: boolean;
     public skillLevels: Record<string, number>;
     public maxResearchSlots: number;
-    public activeResearches: { skillId: string, remainingTime: number, totalTime: number }[] = [];
+    public activeResearches: ActiveResearch[] = [];
     private lastUpdateTime: number = Date.now();
 
     constructor(skillTreeData: SkillData[]) {
@@ -167,7 +168,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         return true;
     }
 
-    addCollected(type: 'rock' | 'wood' | 'iron', amount: number = 1) {
+    addCollected(type: ResourceType, amount: number = 1) {
         // Validate input
         if (amount < 0) {
             console.warn('Cannot add negative resources');
@@ -179,14 +180,14 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.emit('updateScore');
     }
 
-    canAfford(costs: { rock?: number, wood?: number, iron?: number }): boolean {
+    canAfford(costs: SkillCosts): boolean {
         if (costs.rock && this.collected.rock < costs.rock) return false;
         if (costs.wood && this.collected.wood < costs.wood) return false;
         if (costs.iron && this.collected.iron < costs.iron) return false;
         return true;
     }
 
-    consumeResources(costs: { rock?: number, wood?: number, iron?: number }) {
+    consumeResources(costs: SkillCosts) {
         if (!this.canAfford(costs)) {
             console.warn('Insufficient resources');
             return;

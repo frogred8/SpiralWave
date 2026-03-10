@@ -2,19 +2,10 @@ import Phaser from 'phaser';
 import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
-export type Collectible = Phaser.GameObjects.GameObject & { 
-    x: number; 
-    y: number; 
-    active: boolean; 
-    body: Phaser.Physics.Arcade.Body;
-    resourceType?: 'rock' | 'wood' | 'iron';
-    isHighDim?: boolean;
-    itemType?: 'special';
-    specialType?: 'whitehole' | 'boost';
-};
+import { Collectible, ArmState } from './Types';
 
 export class RoboticArm {
-    public state: 'idle' | 'extending' | 'retracting' = 'idle';
+    public state: ArmState = 'idle';
     public target: Phaser.Math.Vector2;
     public grabbedResource: Collectible | null = null;
     public extensionProgress: number = 0;

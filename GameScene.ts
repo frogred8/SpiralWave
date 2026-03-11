@@ -346,7 +346,7 @@ export class GameScene extends Phaser.Scene {
 
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as any;
-            if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
+            if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
 
             if (res.itemType === 'special') {
                 if (Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y) > 1200) res.destroy();
@@ -437,6 +437,7 @@ export class GameScene extends Phaser.Scene {
 
             if (Math.abs(diff) <= Phaser.Math.RadToDeg(spread) / 2) {
                 res.body.setEnable(false);
+                res.isBeingPulled = true; // 그물에 걸려 끌려오는 중임을 표시
                 const startX = res.x;
                 const startY = res.y;
                 this.tweens.add({

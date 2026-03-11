@@ -128,7 +128,8 @@ export class ResourceManager {
         (wh as any).isEnhanced = isEnhanced;
         this.whiteHoles.push(wh);
 
-        this.scene.time.delayedCall(DURATIONS.WHITE_HOLE - DURATIONS.WHITE_HOLE_SHRINK, () => {
+        const duration = isEnhanced ? 5000 : DURATIONS.WHITE_HOLE;
+        this.scene.time.delayedCall(duration - DURATIONS.WHITE_HOLE_SHRINK, () => {
             this.scene.tweens.add({ targets: wh, scale: 0, alpha: 0, duration: DURATIONS.WHITE_HOLE_SHRINK, onComplete: () => {
                 this.whiteHoles = this.whiteHoles.filter(h => h !== wh);
                 wh.destroy();

@@ -10,6 +10,7 @@ export class GameRenderer {
     
     private boundaryGraphics: Phaser.GameObjects.Graphics;
     private roboticArmGraphics: Phaser.GameObjects.Graphics;
+    private netChargeGraphics: Phaser.GameObjects.Graphics;
     private sparks: Phaser.GameObjects.Particles.ParticleEmitter;
     private spiralCenter: Phaser.Math.Vector2;
     private blackHole!: Phaser.GameObjects.Arc;
@@ -24,7 +25,8 @@ export class GameRenderer {
 
         this.boundaryGraphics = this.scene.add.graphics();
         this.roboticArmGraphics = this.scene.add.graphics();
-        this.worldContainer.add([this.boundaryGraphics, this.roboticArmGraphics]);
+        this.netChargeGraphics = this.scene.add.graphics();
+        this.worldContainer.add([this.boundaryGraphics, this.roboticArmGraphics, this.netChargeGraphics]);
 
         this.createBackground();
         this.createSpiralVisuals();
@@ -142,6 +144,36 @@ export class GameRenderer {
             tint: 0xffffff
         });
         this.sparks.emitParticle(30, x, y);
+    }
+
+    public clearNetCharge() {
+        this.netChargeGraphics.clear();
+    }
+
+    public drawNetCharge(targetX: number, targetY: number, distance: number, progress: number) {
+        this.netChargeGraphics.clear();
+        
+        const angle = Phaser.Math.Angle.Between(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
+        const spread = Math.PI / 4; // 45도
+        
+        // 기모으는 느낌: 진행도에 따라 서서히 선명해지고 크기가 변함
+        const alpha = progress * 0.4;
+        const currentDist = distance * (0.2 + progress * 0.3); // 20% -> 50% 거리까지 충전
+        
+        this.netChargeGraphics.lineStyle(2, 0x00ffff, alpha);
+        this.netChargeGraphics.fillStyle(0x00ffff, alpha * 0.3);
+
+        this.netChargeGraphics.beginPath();
+        this.netChargeGraphics.moveTo(this.spiralCenter.x, this.spiralCenter.y);
+        this.netChargeGraphics.arc(this.spiralCenter.x, this.spiralCenter.y, currentDist, angle - spread / 2, angle + spread / 2);
+        this.netChargeGraphics.closePath();
+        this.netChargeGraphics.fillPath();
+        this.netChargeGraphics.strokePath();
+
+        // 중심부 기모으는 입자 느낌 (추가 원형 효과)
+        const coreAlpha = progress * 0.6;
+        this.netChargeGraphics.fillStyle(0x00ffff, coreAlpha * 0.2);
+        this.netChargeGraphics.fillCircle(this.spiralCenter.x, this.spiralCenter.y, 15 + progress * 25);
     }
 
     public drawNet(startX: number, startY: number, targetX: number, targetY: number, distance: number) {

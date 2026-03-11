@@ -265,10 +265,24 @@ export class GameScene extends Phaser.Scene {
         // 자동 그물 로직
         if (this.gameStats.isNetEnabled) {
             this.netTimerAccumulator += delta;
+            
+            // 기모으기 표시: 발사 3초 전부터 (DURATIONS.NET_COOLDOWN - 3000ms)
+            const chargeStartTime = Math.max(0, DURATIONS.NET_COOLDOWN - 3000);
+            if (this.netTimerAccumulator >= chargeStartTime) {
+                const chargeProgress = (this.netTimerAccumulator - chargeStartTime) / 3000;
+                this.gameRenderer.drawNetCharge(this.input.activePointer.worldX, this.input.activePointer.worldY, DURATIONS.NET_DISTANCE, chargeProgress);
+            } else {
+                this.gameRenderer.clearNetCharge();
+            }
+
             if (this.netTimerAccumulator >= DURATIONS.NET_COOLDOWN) {
+                this.gameRenderer.clearNetCharge();
                 this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, DURATIONS.NET_DISTANCE);
                 this.netTimerAccumulator = 0;
             }
+        } else {
+            this.gameRenderer.clearNetCharge();
+            this.netTimerAccumulator = 0;
         }
 
         // 화이트 홀 로직 위임

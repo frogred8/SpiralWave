@@ -89,14 +89,21 @@ export class GameScene extends Phaser.Scene {
                     }
                 });
 
-                // 마지막 row(r=3)인 경우, 추가로 이웃한 tree의 연결 하나 더 생성
+                // 마지막 row(r=3)인 경우, 추가로 이웃한 tree의 연결 하나 더 생성 (기존에 연결 가능한 대상이 있는지 확인)
                 if (r === 3) {
-                    const randomSkill = Phaser.Utils.Array.GetRandom(currentRows) as any;
-                    const otherUpper = upperRows.filter((s: any) => 
-                        Math.abs(s.tree - randomSkill.tree) === 1 && 
-                        !randomSkill.prerequisites.some((p: any) => p.id === s.id)
+                    const potentialSkills = currentRows.filter((skill: any) => 
+                        upperRows.some((up: any) => 
+                            Math.abs(up.tree - skill.tree) === 1 && 
+                            !skill.prerequisites.some((p: any) => p.id === up.id)
+                        )
                     );
-                    if (otherUpper.length > 0) {
+
+                    if (potentialSkills.length > 0) {
+                        const randomSkill = Phaser.Utils.Array.GetRandom(potentialSkills) as any;
+                        const otherUpper = upperRows.filter((s: any) => 
+                            Math.abs(s.tree - randomSkill.tree) === 1 && 
+                            !randomSkill.prerequisites.some((p: any) => p.id === s.id)
+                        );
                         const extraUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
                         randomSkill.prerequisites.push({ id: extraUpper.id, level: 1 });
                     }

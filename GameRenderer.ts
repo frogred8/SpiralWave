@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameStats } from './GameStats';
+import { DURATIONS } from './Constants';
 
 export class GameRenderer {
     private scene: Phaser.Scene;
@@ -153,7 +154,7 @@ export class GameRenderer {
         this.scene.tweens.add({
             targets: { progress: 0 },
             progress: 1,
-            duration: 500,
+            duration: DURATIONS.NET_ANIMATION,
             onUpdate: (tween) => {
                 const p = (tween as any).getValue();
                 graphics.clear();

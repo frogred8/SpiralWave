@@ -12,7 +12,7 @@ export const INITIAL_STATS = {
 };
 
 export const DURATIONS = {
-    WHITE_HOLE: 3000,
+    WHITE_HOLE: 5000,
     WHITE_HOLE_SHRINK: 500,
     RADIUS_BOOST: 5000,
     RADIUS_BOOST_SHRINK: 2000,

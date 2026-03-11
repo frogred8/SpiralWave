@@ -99,7 +99,7 @@ export class ResourceManager {
         this.scene.tweens.add({ targets: item, scale: 1.3, alpha: 0.7, duration: 800, yoyo: true, loop: -1 });
     }
 
-    public spawnWhiteHole(x?: number, y?: number) {
+    public spawnWhiteHole(x?: number, y?: number, isEnhanced: boolean = false) {
         const { width, height } = this.scene.scale;
         let targetX = x;
         let targetY = y;
@@ -114,14 +114,18 @@ export class ResourceManager {
         }
 
         const wh = this.scene.add.container(targetX, targetY);
-        wh.add([this.scene.add.circle(0, 0, 15, 0xcfcfcf, 0.8), this.scene.add.circle(0, 0, 20, 0xffffff, 0.2).setStrokeStyle(2, 0xffffff)]);
+        const core = this.scene.add.circle(0, 0, 15, 0xcfcfcf, 0.8);
+        const glow = this.scene.add.circle(0, 0, 20, 0xffffff, 0.2).setStrokeStyle(2, 0xffffff);
+        wh.add([core, glow]);
         this.worldContainer.add(wh);
         
         this.renderer.emitWhiteHoleSpawn(targetX, targetY);
         
         wh.setScale(0);
-        this.scene.tweens.add({ targets: wh, scale: 1, duration: 500, ease: 'Back.Out' });
+        const targetScale = isEnhanced ? 2.0 : 1.0;
+        this.scene.tweens.add({ targets: wh, scale: targetScale, duration: 500, ease: 'Back.Out' });
         (wh as any).lastSpawnTime = 0;
+        (wh as any).isEnhanced = isEnhanced;
         this.whiteHoles.push(wh);
 
         this.scene.time.delayedCall(DURATIONS.WHITE_HOLE - DURATIONS.WHITE_HOLE_SHRINK, () => {
@@ -134,7 +138,8 @@ export class ResourceManager {
 
     public updateWhiteHoles(time: number) {
         this.whiteHoles.forEach(wh => {
-            if (time > (wh as any).lastSpawnTime + 100) {
+            const spawnInterval = (wh as any).isEnhanced ? 60 : 100;
+            if (time > (wh as any).lastSpawnTime + spawnInterval) {
                 this.createResourceAt(wh.x, wh.y, true);
                 (wh as any).lastSpawnTime = time;
             }

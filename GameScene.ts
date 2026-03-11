@@ -160,7 +160,7 @@ export class GameScene extends Phaser.Scene {
         });
         
         this.time.addEvent({ 
-            delay: 5000, 
+            delay: 8000, 
             callback: () => this.resourceManager.spawnWhiteHole(), 
             callbackScope: this, 
             loop: true 
@@ -419,7 +419,7 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        if (item.specialType === 'whitehole') this.resourceManager.spawnWhiteHole();
+        if (item.specialType === 'whitehole') this.resourceManager.spawnWhiteHole(undefined, undefined, true);
         else if (item.specialType === 'boost') this.triggerRadiusBoost();
         
         item.destroy();

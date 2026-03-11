@@ -437,20 +437,28 @@ export class GameScene extends Phaser.Scene {
 
             if (Math.abs(diff) <= Phaser.Math.RadToDeg(spread) / 2) {
                 res.body.setEnable(false);
-                res.isBeingPulled = true; // 그물에 걸려 끌려오는 중임을 표시
+                res.isBeingPulled = true;
                 const startX = res.x;
                 const startY = res.y;
-                this.tweens.add({
-                    targets: res,
-                    duration: DURATIONS.NET_PULL, 
+                
+                this.tweens.addCounter({
+                    from: 0,
+                    to: 1,
+                    duration: DURATIONS.NET_PULL,
                     ease: 'Power2',
                     onUpdate: (tween) => {
-                        const progress = (tween as any).progress;
-                        // 시작 위치와 실시간 spiralCenter 위치 사이를 보간하여 자원을 이동시킴
-                        res.x = startX + (this.spiralCenter.x - startX) * progress;
-                        res.y = startY + (this.spiralCenter.y - startY) * progress;
+                        if (res.active) {
+                            const progress = (tween as any).getValue() ?? 0;
+                            // 시작 위치와 실시간 spiralCenter 위치 사이를 보간하여 자원을 이동시킴
+                            res.x = startX + (this.spiralCenter.x - startX) * progress;
+                            res.y = startY + (this.spiralCenter.y - startY) * progress;
+                        }
                     },
-                    onComplete: () => { if (res.active) this.collectResource(res, true); }
+                    onComplete: () => { 
+                        if (res.active) {
+                            this.collectResource(res, true); 
+                        }
+                    }
                 });
             }
         });

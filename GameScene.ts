@@ -437,12 +437,18 @@ export class GameScene extends Phaser.Scene {
 
             if (Math.abs(diff) <= Phaser.Math.RadToDeg(spread) / 2) {
                 res.body.setEnable(false);
+                const startX = res.x;
+                const startY = res.y;
                 this.tweens.add({
                     targets: res,
-                    x: this.spiralCenter.x,
-                    y: this.spiralCenter.y,
                     duration: DURATIONS.NET_PULL, 
                     ease: 'Power2',
+                    onUpdate: (tween) => {
+                        const progress = (tween as any).progress;
+                        // 시작 위치와 실시간 spiralCenter 위치 사이를 보간하여 자원을 이동시킴
+                        res.x = startX + (this.spiralCenter.x - startX) * progress;
+                        res.y = startY + (this.spiralCenter.y - startY) * progress;
+                    },
                     onComplete: () => { if (res.active) this.collectResource(res, true); }
                 });
             }

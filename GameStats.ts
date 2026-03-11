@@ -16,8 +16,11 @@ export class GameStats extends Phaser.Events.EventEmitter {
     // 자원 및 인벤토리
     public collected: Record<ResourceType, number>;
     public totalCollected: Record<ResourceType, number>;
+    public totalAll: number;
     public maxResources: number;
     public isColorUnlocked: boolean;
+    
+    private collectionHistory: { timestamp: number, amount: number }[] = [];
     
     // 로봇팔 및 보조 시스템
     public maxArms: number;
@@ -53,6 +56,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         
         this.collected = { rock: 0, wood: 0, iron: 0 };
         this.totalCollected = { rock: 0, wood: 0, iron: 0 };
+        this.totalAll = 0;
         this.maxResources = INITIAL_STATS.MAX_RESOURCES;
         this.isColorUnlocked = false;
         
@@ -171,16 +175,27 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
         return true;
     }
+/**
+ * 자원 획득 처리
+ */
+addCollected(type: ResourceType, amount: number = 1) {
+    if (amount < 0) return;
+    this.collected[type] += amount;
+    this.totalCollected[type] += amount;
+    this.totalAll += amount;
+    this.collectionHistory.push({ timestamp: Date.now(), amount });
+    this.emit(GameStats.EVENTS.UPDATE_SCORE);
+}
 
-    /**
-     * 자원 획득 처리
-     */
-    addCollected(type: ResourceType, amount: number = 1) {
-        if (amount < 0) return;
-        this.collected[type] += amount;
-        this.totalCollected[type] += amount;
-        this.emit(GameStats.EVENTS.UPDATE_SCORE);
-    }
+/**
+ * 최근 10초간의 자원 획득량 합계 반환
+ */
+getRecentCollectionAmount(): number {
+    const now = Date.now();
+    const tenSecondsAgo = now - 10000;
+    this.collectionHistory = this.collectionHistory.filter(h => h.timestamp >= tenSecondsAgo);
+    return this.collectionHistory.reduce((sum, h) => sum + h.amount, 0);
+}
 
     /**
      * 자원 구매 가능 여부 확인

@@ -209,11 +209,20 @@ export class GameScene extends Phaser.Scene {
 
         this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);
 
-        this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, () => {
+        const updateInfo = () => {
             const current = `[ WOOD: ${this.gameStats.collected.wood} ]  [ ROCK: ${this.gameStats.collected.rock} ]  [ IRON: ${this.gameStats.collected.iron} ]`;
-            const total = `(TOTAL - W: ${this.gameStats.totalCollected.wood} R: ${this.gameStats.totalCollected.rock} I: ${this.gameStats.totalCollected.iron})`;
+            const total = `(TOTAL: ${this.gameStats.totalAll} | 10s: ${this.gameStats.getRecentCollectionAmount()})`;
             const stats = `Radius: ${Math.floor(this.gameStats.radius)} | Arms: ${this.gameStats.maxArms} | Speed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
             infoText.setText(`${current}\n${total} | ${stats}`);
+        };
+
+        this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, updateInfo);
+        
+        // 1초마다 갱신 (최근 10초 획득량 갱신용)
+        this.time.addEvent({
+            delay: 1000,
+            callback: updateInfo,
+            loop: true
         });
 
         this.gameStats.once(GameStats.EVENTS.COLORS_UNLOCKED, () => {

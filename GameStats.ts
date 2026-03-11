@@ -35,6 +35,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public maxResearchSlots: number;
     public activeResearches: ActiveResearch[] = [];
     
+    public playtime: number = 0;
     private lastUpdateTime: number = Date.now();
 
     // 이벤트 상수 정의
@@ -83,7 +84,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
         let elapsedSeconds = (now - this.lastUpdateTime) / 1000;
         this.lastUpdateTime = now;
 
-        if (this.activeResearches.length === 0 || elapsedSeconds <= 0) return;
+        if (elapsedSeconds <= 0) return;
+        this.playtime += elapsedSeconds;
+
+        if (this.activeResearches.length === 0) return;
 
         let updated = false;
         
@@ -121,6 +125,20 @@ export class GameStats extends Phaser.Events.EventEmitter {
         }
         
         if (updated) this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    /**
+     * 포맷팅된 플레이 시간 반환
+     */
+    getFormattedPlaytime(): string {
+        const h = Math.floor(this.playtime / 3600);
+        const m = Math.floor((this.playtime % 3600) / 60);
+        const s = Math.floor(this.playtime % 60);
+        
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        
+        if (h > 0) return `${h}:${pad(m)}:${pad(s)}`;
+        return `${m}:${pad(s)}`;
     }
 
     /**

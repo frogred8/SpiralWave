@@ -85,6 +85,19 @@ export class GameScene extends Phaser.Scene {
                         }
                     }
                 });
+
+                // 마지막 row(r=3)인 경우, 추가로 무작위 연결 하나 더 생성
+                if (r === 3) {
+                    const randomSkill = Phaser.Utils.Array.GetRandom(currentRows) as any;
+                    const otherUpper = upperRows.filter((s: any) => 
+                        s.tree !== randomSkill.tree && 
+                        !randomSkill.prerequisites.some((p: any) => p.id === s.id)
+                    );
+                    if (otherUpper.length > 0) {
+                        const extraUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
+                        randomSkill.prerequisites.push({ id: extraUpper.id, level: 1 });
+                    }
+                }
             }
         }
 

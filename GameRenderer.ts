@@ -162,8 +162,8 @@ export class GameRenderer {
                 graphics.fillStyle(0x00ffff, (1 - p) * 0.2);
 
                 graphics.beginPath();
-                graphics.moveTo(startX, startY);
-                graphics.arc(startX, startY, distance * p, angle - spread / 2, angle + spread / 2);
+                graphics.moveTo(this.spiralCenter.x, this.spiralCenter.y);
+                graphics.arc(this.spiralCenter.x, this.spiralCenter.y, distance * (1 - p), angle - spread / 2, angle + spread / 2);
                 graphics.closePath();
                 graphics.fillPath();
                 graphics.strokePath();

@@ -36,7 +36,58 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = this.scale;
         this.spiralCenter = new Phaser.Math.Vector2(width / 2, height / 2);
 
-        const skillData = this.cache.json.get('skillTreeData');
+        let skillData = this.cache.json.get('skillTreeData');
+        
+        // 스킬 트리 랜덤 배치 로직 (12개 스킬을 tree:0~2, row:0~3에 분산)
+        if (skillData && skillData.length >= 12) {
+            // 1. 위치 풀 생성 (3x4 = 12개)
+            const positions: {tree: number, row: number}[] = [];
+            for(let r=0; r<4; r++) {
+                for(let t=0; t<3; t++) {
+                    positions.push({tree: t, row: r});
+                }
+            }
+            
+            // 2. 스킬 데이터 셔플
+            skillData = Phaser.Utils.Array.Shuffle([...skillData]);
+            
+            // 3. 스킬에 위치 할당 및 초기 Prerequisites 제거
+            skillData.forEach((skill: any, index: number) => {
+                const pos = positions[index];
+                skill.tree = pos.tree;
+                skill.row = pos.row;
+                skill.prerequisites = []; // 기존 의존성 초기화
+            });
+
+            // 4. 새로운 Prerequisites 생성 로직
+            for(let r=1; r<4; r++) {
+                // 이 row에 있는 스킬들
+                const currentRows = skillData.filter((s: any) => s.row === r);
+                // 바로 위 row에 있는 스킬들
+                const upperRows = skillData.filter((s: any) => s.row === r - 1);
+                
+                // 해당 row에서 랜덤하게 하나 선택하여 추가 의존성(2개)을 부여할 대상 선정
+                const multiPrereqIndex = Phaser.Math.Between(0, currentRows.length - 1);
+
+                currentRows.forEach((skill: any, index: number) => {
+                    // 기본 규칙: 자신의 바로 위 tree의 스킬을 선행 조건으로 포함
+                    const directUpper = upperRows.find((s: any) => s.tree === skill.tree);
+                    if (directUpper) {
+                        skill.prerequisites.push({ id: directUpper.id, level: 1 });
+                    }
+
+                    // 랜덤 규칙: row마다 하나는 다른 tree의 상위 스킬을 추가로 포함
+                    if (index === multiPrereqIndex) {
+                        const otherUpper = upperRows.filter((s: any) => s.tree !== skill.tree);
+                        if (otherUpper.length > 0) {
+                            const randomUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
+                            skill.prerequisites.push({ id: randomUpper.id, level: 1 });
+                        }
+                    }
+                });
+            }
+        }
+
         this.gameStats = new GameStats(skillData);
 
         this.worldContainer = this.add.container(0, 0);

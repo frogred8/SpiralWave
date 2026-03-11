@@ -193,7 +193,10 @@ export class GameScene extends Phaser.Scene {
         this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);
 
         this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, () => {
-            infoText.setText(`[ WOOD: ${this.gameStats.collected.wood} ]  [ ROCK: ${this.gameStats.collected.rock} ]  [ IRON: ${this.gameStats.collected.iron} ] | Radius: ${Math.floor(this.gameStats.radius)} | Arms: ${this.gameStats.maxArms} | Speed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`);
+            const current = `[ WOOD: ${this.gameStats.collected.wood} ]  [ ROCK: ${this.gameStats.collected.rock} ]  [ IRON: ${this.gameStats.collected.iron} ]`;
+            const total = `(TOTAL - W: ${this.gameStats.totalCollected.wood} R: ${this.gameStats.totalCollected.rock} I: ${this.gameStats.totalCollected.iron})`;
+            const stats = `Radius: ${Math.floor(this.gameStats.radius)} | Arms: ${this.gameStats.maxArms} | Speed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
+            infoText.setText(`${current}\n${total} | ${stats}`);
         });
 
         this.gameStats.once(GameStats.EVENTS.COLORS_UNLOCKED, () => {

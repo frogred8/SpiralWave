@@ -15,6 +15,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     
     // 자원 및 인벤토리
     public collected: Record<ResourceType, number>;
+    public totalCollected: Record<ResourceType, number>;
     public maxResources: number;
     public isColorUnlocked: boolean;
     
@@ -51,6 +52,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.moveSpeed = INITIAL_STATS.MOVE_SPEED;
         
         this.collected = { rock: 0, wood: 0, iron: 0 };
+        this.totalCollected = { rock: 0, wood: 0, iron: 0 };
         this.maxResources = INITIAL_STATS.MAX_RESOURCES;
         this.isColorUnlocked = false;
         
@@ -160,10 +162,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
         const currentLevel = this.skillLevels[skill.id];
         const costs = skill.costs[currentLevel];
         
-        // 자원 환불 (최대치 제한)
-        if (costs.rock) this.collected.rock = Math.min(this.maxResources, this.collected.rock + costs.rock);
-        if (costs.wood) this.collected.wood = Math.min(this.maxResources, this.collected.wood + costs.wood);
-        if (costs.iron) this.collected.iron = Math.min(this.maxResources, this.collected.iron + costs.iron);
+        // 자원 환불
+        if (costs.rock) this.collected.rock += costs.rock;
+        if (costs.wood) this.collected.wood += costs.wood;
+        if (costs.iron) this.collected.iron += costs.iron;
 
         this.activeResearches.splice(index, 1);
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
@@ -175,7 +177,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
      */
     addCollected(type: ResourceType, amount: number = 1) {
         if (amount < 0) return;
-        this.collected[type] = Math.min(this.collected[type] + amount, this.maxResources);
+        this.collected[type] += amount;
+        this.totalCollected[type] += amount;
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 

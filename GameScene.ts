@@ -72,13 +72,16 @@ export class GameScene extends Phaser.Scene {
                 currentRows.forEach((skill: any, index: number) => {
                     // 기본 규칙: 자신의 바로 위 tree의 스킬을 선행 조건으로 포함
                     const directUpper = upperRows.find((s: any) => s.tree === skill.tree);
-                    if (directUpper) {
+                    if (directUpper && !skill.prerequisites.some((p: any) => p.id === directUpper.id)) {
                         skill.prerequisites.push({ id: directUpper.id, level: 1 });
                     }
 
                     // 랜덤 규칙: row마다 하나는 이웃한 tree의 상위 스킬을 추가로 포함 (이웃: 인덱스 차이가 1)
                     if (index === multiPrereqIndex) {
-                        const otherUpper = upperRows.filter((s: any) => Math.abs(s.tree - skill.tree) === 1);
+                        const otherUpper = upperRows.filter((s: any) => 
+                            Math.abs(s.tree - skill.tree) === 1 && 
+                            !skill.prerequisites.some((p: any) => p.id === s.id)
+                        );
                         if (otherUpper.length > 0) {
                             const randomUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
                             skill.prerequisites.push({ id: randomUpper.id, level: 1 });

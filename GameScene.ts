@@ -124,9 +124,7 @@ export class GameScene extends Phaser.Scene {
 
         // 로봇팔 초기화
         this.arms = [];
-        for (let i = 0; i < 5; i++) {
-            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter));
-        }
+        this.syncArmsCount();
 
         this.cameras.add(0, 0, width, height).setName('UI').ignore(this.worldContainer);
         this.cameras.main.ignore(this.uiContainer);
@@ -136,7 +134,10 @@ export class GameScene extends Phaser.Scene {
         this.setupUI(skillData);
 
         this.input.on('pointerdown', this.handleInput, this);
-        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, this.updateSpawnTimer, this);
+        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
+            this.updateSpawnTimer();
+            this.syncArmsCount();
+        }, this);
         
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
@@ -194,6 +195,12 @@ export class GameScene extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
+    }
+
+    private syncArmsCount() {
+        while (this.arms.length < this.gameStats.maxArms) {
+            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter));
+        }
     }
 
     private setupUI(skillData: any) {
@@ -276,6 +283,7 @@ export class GameScene extends Phaser.Scene {
             let activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
             if (activeArmsCount < this.gameStats.maxArms) {
                 for (const arm of this.arms) {
+                    // console.log(`${this.arms.length},Arm state: ${arm.state}, Last fire: ${arm.lastFireTime}, Current time: ${time}`);
                     if (activeArmsCount >= this.gameStats.maxArms) break;
 
                     if (arm.state === 'idle' && time > arm.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN) {

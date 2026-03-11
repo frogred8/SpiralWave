@@ -273,9 +273,11 @@ export class GameScene extends Phaser.Scene {
 
         // 자동 로봇팔 로직
         if (this.gameStats.isAutoArmEnabled) {
-            const activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
+            let activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
             if (activeArmsCount < this.gameStats.maxArms) {
-                this.arms.forEach(arm => {
+                for (const arm of this.arms) {
+                    if (activeArmsCount >= this.gameStats.maxArms) break;
+
                     if (arm.state === 'idle' && time > arm.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN) {
                         let bestHighDim: Collectible | null = null;
                         let bestNormal: Collectible | null = null;
@@ -297,9 +299,12 @@ export class GameScene extends Phaser.Scene {
                         });
 
                         const targetResource = bestHighDim || bestNormal;
-                        if (targetResource) arm.fire(targetResource, time);
+                        if (targetResource) {
+                            arm.fire(targetResource, time);
+                            activeArmsCount++;
+                        }
                     }
-                });
+                }
             }
         }
 

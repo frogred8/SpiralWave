@@ -70,6 +70,10 @@ export class ResourceManager {
         const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '40px' }).setOrigin(0.5);
         this.worldContainer.add(meteor);
 
+        // 진행 방향으로 회전 (이모지 특성상 기본 45도 정도 기울어져 있을 수 있으므로 보정 필요할 수 있음)
+        const angle = Phaser.Math.Angle.Between(startX, startY, endX, endY);
+        meteor.setRotation(angle - Math.PI / 4); // ☄️ 이모지는 보통 대각선 방향이므로 -45도 보정
+
         // 파티클 효과 (꼬리)
         const emitter = this.scene.add.particles(0, 0, 'spark', {
             speed: { min: 20, max: 100 },

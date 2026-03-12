@@ -272,7 +272,8 @@ export class GameScene extends Phaser.Scene {
         // 자원 획득 시 플로팅 텍스트 표시
         this.gameStats.on('resourceCollected', (type: string, amount: number) => {
             const x = type === 'wood' ? 45 : 135;
-            this.showFloatingText(panelX + x, panelY + panelHeight / 2, `+${amount}`, type === 'wood' ? '#8b4513' : '#aaaaaa');
+            // 자원량 수치보다 위쪽(-20)에서 생성되게 변경
+            this.showFloatingText(panelX + x, panelY + (panelHeight / 2) - 20, `+${amount}`, '#00ff00');
         });
         
         // 1초마다 갱신 (최근 10초 획득량 갱신용)

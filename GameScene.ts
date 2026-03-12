@@ -231,25 +231,25 @@ export class GameScene extends Phaser.Scene {
             .setOrigin(0);
         
         // 텍스트 스타일 정의
-        const labelStyle = { fontSize: '12px', color: '#888888', fontStyle: 'bold' };
-        const valueStyle = { fontSize: '14px', color: '#00ffff', fontStyle: 'bold' };
+        const iconStyle = { fontSize: '20px' };
+        const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
         const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
 
-        // 리소스 표시
-        const woodLabel = this.add.text(15, 8, 'WOOD', labelStyle);
-        const woodValue = this.add.text(15, 22, '0', valueStyle);
-        const rockLabel = this.add.text(85, 8, 'ROCK', labelStyle);
-        const rockValue = this.add.text(85, 22, '0', valueStyle);
+        // 리소스 표시 (아이콘 + 수치)
+        const woodIcon = this.add.text(15, 12, RESOURCE_CONFIG.ICONS.wood, iconStyle);
+        const woodValue = this.add.text(45, 15, '0', valueStyle);
+        const rockIcon = this.add.text(95, 12, RESOURCE_CONFIG.ICONS.rock, iconStyle);
+        const rockValue = this.add.text(125, 15, '0', valueStyle);
         
         // 총 수집 및 시간
-        const totalText = this.add.text(165, 10, 'TOTAL: 0', totalStyle);
-        const rateText = this.add.text(165, 25, '10s: 0', totalStyle);
-        const timeText = this.add.text(165, 40, 'TIME: 00:00', totalStyle);
+        const totalText = this.add.text(185, 10, 'TOTAL: 0', totalStyle);
+        const rateText = this.add.text(185, 25, '10s: 0', totalStyle);
+        const timeText = this.add.text(185, 40, 'TIME: 00:00', totalStyle);
 
         // 기타 스탯 (반지름, 팔 개수 등)
-        const gameStatsText = this.add.text(280, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
+        const gameStatsText = this.add.text(290, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
 
-        statsContainer.add([bg, woodLabel, woodValue, rockLabel, rockValue, totalText, rateText, timeText, gameStatsText]);
+        statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
         this.uiContainer.add(statsContainer);
 
         this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);

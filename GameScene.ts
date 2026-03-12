@@ -236,19 +236,19 @@ export class GameScene extends Phaser.Scene {
         const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
         const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
 
-        // 리소스 표시 (아이콘 + 수치)
-        const woodIcon = this.add.text(15, 12, RESOURCE_CONFIG.ICONS.wood, iconStyle);
-        const woodValue = this.add.text(45, 15, '0', valueStyle);
-        const rockIcon = this.add.text(95, 12, RESOURCE_CONFIG.ICONS.rock, iconStyle);
-        const rockValue = this.add.text(125, 15, '0', valueStyle);
+        // 리소스 표시 (아이콘 + 수치) - Y축 중앙 정렬 (패널 높이 55 기준)
+        const woodIcon = this.add.text(15, panelHeight / 2, RESOURCE_CONFIG.ICONS.wood, iconStyle).setOrigin(0, 0.5);
+        const woodValue = this.add.text(45, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
+        const rockIcon = this.add.text(105, panelHeight / 2, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
+        const rockValue = this.add.text(135, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
         
         // 총 수집 및 시간
-        const totalText = this.add.text(185, 10, `${I18n.t('stats.total')}: 0`, totalStyle);
-        const rateText = this.add.text(185, 25, `${I18n.t('stats.rate')}: 0`, totalStyle);
-        const timeText = this.add.text(185, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle);
+        const totalText = this.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle);
+        const rateText = this.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle);
+        const timeText = this.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle);
 
         // 기타 스탯 (반지름, 팔 개수 등)
-        const gameStatsText = this.add.text(290, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
+        const gameStatsText = this.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
 
         statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
         this.uiContainer.add(statsContainer);
@@ -268,6 +268,12 @@ export class GameScene extends Phaser.Scene {
         };
 
         this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, updateInfo);
+        
+        // 자원 획득 시 플로팅 텍스트 표시
+        this.gameStats.on('resourceCollected', (type: string, amount: number) => {
+            const x = type === 'wood' ? 45 : 135;
+            this.showFloatingText(panelX + x, panelY + panelHeight / 2, `+${amount}`, type === 'wood' ? '#8b4513' : '#aaaaaa');
+        });
         
         // 1초마다 갱신 (최근 10초 획득량 갱신용)
         this.time.addEvent({
@@ -536,6 +542,20 @@ export class GameScene extends Phaser.Scene {
         
         item.destroy();
         this.cameras.main.shake(100, 0.005);
+    }
+
+    private showFloatingText(x: number, y: number, text: string, color: string) {
+        const ft = this.add.text(x, y, text, { fontSize: '14px', color, fontStyle: 'bold' }).setScrollFactor(0).setDepth(100);
+        this.uiContainer.add(ft);
+
+        this.tweens.add({
+            targets: ft,
+            y: y - 30,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Sine.easeOut',
+            onComplete: () => ft.destroy()
+        });
     }
 
     private triggerRadiusBoost() {

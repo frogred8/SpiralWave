@@ -204,8 +204,8 @@ addCollected(type: ResourceType, amount: number = 1) {
     this.totalAll += amount;
     this.collectionHistory.push({ timestamp: Date.now(), amount });
     this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    this.emit('resourceCollected', type, amount);
 }
-
 /**
  * 최근 10초간의 자원 획득량 합계 반환
  */

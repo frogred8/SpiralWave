@@ -79,4 +79,5 @@ export type EffectProperty =
     | 'spawnRate' 
     | 'researchBonus' 
     | 'moveSpeed' 
-    | 'net';
+    | 'net'
+    | 'netAngle';

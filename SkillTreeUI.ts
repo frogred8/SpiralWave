@@ -436,6 +436,7 @@ export class SkillTreeUI {
             case 'researchBonus': return 'Research Reduction';
             case 'moveSpeed': return 'Move Speed';
             case 'net': return 'Resource Net';
+            case 'netAngle': return 'Net Angle';
             default: return property;
         }
     }

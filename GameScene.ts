@@ -211,10 +211,10 @@ export class GameScene extends Phaser.Scene {
 
         const updateInfo = () => {
             const current = `[ WOOD: ${this.gameStats.collected.wood} ]  [ ROCK: ${this.gameStats.collected.rock} ]  [ IRON: ${this.gameStats.collected.iron} ]`;
-            const total = `(TOTAL: ${this.gameStats.totalAll} | 10s: ${this.gameStats.getRecentCollectionAmount()})`;
+            const total = `(TOTAL: ${this.gameStats.totalAll} | rps: ${(this.gameStats.getRecentCollectionAmount() / 10).toFixed(1)})`;
             const stats = `Radius: ${Math.floor(this.gameStats.radius)} | Arms: ${this.gameStats.maxArms} | Speed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
             const time = `Time: ${this.gameStats.getFormattedPlaytime()}`;
-            infoText.setText(`${current} | ${time}\n${total} | ${stats}`);
+            infoText.setText(`${current} | ${time} | ${total} | ${stats}`);
         };
 
         this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, updateInfo);
@@ -433,7 +433,7 @@ export class GameScene extends Phaser.Scene {
         this.gameRenderer.drawNet(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY, distance);
 
         const angleToTarget = Utils.getAngle(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
-        const spread = Math.PI / 4;
+        const spread = Phaser.Math.DegToRad(this.gameStats.netAngle);
 
         this.resourceManager.getGroup().getChildren().forEach((child) => {
             const res = child as any;

@@ -55,6 +55,7 @@ export const Utils = {
             case 'spawnRate': return `${value.toFixed(1)}x`;
             case 'researchBonus': return `${value}s reduction`;
             case 'moveSpeed': return `${value.toFixed(2)}`;
+            case 'netAngle': return `${value}°`;
             default: return `${value}`;
         }
     },
@@ -71,6 +72,7 @@ export const Utils = {
             case 'armSpeed': 
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;
             case 'researchBonus': return `${bonus}s reduction`;
+            case 'netAngle': return `${sign}${bonus}°`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }
     }

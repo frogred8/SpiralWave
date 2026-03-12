@@ -154,7 +154,7 @@ export class GameRenderer {
         this.netChargeGraphics.clear();
         
         const angle = Phaser.Math.Angle.Between(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
-        const spread = Math.PI / 4; // 45도
+        const spread = Phaser.Math.DegToRad(this.stats.netAngle); 
         
         // 기모으는 느낌: 진행도에 따라 서서히 선명해지고 크기가 변함
         const alpha = progress * 0.4;
@@ -181,7 +181,7 @@ export class GameRenderer {
         this.worldContainer.add(graphics);
 
         const angle = Phaser.Math.Angle.Between(startX, startY, targetX, targetY);
-        const spread = Math.PI / 4; // 45도
+        const spread = Phaser.Math.DegToRad(this.stats.netAngle);
 
         this.scene.tweens.add({
             targets: { progress: 0 },

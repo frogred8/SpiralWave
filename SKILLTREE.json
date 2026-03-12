@@ -174,66 +174,6 @@
             {
                 "rock": 11,
                 "iron": 8
-            },
-            {
-                "rock": 15,
-                "iron": 11
-            },
-            {
-                "rock": 19,
-                "iron": 14
-            },
-            {
-                "rock": 25,
-                "iron": 19
-            },
-            {
-                "rock": 31,
-                "iron": 24
-            },
-            {
-                "rock": 39,
-                "iron": 30
-            },
-            {
-                "rock": 49,
-                "iron": 38
-            },
-            {
-                "rock": 60,
-                "iron": 47
-            },
-            {
-                "rock": 73,
-                "iron": 58
-            },
-            {
-                "rock": 88,
-                "iron": 70
-            },
-            {
-                "rock": 105,
-                "iron": 84
-            },
-            {
-                "rock": 125,
-                "iron": 100
-            },
-            {
-                "rock": 148,
-                "iron": 120
-            },
-            {
-                "rock": 174,
-                "iron": 142
-            },
-            {
-                "rock": 204,
-                "iron": 168
-            },
-            {
-                "rock": 238,
-                "iron": 198
             }
         ],
         "researchTimes": [
@@ -241,33 +181,18 @@
             15,
             22,
             30,
-            40,
-            55,
-            75,
-            100,
-            130,
-            165,
-            200,
-            240,
-            285,
-            335,
-            390,
-            450,
-            515,
-            585,
-            660,
-            740
+            40
         ],
-        "description": "Force +0.5",
-        "effectProperty": "force",
-        "effectValue": 0.5,
+        "description": "Radius +5",
+        "effectProperty": "radius",
+        "effectValue": 5,
         "prerequisites": [
             {
                 "id": "r1",
                 "level": 1
             }
         ],
-        "maxLevel": 20
+        "maxLevel": 5
     },
     {
         "id": "r3",
@@ -340,58 +265,36 @@
         "maxLevel": 5
     },
     {
-        "id": "f1",
-        "name": "Extra Arm I",
-        "tree": 2,
-        "row": 0,
-        "costs": [
-            {
-                "iron": 5,
-                "wood": 2
-            },
-            {
-                "iron": 15,
-                "wood": 6
-            }
-        ],
-        "researchTimes": [
-            3,
-            15
-        ],
-        "description": "Max Arms +1",
-        "effectProperty": "maxArms",
-        "effectValue": 1,
-        "maxLevel": 2
-    },
-    {
         "id": "f2",
-        "name": "Extra Arm II",
+        "name": "Wider Net",
         "tree": 2,
         "row": 4,
         "costs": [
             {
-                "iron": 5,
-                "wood": 2
+                "iron": 10,
+                "wood": 10
             },
             {
-                "iron": 15,
-                "wood": 6
-            }
-        ],
-        "researchTimes": [
-            3,
-            10
-        ],
-        "description": "Max Arms +1",
-        "effectProperty": "maxArms",
-        "effectValue": 1,
-        "prerequisites": [
+                "iron": 25,
+                "wood": 25,
+                "rock": 10
+            },
             {
-                "id": "arm_speed",
-                "level": 1
+                "iron": 50,
+                "wood": 50,
+                "rock": 30
             }
         ],
-        "maxLevel": 2
+        "prerequisites": [],
+        "researchTimes": [
+            10,
+            20,
+            40
+        ],
+        "description": "Net Angle +15°",
+        "effectProperty": "netAngle",
+        "effectValue": 15,
+        "maxLevel": 3
     },
     {
         "id": "auto_arm",

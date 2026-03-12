@@ -352,14 +352,16 @@ export class SkillTreeUI {
         let x, y;
         if (halfW * absSin <= halfH * absCos) {
             // Hits left or right edge
-            x = from.x + (dx > 0 ? halfW : -halfW);
-            y = from.y + (dx > 0 ? halfW : -halfW) * Math.tan(angle);
+            const edgeX = (dx > 0 ? halfW : -halfW);
+            x = from.x + edgeX;
+            y = from.y + edgeX * Math.tan(angle);
         } else {
             // Hits top or bottom edge
             // Avoid division by zero
+            const edgeY = (dy > 0 ? halfH : -halfH);
             const tan = Math.tan(angle);
-            x = from.x + (dy > 0 ? halfH : -halfH) / (tan === 0 ? 0.0001 : tan);
-            y = from.y + (dy > 0 ? halfH : -halfH);
+            x = from.x + edgeY / (tan === 0 ? 0.0001 : tan);
+            y = from.y + edgeY;
         }
         
         return { x, y };

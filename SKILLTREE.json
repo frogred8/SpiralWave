@@ -1,267 +1,32 @@
 [
     {
         "id": "q1",
-        "name": "Big Resource I",
+        "name": "Radius Boost I",
         "tree": 0,
-        "row": 2,
+        "row": 0,
         "costs": [
-            {
-                "wood": 2
-            },
-            {
-                "wood": 5,
-                "rock": 2
-            },
-            {
-                "wood": 10,
-                "rock": 5
-            },
-            {
-                "wood": 20,
-                "rock": 10,
-                "iron": 5
-            },
-            {
-                "wood": 40,
-                "rock": 20,
-                "iron": 10
-            }
+            { "wood": 10 }
         ],
-        "researchTimes": [
-            10,
-            20,
-            40,
-            80,
-            160
-        ],
-        "description": "Big resource probability +3% (Max +15%)",
-        "effectProperty": "highDimProb",
-        "effectValue": 0.03,
-        "maxLevel": 5,
-        "prerequisites": [
-            {
-                "id": "q2",
-                "level": 1
-            }
-        ]
+        "prerequisites": [],
+        "researchTimes": [5],
+        "description": "Radius +20",
+        "effectProperty": "radius",
+        "effectValue": 20,
+        "maxLevel": 5
     },
     {
         "id": "q2",
-        "name": "Boost Resource",
-        "tree": 0,
-        "row": 1,
-        "costs": [
-            {
-                "wood": 10,
-                "rock": 5
-            },
-            {
-                "wood": 20,
-                "rock": 10,
-                "iron": 5
-            },
-            {
-                "wood": 40,
-                "rock": 20,
-                "iron": 10
-            },
-            {
-                "wood": 80,
-                "rock": 40,
-                "iron": 20
-            },
-            {
-                "wood": 160,
-                "rock": 80,
-                "iron": 40
-            }
-        ],
-        "researchTimes": [
-            15,
-            30,
-            60,
-            120,
-            240
-        ],
-        "description": "Resource spawn frequency +30% (Max +100%)",
-        "effectProperty": "spawnRate",
-        "effectValue": 0.3,
-        "prerequisites": [
-            {
-                "id": "q3",
-                "level": 1
-            }
-        ],
-        "maxLevel": 5
-    },
-    {
-        "id": "q3",
-        "name": "Resource Net",
-        "tree": 0,
-        "row": 0,
-        "costs": [
-            {
-                "iron": 1
-            }
-        ],
-        "researchTimes": [
-            2
-        ],
-        "description": "Auto-fires a cone net every 1s towards cursor",
-        "effectProperty": "net",
-        "effectValue": 1,
-        "maxLevel": 1
-    },
-    {
-        "id": "r1",
-        "name": "Dense Core",
+        "name": "Force I",
         "tree": 1,
         "row": 0,
         "costs": [
-            {
-                "rock": 1
-            },
-            {
-                "rock": 1
-            },
-            {
-                "rock": 2,
-                "iron": 1
-            },
-            {
-                "rock": 3,
-                "iron": 1
-            },
-            {
-                "rock": 4,
-                "iron": 1
-            }
+            { "rock": 10 }
         ],
-        "researchTimes": [
-            3,
-            5,
-            8,
-            12,
-            18
-        ],
-        "description": "Max Research Queue +1",
-        "effectProperty": "maxResearchSlots",
-        "effectValue": 1,
-        "maxLevel": 1
-    },
-    {
-        "id": "r2",
-        "name": "Singularity",
-        "tree": 1,
-        "row": 1,
-        "costs": [
-            {
-                "rock": 2,
-                "iron": 1
-            },
-            {
-                "rock": 4,
-                "iron": 2
-            },
-            {
-                "rock": 6,
-                "iron": 4
-            },
-            {
-                "rock": 8,
-                "iron": 6
-            },
-            {
-                "rock": 11,
-                "iron": 8
-            }
-        ],
-        "researchTimes": [
-            10,
-            15,
-            22,
-            30,
-            40
-        ],
-        "description": "Radius +5",
-        "effectProperty": "radius",
-        "effectValue": 5,
-        "prerequisites": [
-            {
-                "id": "r1",
-                "level": 1
-            }
-        ],
-        "maxLevel": 5
-    },
-    {
-        "id": "r3",
-        "name": "Core Propulsion",
-        "tree": 1,
-        "row": 2,
-        "costs": [
-            {
-                "rock": 5,
-                "iron": 2
-            }
-        ],
-        "researchTimes": [
-            20
-        ],
-        "description": "Unlock black hole movement",
-        "effectProperty": "moveSpeed",
-        "effectValue": 1.25,
-        "prerequisites": [
-            {
-                "id": "r2",
-                "level": 1
-            }
-        ],
-        "maxLevel": 1
-    },
-    {
-        "id": "r4",
-        "name": "Core Mobility",
-        "tree": 1,
-        "row": 3,
-        "costs": [
-            {
-                "rock": 10,
-                "iron": 5
-            },
-            {
-                "rock": 20,
-                "iron": 10
-            },
-            {
-                "rock": 40,
-                "iron": 20
-            },
-            {
-                "rock": 80,
-                "iron": 40
-            },
-            {
-                "rock": 160,
-                "iron": 80
-            }
-        ],
-        "researchTimes": [
-            30,
-            60,
-            120,
-            240,
-            480
-        ],
-        "description": "Black hole move speed +0.75",
-        "effectProperty": "moveSpeed",
-        "effectValue": 0.75,
-        "prerequisites": [
-            {
-                "id": "r3",
-                "level": 1
-            }
-        ],
+        "prerequisites": [],
+        "researchTimes": [5],
+        "description": "Force +0.2",
+        "effectProperty": "force",
+        "effectValue": 0.2,
         "maxLevel": 5
     },
     {
@@ -270,31 +35,91 @@
         "tree": 2,
         "row": 0,
         "costs": [
-            {
-                "iron": 10,
-                "wood": 10
-            },
-            {
-                "iron": 25,
-                "wood": 25,
-                "rock": 10
-            },
-            {
-                "iron": 50,
-                "wood": 50,
-                "rock": 30
-            }
+            { "iron": 10, "wood": 10 },
+            { "iron": 25, "wood": 25, "rock": 10 },
+            { "iron": 50, "wood": 50, "rock": 30 }
         ],
         "prerequisites": [],
-        "researchTimes": [
-            10,
-            20,
-            40
-        ],
+        "researchTimes": [10, 20, 40],
         "description": "Net Angle +15°",
         "effectProperty": "netAngle",
         "effectValue": 15,
         "maxLevel": 3
+    },
+    {
+        "id": "q3",
+        "name": "Move Speed I",
+        "tree": 0,
+        "row": 1,
+        "costs": [
+            { "wood": 20, "rock": 10 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [10],
+        "description": "Move Speed +0.5",
+        "effectProperty": "moveSpeed",
+        "effectValue": 0.5,
+        "maxLevel": 5
+    },
+    {
+        "id": "r1",
+        "name": "Big Resource I",
+        "tree": 1,
+        "row": 1,
+        "costs": [
+            { "rock": 20, "iron": 5 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [15],
+        "description": "Big Resource Prob +5%",
+        "effectProperty": "highDimProb",
+        "effectValue": 0.05,
+        "maxLevel": 5
+    },
+    {
+        "id": "arm_speed",
+        "name": "Arm Speed I",
+        "tree": 2,
+        "row": 1,
+        "costs": [
+            { "iron": 15, "wood": 10 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [15],
+        "description": "Arm Speed +0.2x",
+        "effectProperty": "armSpeed",
+        "effectValue": 0.2,
+        "maxLevel": 5
+    },
+    {
+        "id": "r2",
+        "name": "Research Speed I",
+        "tree": 0,
+        "row": 2,
+        "costs": [
+            { "wood": 30, "iron": 10 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [20],
+        "description": "Research Reduction +1s",
+        "effectProperty": "researchBonus",
+        "effectValue": 1,
+        "maxLevel": 5
+    },
+    {
+        "id": "r3",
+        "name": "Spawn Rate I",
+        "tree": 1,
+        "row": 2,
+        "costs": [
+            { "rock": 30, "wood": 15 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [20],
+        "description": "Spawn Rate +0.2x",
+        "effectProperty": "spawnRate",
+        "effectValue": 0.2,
+        "maxLevel": 5
     },
     {
         "id": "auto_arm",
@@ -302,104 +127,58 @@
         "tree": 2,
         "row": 2,
         "costs": [
-            {
-                "wood": 1,
-                "rock": 1,
-                "iron": 1
-            }
+            { "iron": 40, "wood": 20 }
         ],
-        "researchTimes": [
-            10
-        ],
-        "description": "Auto-activates idle arms",
+        "prerequisites": [],
+        "researchTimes": [30],
+        "description": "Auto Arm Activation",
         "effectProperty": "autoArm",
         "effectValue": 1,
-        "prerequisites": [
-            {
-                "id": "r2",
-                "level": 1
-            },
-            {
-                "id": "arm_sync",
-                "level": 1
-            }
-        ],
         "maxLevel": 1
     },
     {
-        "id": "arm_speed",
-        "name": "Arm Motor Upgrade",
-        "tree": 2,
+        "id": "r4",
+        "name": "Max Arms I",
+        "tree": 0,
         "row": 3,
         "costs": [
-            {
-                "wood": 2,
-                "rock": 2,
-                "iron": 2
-            },
-            {
-                "wood": 5,
-                "rock": 5,
-                "iron": 5
-            },
-            {
-                "wood": 10,
-                "rock": 10,
-                "iron": 10
-            },
-            {
-                "wood": 20,
-                "rock": 20,
-                "iron": 20
-            },
-            {
-                "wood": 40,
-                "rock": 40,
-                "iron": 40
-            }
+            { "iron": 50, "rock": 30 }
         ],
-        "researchTimes": [
-            10,
-            45,
-            90,
-            180,
-            360
-        ],
-        "description": "Arm Speed +40%",
-        "effectProperty": "armSpeed",
-        "effectValue": 0.4,
-        "prerequisites": [
-            {
-                "id": "auto_arm",
-                "level": 1
-            }
-        ],
-        "maxLevel": 5
+        "prerequisites": [],
+        "researchTimes": [40],
+        "description": "Max Arms +1",
+        "effectProperty": "maxArms",
+        "effectValue": 1,
+        "maxLevel": 2
     },
     {
         "id": "arm_sync",
-        "name": "Quantum Sync",
-        "tree": 2,
-        "row": 1,
+        "name": "Research Slot I",
+        "tree": 1,
+        "row": 3,
         "costs": [
-            {
-                "wood": 10,
-                "rock": 10,
-                "iron": 10
-            }
+            { "iron": 60, "wood": 40 }
         ],
-        "researchTimes": [
-            10
-        ],
-        "description": "Arm collection reduces research time by 1s",
-        "effectProperty": "researchBonus",
+        "prerequisites": [],
+        "researchTimes": [50],
+        "description": "Research Slot +1",
+        "effectProperty": "maxResearchSlots",
         "effectValue": 1,
-        "prerequisites": [
-            {
-                "id": "f1",
-                "level": 1
-            }
+        "maxLevel": 2
+    },
+    {
+        "id": "f1",
+        "name": "Resource Net",
+        "tree": 2,
+        "row": 3,
+        "costs": [
+            { "iron": 100, "rock": 50 }
         ],
+        "prerequisites": [],
+        "researchTimes": [60],
+        "description": "Resource Net Activation",
+        "effectProperty": "net",
+        "effectValue": 1,
         "maxLevel": 1
     }
 ]

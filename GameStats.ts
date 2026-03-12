@@ -42,7 +42,6 @@ export class GameStats extends Phaser.Events.EventEmitter {
     // 이벤트 상수 정의
     public static readonly EVENTS = {
         UPDATE_SCORE: 'updateScore',
-        COLORS_UNLOCKED: 'colorsUnlocked',
         SKILL_UPGRADED: 'skillUpgraded',
         RESEARCH_REDUCED: 'researchTimeReduced'
     };
@@ -60,7 +59,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.totalCollected = { rock: 0, wood: 0 };
         this.totalAll = 0;
         this.maxResources = INITIAL_STATS.MAX_RESOURCES;
-        this.isColorUnlocked = false;
+        this.isColorUnlocked = true; // 시작부터 개방된 상태
         
         this.maxArms = INITIAL_STATS.MAX_ARMS;
         this.isAutoArmEnabled = false;
@@ -268,13 +267,4 @@ getRecentCollectionAmount(): number {
         this.emit(GameStats.EVENTS.SKILL_UPGRADED, skill.id);
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
     } 
-
-    /**
-     * 색상 시스템 해금
-     */
-    unlockColors() {
-        if (this.isColorUnlocked) return;
-        this.isColorUnlocked = true;
-        this.emit(GameStats.EVENTS.COLORS_UNLOCKED);
-    }
 }

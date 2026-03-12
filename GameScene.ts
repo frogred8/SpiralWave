@@ -287,10 +287,8 @@ export class GameScene extends Phaser.Scene {
             loop: true
         });
 
-        this.gameStats.once(GameStats.EVENTS.COLORS_UNLOCKED, () => {
-            this.cameras.main.flash(1000, 255, 255, 255);
-            this.resourceManager.getGroup().getChildren().forEach(child => (child as any).clearTint());
-        });
+        // 시작 시 번쩍이는 효과
+        this.cameras.main.flash(1000, 255, 255, 255);
 
         this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
@@ -486,8 +484,6 @@ export class GameScene extends Phaser.Scene {
             this.gameStats.reduceResearchTime(this.gameStats.researchReduction);
         }
         
-        if (!this.gameStats.isColorUnlocked) this.gameStats.unlockColors();
-
         collectible.destroy();
     }
 

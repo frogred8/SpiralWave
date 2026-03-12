@@ -67,7 +67,7 @@ export class ResourceManager {
             endX = width + 50; endY = Phaser.Math.Between(0, height);
         }
 
-        const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '40px' }).setOrigin(0.5);
+        const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '80px' }).setOrigin(0.5);
         this.worldContainer.add(meteor);
 
         // 진행 방향으로 회전 (기존 대비 180도 반전하여 머리가 앞으로 오게 수정)
@@ -124,8 +124,6 @@ export class ResourceManager {
         
         const radius = isHighDim ? 30 : 12;
         res.body.setCircle(radius, (res.width - radius * 2) / 2, (res.height - radius * 2) / 2);
-        
-        if (!this.stats.isColorUnlocked) res.setTint(0x444444);
         
         const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Utils.getAngle(x, y, Math.random() * this.scene.scale.width, Math.random() * this.scene.scale.height);
         const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(150, 250);

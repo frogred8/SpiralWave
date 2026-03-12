@@ -216,7 +216,7 @@ export class GameScene extends Phaser.Scene {
         // 상단 스탯 패널 구성
         const panelX = 50;
         const panelY = 15;
-        const panelWidth = 400;
+        const panelWidth = 380; // 스킬 트리 영역(World X 430)에 맞춤
         const panelHeight = 55;
 
         const statsContainer = this.add.container(panelX, panelY).setScrollFactor(0);

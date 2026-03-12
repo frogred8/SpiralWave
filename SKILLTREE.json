@@ -1,33 +1,41 @@
 [
     {
         "id": "q1",
-        "name": "Radius Boost I",
+        "name": "Radius Boost",
         "tree": 0,
         "row": 0,
         "costs": [
-            { "wood": 10 }
+            { "wood": 5 },
+            { "wood": 10 },
+            { "wood": 20 },
+            { "wood": 40 },
+            { "wood": 50 }
         ],
         "prerequisites": [],
-        "researchTimes": [5],
-        "description": "Radius +20",
+        "researchTimes": [5, 10, 25, 40, 60],
+        "description": "Radius +5",
         "effectProperty": "radius",
-        "effectValue": 20,
-        "maxLevel": 1
+        "effectValue": 5,
+        "maxLevel": 5
     },
     {
         "id": "q2",
-        "name": "Force I",
+        "name": "Force Boost",
         "tree": 1,
         "row": 0,
         "costs": [
-            { "rock": 10 }
+            { "rock": 5 },
+            { "rock": 20 },
+            { "rock": 40 },
+            { "rock": 50 },
+            { "rock": 80 }
         ],
         "prerequisites": [],
-        "researchTimes": [5],
+        "researchTimes": [5, 15, 30, 50, 60],
         "description": "Force +0.2",
         "effectProperty": "force",
         "effectValue": 0.2,
-        "maxLevel": 1
+        "maxLevel": 5
     },
     {
         "id": "f2",
@@ -48,37 +56,43 @@
     },
     {
         "id": "q3",
-        "name": "Move Speed I",
+        "name": "Move Speed",
         "tree": 0,
         "row": 1,
         "costs": [
-            { "wood": 20, "rock": 10 }
+            { "wood": 5, "rock": 5 },
+            { "wood": 20, "rock": 10 },
+            { "wood": 50, "rock": 20 }
         ],
         "prerequisites": [],
-        "researchTimes": [10],
+        "researchTimes": [10, 20, 60],
         "description": "Move Speed +0.5",
         "effectProperty": "moveSpeed",
         "effectValue": 0.5,
-        "maxLevel": 1
+        "maxLevel": 3
     },
     {
         "id": "r1",
-        "name": "Big Resource I",
+        "name": "Big Resource",
         "tree": 1,
         "row": 1,
         "costs": [
-            { "rock": 25 }
+            { "rock": 15 },
+            { "rock": 50 },
+            { "rock": 65 },
+            { "rock": 75 },
+            { "rock": 100 }
         ],
         "prerequisites": [],
-        "researchTimes": [15],
+        "researchTimes": [10, 20, 30, 60, 80],
         "description": "Big Resource Prob +5%",
         "effectProperty": "highDimProb",
         "effectValue": 0.05,
-        "maxLevel": 1
+        "maxLevel": 5
     },
     {
         "id": "arm_speed",
-        "name": "Arm Speed I",
+        "name": "Arm Speed",
         "tree": 2,
         "row": 1,
         "costs": [
@@ -93,7 +107,7 @@
     },
     {
         "id": "r2",
-        "name": "Research Speed I",
+        "name": "Research Speed",
         "tree": 0,
         "row": 2,
         "costs": [
@@ -101,25 +115,27 @@
         ],
         "prerequisites": [],
         "researchTimes": [20],
-        "description": "Research Reduction +1s",
+        "description": "Research Time -1s (Using Robotic Arm)",
         "effectProperty": "researchBonus",
         "effectValue": 1,
         "maxLevel": 1
     },
     {
         "id": "r3",
-        "name": "Spawn Rate I",
+        "name": "Resource Boost",
         "tree": 1,
         "row": 2,
         "costs": [
-            { "rock": 30, "wood": 15 }
+            { "rock": 10, "wood": 15 },
+            { "rock": 30, "wood": 25 },
+            { "rock": 50, "wood": 45 }
         ],
         "prerequisites": [],
-        "researchTimes": [20],
-        "description": "Spawn Rate +0.2x",
+        "researchTimes": [10, 30, 50],
+        "description": "Resource Spawn Rate +0.2x",
         "effectProperty": "spawnRate",
         "effectValue": 0.2,
-        "maxLevel": 1
+        "maxLevel": 3
     },
     {
         "id": "auto_arm",
@@ -127,10 +143,10 @@
         "tree": 2,
         "row": 2,
         "costs": [
-            { "wood": 60 }
+            { "wood": 30 }
         ],
         "prerequisites": [],
-        "researchTimes": [30],
+        "researchTimes": [20],
         "description": "Auto Arm Activation",
         "effectProperty": "autoArm",
         "effectValue": 1,
@@ -138,29 +154,30 @@
     },
     {
         "id": "r4",
-        "name": "Max Arms I",
+        "name": "Max Arms",
         "tree": 0,
         "row": 3,
         "costs": [
-            { "rock": 80 }
+            { "rock": 20 },
+            { "rock": 50 }
         ],
         "prerequisites": [],
-        "researchTimes": [20],
+        "researchTimes": [20, 30],
         "description": "Max Arms +1",
         "effectProperty": "maxArms",
         "effectValue": 1,
-        "maxLevel": 1
+        "maxLevel": 2
     },
     {
         "id": "arm_sync",
-        "name": "Research Slot I",
+        "name": "Research Slot",
         "tree": 1,
         "row": 3,
         "costs": [
-            { "wood": 100 }
+            { "wood": 50 }
         ],
         "prerequisites": [],
-        "researchTimes": [50],
+        "researchTimes": [30],
         "description": "Research Slot +1",
         "effectProperty": "maxResearchSlots",
         "effectValue": 1,
@@ -172,10 +189,10 @@
         "tree": 2,
         "row": 3,
         "costs": [
-            { "rock": 150 }
+            { "rock": 50 }
         ],
         "prerequisites": [],
-        "researchTimes": [60],
+        "researchTimes": [30],
         "description": "Resource Net Activation",
         "effectProperty": "net",
         "effectValue": 1,

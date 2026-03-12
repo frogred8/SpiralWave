@@ -36,12 +36,14 @@ export class ResourceManager {
         return this.whiteHoles;
     }
 
-    public spawnResource() {
+    public spawnResource(count: number = 2) {
         if (this.resources.getLength() >= INITIAL_STATS.MAX_RESOURCES) return;
 
         const { width, height } = this.scene.scale;
-        const { x, y } = Utils.getRandomEdgePosition(width, height);
-        this.createResourceAt(x, y);
+        for (let i = 0; i < count; i++) {
+            const { x, y } = Utils.getRandomEdgePosition(width, height);
+            this.createResourceAt(x, y);
+        }
     }
 
     public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {

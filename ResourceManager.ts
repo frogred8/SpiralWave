@@ -53,26 +53,26 @@ export class ResourceManager {
         const side = Phaser.Math.Between(0, 3);
         let startX, startY, endX, endY;
         
-        if (side === 0) { // Top to Bottom
-            startX = Phaser.Math.Between(0, width); startY = -50;
-            endX = Phaser.Math.Between(0, width); endY = height + 50;
-        } else if (side === 1) { // Bottom to Top
+        if (side === 0) { // Bottom to Top
             startX = Phaser.Math.Between(0, width); startY = height + 50;
             endX = Phaser.Math.Between(0, width); endY = -50;
-        } else if (side === 2) { // Left to Right
-            startX = -50; startY = Phaser.Math.Between(0, height);
-            endX = width + 50; endY = Phaser.Math.Between(0, height);
-        } else { // Right to Left
+        } else if (side === 1) { // Top to Bottom
+            startX = Phaser.Math.Between(0, width); startY = -50;
+            endX = Phaser.Math.Between(0, width); endY = height + 50;
+        } else if (side === 2) { // Right to Left
             startX = width + 50; startY = Phaser.Math.Between(0, height);
             endX = -50; endY = Phaser.Math.Between(0, height);
+        } else { // Left to Right
+            startX = -50; startY = Phaser.Math.Between(0, height);
+            endX = width + 50; endY = Phaser.Math.Between(0, height);
         }
 
         const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '40px' }).setOrigin(0.5);
         this.worldContainer.add(meteor);
 
-        // 진행 방향으로 회전 (이모지 특성상 기본 45도 정도 기울어져 있을 수 있으므로 보정 필요할 수 있음)
+        // 진행 방향으로 회전 (기존 대비 180도 반전하여 머리가 앞으로 오게 수정)
         const angle = Phaser.Math.Angle.Between(startX, startY, endX, endY);
-        meteor.setRotation(angle - Math.PI / 4); // ☄️ 이모지는 보통 대각선 방향이므로 -45도 보정
+        meteor.setRotation(angle + 3 * Math.PI / 4); 
 
         // 파티클 효과 (꼬리)
         const emitter = this.scene.add.particles(0, 0, 'spark', {

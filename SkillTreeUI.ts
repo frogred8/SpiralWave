@@ -17,7 +17,7 @@ export class SkillTreeUI {
     private skillTreeData: SkillData[];
 
     private readonly startX = 50;
-    private readonly startY = 80;
+    private readonly startY = 130; // 상단 스탯 패널(70px 지점 종료)과의 겹침 방지를 위해 하향 조정
     private readonly spacingX = 140;
     private readonly spacingY = 100;
     private readonly buttonWidth = 100;

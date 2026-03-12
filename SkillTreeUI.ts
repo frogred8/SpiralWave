@@ -16,7 +16,7 @@ export class SkillTreeUI {
     private skillButtons: Record<string, Phaser.GameObjects.Container> = {};
     private skillTreeData: SkillData[];
 
-    private readonly startX = 50;
+    private readonly startX = 100; // 버튼 절반 너비(50px)를 고려하여 상단 패널 시작점(50px)과 맞춤
     private readonly startY = 130; // 상단 스탯 패널(70px 지점 종료)과의 겹침 방지를 위해 하향 조정
     private readonly spacingX = 140;
     private readonly spacingY = 100;

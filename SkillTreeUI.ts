@@ -117,7 +117,7 @@ export class SkillTreeUI {
 
                 if (!isMaxLevel) {
                     const costs = skill.costs[currentLevel];
-                    const resourceTypes: ('wood' | 'rock' | 'iron')[] = ['wood', 'rock', 'iron'];
+                    const resourceTypes: ('wood' | 'rock')[] = ['wood', 'rock'];
 
                     if (costs) {
                         resourceTypes.forEach(type => {

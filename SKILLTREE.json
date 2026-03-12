@@ -35,9 +35,9 @@
         "tree": 2,
         "row": 0,
         "costs": [
-            { "iron": 10, "wood": 10 },
-            { "iron": 25, "wood": 25, "rock": 10 },
-            { "iron": 50, "wood": 50, "rock": 30 }
+            { "wood": 20 },
+            { "wood": 50, "rock": 10 },
+            { "wood": 100, "rock": 30 }
         ],
         "prerequisites": [],
         "researchTimes": [10, 20, 40],
@@ -67,7 +67,7 @@
         "tree": 1,
         "row": 1,
         "costs": [
-            { "rock": 20, "iron": 5 }
+            { "rock": 25 }
         ],
         "prerequisites": [],
         "researchTimes": [15],
@@ -82,7 +82,7 @@
         "tree": 2,
         "row": 1,
         "costs": [
-            { "iron": 15, "wood": 10 }
+            { "wood": 25 }
         ],
         "prerequisites": [],
         "researchTimes": [15],
@@ -97,7 +97,7 @@
         "tree": 0,
         "row": 2,
         "costs": [
-            { "wood": 30, "iron": 10 }
+            { "wood": 40 }
         ],
         "prerequisites": [],
         "researchTimes": [20],
@@ -127,7 +127,7 @@
         "tree": 2,
         "row": 2,
         "costs": [
-            { "iron": 40, "wood": 20 }
+            { "wood": 60 }
         ],
         "prerequisites": [],
         "researchTimes": [30],
@@ -142,10 +142,10 @@
         "tree": 0,
         "row": 3,
         "costs": [
-            { "iron": 50, "rock": 30 }
+            { "rock": 80 }
         ],
         "prerequisites": [],
-        "researchTimes": [40],
+        "researchTimes": [20],
         "description": "Max Arms +1",
         "effectProperty": "maxArms",
         "effectValue": 1,
@@ -157,7 +157,7 @@
         "tree": 1,
         "row": 3,
         "costs": [
-            { "iron": 60, "wood": 40 }
+            { "wood": 100 }
         ],
         "prerequisites": [],
         "researchTimes": [50],
@@ -172,7 +172,7 @@
         "tree": 2,
         "row": 3,
         "costs": [
-            { "iron": 100, "rock": 50 }
+            { "rock": 150 }
         ],
         "prerequisites": [],
         "researchTimes": [60],

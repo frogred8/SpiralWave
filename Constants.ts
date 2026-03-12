@@ -28,11 +28,10 @@ export const DURATIONS = {
 
 export const RESOURCE_CONFIG = {
     SPAWN_INTERVAL_BASE: 1000,
-    TYPES: ['rock', 'wood', 'iron'] as const,
+    TYPES: ['rock', 'wood'] as const,
     ICONS: {
         rock: '🪨',
         wood: '🪵',
-        iron: '🪙',
         whitehole: '🌀',
         boost: '⚡',
         default: '✨'
@@ -40,7 +39,6 @@ export const RESOURCE_CONFIG = {
     COLORS: {
         rock: 0xaaaaaa,
         wood: 0x8b4513,
-        iron: 0x778899,
         special: 0x00ffff,
         default: 0xffffff
     },

@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 /**
  * 자원 종류 정의
  */
-export type ResourceType = 'rock' | 'wood' | 'iron';
+export type ResourceType = 'rock' | 'wood';
 
 /**
  * 특수 아이템 종류 정의
@@ -62,7 +62,6 @@ export interface ActiveResearch {
 export interface SkillCosts {
     rock?: number;
     wood?: number;
-    iron?: number;
 }
 
 /**

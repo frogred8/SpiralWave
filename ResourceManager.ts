@@ -87,9 +87,9 @@ export class ResourceManager {
             y: endY,
             duration: 4000,
             onUpdate: (tween) => {
-                // 일정 간격으로 자원 생성 (진행도 5% 마다)
+                // 일정 간격으로 자원 생성 (진행도 1.25% 마다, 기존 5%에서 4배 증가)
                 const progress = tween.progress;
-                if (Math.floor(progress * 20) > Math.floor((tween as any).lastResourceProgress * 20 || 0)) {
+                if (Math.floor(progress * 80) > Math.floor((tween as any).lastResourceProgress * 80 || 0)) {
                     this.createResourceAt(meteor.x, meteor.y);
                     (tween as any).lastResourceProgress = progress;
                 }

@@ -4,38 +4,46 @@
         "tree": 0,
         "row": 0,
         "costs": [
-            { "wood": 10 }
+            { "wood": 10 },
+            { "wood": 30 },
+            { "wood": 60 },
+            { "wood": 80 },
+            { "wood": 160 }
         ],
         "prerequisites": [],
-        "researchTimes": [5],
+        "researchTimes": [5, 10, 20, 30, 40],
         "effectProperty": "radius",
-        "effectValue": 20,
-        "maxLevel": 1
+        "effectValue": 5,
+        "maxLevel": 5
     },
     {
         "id": "q2",
         "tree": 1,
         "row": 0,
         "costs": [
-            { "rock": 10 }
+            { "rock": 5 },
+            { "rock": 20 },
+            { "rock": 30 },
+            { "rock": 60 },
+            { "rock": 120 }
         ],
         "prerequisites": [],
-        "researchTimes": [5],
+        "researchTimes": [5, 10, 15, 30, 40],
         "effectProperty": "force",
         "effectValue": 0.2,
-        "maxLevel": 1
+        "maxLevel": 5
     },
     {
         "id": "f2",
         "tree": 2,
         "row": 0,
         "costs": [
-            { "wood": 20 },
-            { "wood": 50, "rock": 10 },
-            { "wood": 100, "rock": 30 }
+            { "wood": 10, "rock": 5 },
+            { "wood": 30, "rock": 10 },
+            { "wood": 120, "rock": 50 }
         ],
         "prerequisites": [],
-        "researchTimes": [10, 20, 40],
+        "researchTimes": [10, 15, 30],
         "effectProperty": "netAngle",
         "effectValue": 15,
         "maxLevel": 3
@@ -45,36 +53,48 @@
         "tree": 0,
         "row": 1,
         "costs": [
-            { "wood": 20, "rock": 10 }
+            { "wood": 5, "rock": 10 },
+            { "wood": 10, "rock": 20 },
+            { "wood": 15, "rock": 40 },
+            { "wood": 20, "rock": 80 },
+            { "wood": 60, "rock": 150 }
         ],
         "prerequisites": [],
-        "researchTimes": [10],
+        "researchTimes": [10, 15, 30, 40, 50],
         "effectProperty": "moveSpeed",
         "effectValue": 0.5,
-        "maxLevel": 1
+        "maxLevel": 5
     },
     {
         "id": "r1",
         "tree": 1,
         "row": 1,
         "costs": [
-            { "rock": 25 }
+            { "wood": 10, "rock": 10 },
+            { "wood": 20, "rock": 20 },
+            { "wood": 40, "rock": 40 },
+            { "wood": 60, "rock": 60 },
+            { "wood": 150, "rock": 150 }            
         ],
         "prerequisites": [],
-        "researchTimes": [15],
+        "researchTimes": [5, 10, 15, 30, 40],
         "effectProperty": "highDimProb",
         "effectValue": 0.05,
-        "maxLevel": 1
+        "maxLevel": 5
     },
     {
         "id": "arm_speed",
         "tree": 2,
         "row": 1,
         "costs": [
-            { "wood": 25 }
+            { "wood": 5 },
+            { "wood": 20 },
+            { "wood": 50 },
+            { "wood": 70 },
+            { "wood": 120 }
         ],
         "prerequisites": [],
-        "researchTimes": [15],
+        "researchTimes": [5, 10, 15, 30, 40],
         "effectProperty": "armSpeed",
         "effectValue": 0.2,
         "maxLevel": 1
@@ -84,10 +104,10 @@
         "tree": 0,
         "row": 2,
         "costs": [
-            { "wood": 40 }
+            { "wood": 60 }
         ],
         "prerequisites": [],
-        "researchTimes": [20],
+        "researchTimes": [15],
         "effectProperty": "researchBonus",
         "effectValue": 1,
         "maxLevel": 1
@@ -97,23 +117,27 @@
         "tree": 1,
         "row": 2,
         "costs": [
-            { "rock": 30, "wood": 15 }
+            { "wood": 5, "rock": 5 },
+            { "wood": 10, "rock": 10 },
+            { "wood": 15, "rock": 15 },
+            { "wood": 50, "rock": 50 },
+            { "wood": 120, "rock": 120 }
         ],
         "prerequisites": [],
-        "researchTimes": [20],
+        "researchTimes": [5, 10, 10, 30, 40],
         "effectProperty": "spawnRate",
         "effectValue": 0.2,
-        "maxLevel": 1
+        "maxLevel": 5
     },
     {
         "id": "auto_arm",
         "tree": 2,
         "row": 2,
         "costs": [
-            { "wood": 60 }
+            { "wood": 80 }
         ],
         "prerequisites": [],
-        "researchTimes": [30],
+        "researchTimes": [20],
         "effectProperty": "autoArm",
         "effectValue": 1,
         "maxLevel": 1
@@ -123,23 +147,24 @@
         "tree": 0,
         "row": 3,
         "costs": [
-            { "rock": 80 }
+            { "rock": 30 },
+            { "rock": 100 }
         ],
         "prerequisites": [],
-        "researchTimes": [20],
+        "researchTimes": [10, 20],
         "effectProperty": "maxArms",
         "effectValue": 1,
-        "maxLevel": 1
+        "maxLevel": 2
     },
     {
         "id": "arm_sync",
         "tree": 1,
         "row": 3,
         "costs": [
-            { "wood": 100 }
+            { "wood": 100, "rock": 100 }
         ],
         "prerequisites": [],
-        "researchTimes": [50],
+        "researchTimes": [20],
         "effectProperty": "maxResearchSlots",
         "effectValue": 1,
         "maxLevel": 1
@@ -149,10 +174,10 @@
         "tree": 2,
         "row": 3,
         "costs": [
-            { "rock": 150 }
+            { "rock": 130 }
         ],
         "prerequisites": [],
-        "researchTimes": [60],
+        "researchTimes": [20],
         "effectProperty": "net",
         "effectValue": 1,
         "maxLevel": 1

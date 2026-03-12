@@ -67,7 +67,7 @@ export class SkillTreeUI {
 
             const btn = this.scene.add.container(x, y);
             const bg = this.scene.add.rectangle(0, 0, this.buttonWidth, this.buttonHeight, this.buttonBgColor).setStrokeStyle(3, this.buttonStrokeColor);
-            const nameTxt = this.scene.add.text(0, -10, I18n.t(`skill.${skill.id}.name`), { fontSize: '10px', fontStyle: 'bold' }).setOrigin(0.5);
+            const nameTxt = this.scene.add.text(0, -10, I18n.t(`skill.${skill.id}.name`), { fontSize: '14px', fontStyle: 'bold' }).setOrigin(0.5);
             const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { fontSize: '14px', color: '#00ff00' }).setOrigin(0.5);
             
             (btn as any).skillButtonData = { bg, nameTxt, lvTxt };

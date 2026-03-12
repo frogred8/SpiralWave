@@ -311,7 +311,8 @@ export class SkillTreeUI {
             if (skill.prerequisites) {
                 skill.prerequisites.forEach(pre => {
                     const parentBtn = this.skillButtons[pre.id];
-                    if (parentBtn) {
+                    // Only draw line if parent skill is also in the current randomized tree
+                    if (parentBtn && this.skillButtons[skill.id]) {
                         const parentSkill = this.skillTreeData.find(s => s.id === pre.id);
                         const parentLevel = parentSkill ? this.gameStats.skillLevels[parentSkill.id] : 0;
                         const isSatisfied = parentLevel >= pre.level;

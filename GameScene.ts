@@ -48,11 +48,11 @@ export class GameScene extends Phaser.Scene {
                 }
             }
             
-            // 2. 스킬 데이터 셔플
-            skillData = Phaser.Utils.Array.Shuffle([...skillData]);
+            // 2. 스킬 데이터 셔플 및 12개 선택
+            const shuffledSkills = Phaser.Utils.Array.Shuffle([...skillData]).slice(0, 12);
             
             // 3. 스킬에 위치 할당 및 초기 Prerequisites 제거
-            skillData.forEach((skill: any, index: number) => {
+            shuffledSkills.forEach((skill: any, index: number) => {
                 const pos = positions[index];
                 skill.tree = pos.tree;
                 skill.row = pos.row;
@@ -62,9 +62,9 @@ export class GameScene extends Phaser.Scene {
             // 4. 새로운 Prerequisites 생성 로직
             for(let r=1; r<4; r++) {
                 // 이 row에 있는 스킬들
-                const currentRows = skillData.filter((s: any) => s.row === r);
+                const currentRows = shuffledSkills.filter((s: any) => s.row === r);
                 // 바로 위 row에 있는 스킬들
-                const upperRows = skillData.filter((s: any) => s.row === r - 1);
+                const upperRows = shuffledSkills.filter((s: any) => s.row === r - 1);
                 
                 // 해당 row에서 랜덤하게 하나 선택하여 추가 의존성(2개)을 부여할 대상 선정
                 const multiPrereqIndex = Phaser.Math.Between(0, currentRows.length - 1);
@@ -109,6 +109,8 @@ export class GameScene extends Phaser.Scene {
                     }
                 }
             }
+            // 업데이트된 스킬 데이터로 교체
+            skillData = shuffledSkills;
         }
 
         this.gameStats = new GameStats(skillData);

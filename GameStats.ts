@@ -220,7 +220,8 @@ getRecentCollectionAmount(): number {
     /**
      * 자원 구매 가능 여부 확인
      */
-    canAfford(costs: SkillCosts): boolean {
+    canAfford(costs: SkillCosts | undefined): boolean {
+        if (!costs) return true;
         if (costs.rock && this.collected.rock < costs.rock) return false;
         if (costs.wood && this.collected.wood < costs.wood) return false;
         if (costs.iron && this.collected.iron < costs.iron) return false;
@@ -230,7 +231,8 @@ getRecentCollectionAmount(): number {
     /**
      * 자원 소모
      */
-    private consumeResources(costs: SkillCosts) {
+    private consumeResources(costs: SkillCosts | undefined) {
+        if (!costs) return;
         if (costs.rock) this.collected.rock -= costs.rock;
         if (costs.wood) this.collected.wood -= costs.wood;
         if (costs.iron) this.collected.iron -= costs.iron;

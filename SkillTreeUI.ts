@@ -119,28 +119,30 @@ export class SkillTreeUI {
                     const costs = skill.costs[currentLevel];
                     const resourceTypes: ('wood' | 'rock' | 'iron')[] = ['wood', 'rock', 'iron'];
 
-                    resourceTypes.forEach(type => {
-                        const required = costs[type];
-                        if (required) {
-                            const current = this.gameStats.collected[type];
-                            const isEnough = current >= required;
-                            const line = this.costLines[lineIdx++];
-                            
-                            if (line) {
-                                line.setText(`${type.toUpperCase()}: ${current}/${required}`)
-                                    .setColor(isEnough ? '#00ff00' : '#ff0000')
-                                    .setPosition(10, currentY)
-                                    .setVisible(true);
+                    if (costs) {
+                        resourceTypes.forEach(type => {
+                            const required = costs[type];
+                            if (required) {
+                                const current = this.gameStats.collected[type];
+                                const isEnough = current >= required;
+                                const line = this.costLines[lineIdx++];
                                 
-                                currentY += 18;
+                                if (line) {
+                                    line.setText(`${type.toUpperCase()}: ${current}/${required}`)
+                                        .setColor(isEnough ? '#00ff00' : '#ff0000')
+                                        .setPosition(10, currentY)
+                                        .setVisible(true);
+                                    
+                                    currentY += 18;
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
 
                     // Add research time line
                     const timeLine = this.costLines[lineIdx++];
                     if (timeLine) {
-                        const seconds = skill.researchTimes[currentLevel];
+                        const seconds = (skill.researchTimes && skill.researchTimes[currentLevel]) || 0;
                         timeLine.setText(`Research Time: ${seconds}s`)
                             .setColor('#ffff00')
                             .setPosition(10, currentY)

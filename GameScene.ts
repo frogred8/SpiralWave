@@ -213,17 +213,53 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupUI(skillData: any) {
-        const infoText = this.add.text(20, 20, '', { fontSize: '18px', color: '#00ffff', fontStyle: 'bold' }).setScrollFactor(0);
-        this.uiContainer.add(infoText);
+        // 상단 스탯 패널 구성
+        const panelX = 50;
+        const panelY = 15;
+        const panelWidth = 400;
+        const panelHeight = 55;
+
+        const statsContainer = this.add.container(panelX, panelY).setScrollFactor(0);
+        
+        // 배경 (어두운 금속/돌 느낌)
+        const bg = this.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95)
+            .setStrokeStyle(2, 0x444444)
+            .setOrigin(0);
+        
+        // 텍스트 스타일 정의
+        const labelStyle = { fontSize: '12px', color: '#888888', fontStyle: 'bold' };
+        const valueStyle = { fontSize: '14px', color: '#00ffff', fontStyle: 'bold' };
+        const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
+
+        // 리소스 표시
+        const woodLabel = this.add.text(15, 8, 'WOOD', labelStyle);
+        const woodValue = this.add.text(15, 22, '0', valueStyle);
+        const rockLabel = this.add.text(85, 8, 'ROCK', labelStyle);
+        const rockValue = this.add.text(85, 22, '0', valueStyle);
+        
+        // 총 수집 및 시간
+        const totalText = this.add.text(165, 10, 'TOTAL: 0', totalStyle);
+        const rateText = this.add.text(165, 25, '10s: 0', totalStyle);
+        const timeText = this.add.text(165, 40, 'TIME: 00:00', totalStyle);
+
+        // 기타 스탯 (반지름, 팔 개수 등)
+        const gameStatsText = this.add.text(280, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
+
+        statsContainer.add([bg, woodLabel, woodValue, rockLabel, rockValue, totalText, rateText, timeText, gameStatsText]);
+        this.uiContainer.add(statsContainer);
 
         this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);
 
         const updateInfo = () => {
-            const current = `[ WOOD: ${this.gameStats.collected.wood} ]  [ ROCK: ${this.gameStats.collected.rock} ]`;
-            const total = `(TOTAL: ${this.gameStats.totalAll} | 10s: ${this.gameStats.getRecentCollectionAmount()})`;
-            const stats = `Radius: ${Math.floor(this.gameStats.radius)} | Arms: ${this.gameStats.maxArms} | Speed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
-            const time = `Time: ${this.gameStats.getFormattedPlaytime()}`;
-            infoText.setText(`${current} | ${time}\n${total} | ${stats}`);
+            woodValue.setText(this.gameStats.collected.wood.toString());
+            rockValue.setText(this.gameStats.collected.rock.toString());
+            
+            totalText.setText(`TOTAL: ${this.gameStats.totalAll}`);
+            rateText.setText(`10s: ${this.gameStats.getRecentCollectionAmount()}`);
+            timeText.setText(`TIME: ${this.gameStats.getFormattedPlaytime()}`);
+            
+            const stats = `Radius: ${Math.floor(this.gameStats.radius)}\nArms: ${this.gameStats.maxArms}\nSpeed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
+            gameStatsText.setText(stats);
         };
 
         this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, updateInfo);

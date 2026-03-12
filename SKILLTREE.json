@@ -268,7 +268,7 @@
         "id": "f2",
         "name": "Wider Net",
         "tree": 2,
-        "row": 4,
+        "row": 0,
         "costs": [
             {
                 "iron": 10,

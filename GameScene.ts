@@ -524,7 +524,7 @@ export class GameScene extends Phaser.Scene {
                     },
                     onComplete: () => { 
                         if (res.active) {
-                            this.collectResource(res, true); 
+                            this.collectResource(res, false); 
                         }
                     }
                 });

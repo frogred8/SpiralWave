@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { I18n } from './I18n';
 import { GameStats } from './GameStats';
 import { SkillTreeUI } from './SkillTreeUI';
 import { GameRenderer } from './GameRenderer';
@@ -242,9 +243,9 @@ export class GameScene extends Phaser.Scene {
         const rockValue = this.add.text(125, 15, '0', valueStyle);
         
         // 총 수집 및 시간
-        const totalText = this.add.text(185, 10, 'TOTAL: 0', totalStyle);
-        const rateText = this.add.text(185, 25, '10s: 0', totalStyle);
-        const timeText = this.add.text(185, 40, 'TIME: 00:00', totalStyle);
+        const totalText = this.add.text(185, 10, `${I18n.t('stats.total')}: 0`, totalStyle);
+        const rateText = this.add.text(185, 25, `${I18n.t('stats.rate')}: 0`, totalStyle);
+        const timeText = this.add.text(185, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle);
 
         // 기타 스탯 (반지름, 팔 개수 등)
         const gameStatsText = this.add.text(290, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
@@ -258,11 +259,11 @@ export class GameScene extends Phaser.Scene {
             woodValue.setText(this.gameStats.collected.wood.toString());
             rockValue.setText(this.gameStats.collected.rock.toString());
             
-            totalText.setText(`TOTAL: ${this.gameStats.totalAll}`);
-            rateText.setText(`10s: ${this.gameStats.getRecentCollectionAmount()}`);
-            timeText.setText(`TIME: ${this.gameStats.getFormattedPlaytime()}`);
+            totalText.setText(`${I18n.t('stats.total')}: ${this.gameStats.totalAll}`);
+            rateText.setText(`${I18n.t('stats.rate')}: ${this.gameStats.getRecentCollectionAmount()}`);
+            timeText.setText(`${I18n.t('stats.time')}: ${this.gameStats.getFormattedPlaytime()}`);
             
-            const stats = `Radius: ${Math.floor(this.gameStats.radius)}\nArms: ${this.gameStats.maxArms}\nSpeed: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
+            const stats = `${I18n.t('stats.radius')}: ${Math.floor(this.gameStats.radius)}\n${I18n.t('stats.arms')}: ${this.gameStats.maxArms}\n${I18n.t('stats.speed')}: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
             gameStatsText.setText(stats);
         };
 

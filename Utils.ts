@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { I18n } from './I18n';
 
 /**
  * 게임 전반에서 사용되는 유틸리티 함수들
@@ -49,11 +50,11 @@ export const Utils = {
             case 'force': return `${value.toFixed(1)}`;
             case 'highDimProb': return `${(value * 100).toFixed(0)}%`;
             case 'maxArms': return `${value}`;
-            case 'autoArm': return level > 0 ? 'ON' : 'OFF';
+            case 'autoArm': return level > 0 ? I18n.t('ui.on') : I18n.t('ui.off');
             case 'armSpeed': return `${value.toFixed(1)}x`;
             case 'maxResearchSlots': return `${value}`;
             case 'spawnRate': return `${value.toFixed(1)}x`;
-            case 'researchBonus': return `${value}s reduction`;
+            case 'researchBonus': return `${value}s ${I18n.t('ui.reduction')}`;
             case 'moveSpeed': return `${value.toFixed(2)}`;
             case 'netAngle': return `${value}°`;
             default: return `${value}`;
@@ -67,11 +68,11 @@ export const Utils = {
         const sign = bonus >= 0 ? '+' : '';
         switch (property) {
             case 'highDimProb': return `${sign}${(bonus * 100).toFixed(0)}%`;
-            case 'autoArm': return level > 0 ? 'Enabled' : 'Disabled';
-            case 'net': return level > 0 ? 'Activated' : 'Locked';
+            case 'autoArm': return level > 0 ? I18n.t('ui.enabled') : I18n.t('ui.disabled');
+            case 'net': return level > 0 ? I18n.t('ui.activated') : I18n.t('ui.locked');
             case 'armSpeed': 
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;
-            case 'researchBonus': return `${bonus}s reduction`;
+            case 'researchBonus': return `${bonus}s ${I18n.t('ui.reduction')}`;
             case 'netAngle': return `${sign}${bonus}°`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }

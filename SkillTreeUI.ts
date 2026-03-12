@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { I18n } from './I18n';
 import { SkillData } from './SkillData';
 import { GameStats } from './GameStats';
 import { INITIAL_STATS } from './Constants';
@@ -66,8 +67,8 @@ export class SkillTreeUI {
 
             const btn = this.scene.add.container(x, y);
             const bg = this.scene.add.rectangle(0, 0, this.buttonWidth, this.buttonHeight, this.buttonBgColor).setStrokeStyle(3, this.buttonStrokeColor);
-            const nameTxt = this.scene.add.text(0, -10, skill.name, { fontSize: '10px', fontStyle: 'bold' }).setOrigin(0.5);
-            const lvTxt = this.scene.add.text(0, 15, `Lv. 0/${skill.maxLevel}`, { fontSize: '14px', color: '#00ff00' }).setOrigin(0.5);
+            const nameTxt = this.scene.add.text(0, -10, I18n.t(`skill.${skill.id}.name`), { fontSize: '10px', fontStyle: 'bold' }).setOrigin(0.5);
+            const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { fontSize: '14px', color: '#00ff00' }).setOrigin(0.5);
             
             (btn as any).skillButtonData = { bg, nameTxt, lvTxt };
             btn.add([bg, nameTxt, lvTxt]);
@@ -92,7 +93,7 @@ export class SkillTreeUI {
                 // Add prerequisites (Always show if not satisfied or if still upgrading)
                 if (skill.prerequisites && skill.prerequisites.length > 0 && !isMaxLevel) {
                     const prereqTitle = this.costLines[lineIdx++];
-                    prereqTitle.setText('Prerequisites:')
+                    prereqTitle.setText(I18n.t('skill.prerequisites'))
                         .setColor('#cccccc')
                         .setPosition(10, currentY)
                         .setVisible(true);
@@ -105,7 +106,7 @@ export class SkillTreeUI {
                         const line = this.costLines[lineIdx++];
                         
                         if (line && preSkill) {
-                            line.setText(` - ${preSkill.name} Lv.${pre.level}`)
+                            line.setText(` - ${I18n.t(`skill.${preSkill.id}.name`)} Lv.${pre.level}`)
                                 .setColor(isSatisfied ? '#00ff00' : '#ff0000')
                                 .setPosition(10, currentY)
                                 .setVisible(true);
@@ -143,7 +144,7 @@ export class SkillTreeUI {
                     const timeLine = this.costLines[lineIdx++];
                     if (timeLine) {
                         const seconds = (skill.researchTimes && skill.researchTimes[currentLevel]) || 0;
-                        timeLine.setText(`Research Time: ${seconds}s`)
+                        timeLine.setText(`${I18n.t('skill.research_time')} ${seconds}s`)
                             .setColor('#ffff00')
                             .setPosition(10, currentY)
                             .setVisible(true);
@@ -153,7 +154,7 @@ export class SkillTreeUI {
                     // Max Level specific message
                     const maxLine = this.costLines[lineIdx++];
                     if (maxLine) {
-                        maxLine.setText('MAX LEVEL REACHED')
+                        maxLine.setText(I18n.t('skill.max_level'))
                             .setColor('#00ff00')
                             .setPosition(10, currentY)
                             .setVisible(true);
@@ -265,10 +266,10 @@ export class SkillTreeUI {
                 data.lvTxt.setColor('#ffff00');
             } else if (isResearching) {
                 queueIndex++;
-                data.lvTxt.setText(`Queued (${researchIndex - this.gameStats.maxResearchSlots + 1})`);
+                data.lvTxt.setText(`${I18n.t('skill.queued')} (${researchIndex - this.gameStats.maxResearchSlots + 1})`);
                 data.lvTxt.setColor('#00ffff');
             } else {
-                data.lvTxt.setText(`Lv. ${lv}/${skill.maxLevel}`);
+                data.lvTxt.setText(`${I18n.t('skill.level')} ${lv}/${skill.maxLevel}`);
                 data.lvTxt.setColor(isMaxLevel ? '#ffffff' : '#00ff00');
             }
             
@@ -385,7 +386,10 @@ export class SkillTreeUI {
     }
 
     private getDynamicDescription(skill: SkillData, level: number): string {
-        let text = `${skill.name} (Lv. ${level}/${skill.maxLevel})\n`;
+        const skillName = I18n.t(`skill.${skill.id}.name`);
+        const skillDescTemplate = I18n.t(`skill.${skill.id}.desc`);
+        
+        let text = `${skillName} (${I18n.t('skill.level')} ${level}/${skill.maxLevel})\n`;
         const isMaxLevel = level >= skill.maxLevel;
         if (isMaxLevel) {
             const propertyName = this.getPropertyName(skill.effectProperty);
@@ -398,11 +402,11 @@ export class SkillTreeUI {
         
         // 숫자가 포함된 부분(+1, 0.5, 3% 등)을 찾아 "현재값 -> 다음값"으로 변환
         const regex = /[+-]?\d+(\.\d+)?%?/;
-        if (regex.test(skill.description)) {
-            return `${text}${skill.description.replace(regex, `${currentVal} -> ${nextVal}`)}`;
+        if (regex.test(skillDescTemplate)) {
+            return `${text}${skillDescTemplate.replace(regex, `${currentVal} -> ${nextVal}`)}`;
         }
         
-        return `${text}${skill.description}`;
+        return `${text}${skillDescTemplate}`;
     }
 
     private getFormattedValue(skill: SkillData, level: number): string {
@@ -430,18 +434,18 @@ export class SkillTreeUI {
 
     private getPropertyName(property: string): string {
         switch(property) {
-            case 'radius': return 'Radius';
-            case 'force': return 'Force';
-            case 'highDimProb': return 'Big Resource Prob';
-            case 'maxArms': return 'Max Arms';
-            case 'autoArm': return 'Auto Arm';
-            case 'armSpeed': return 'Arm Speed';
-            case 'maxResearchSlots': return 'Max Research Slots';
-            case 'spawnRate': return 'Spawn Rate';
-            case 'researchBonus': return 'Research Reduction';
-            case 'moveSpeed': return 'Move Speed';
-            case 'net': return 'Resource Net';
-            case 'netAngle': return 'Net Angle';
+            case 'radius': return I18n.t('prop.radius');
+            case 'force': return I18n.t('prop.force');
+            case 'highDimProb': return I18n.t('prop.highDimProb');
+            case 'maxArms': return I18n.t('prop.maxArms');
+            case 'autoArm': return I18n.t('prop.autoArm');
+            case 'armSpeed': return I18n.t('prop.armSpeed');
+            case 'maxResearchSlots': return I18n.t('prop.maxResearchSlots');
+            case 'spawnRate': return I18n.t('prop.spawnRate');
+            case 'researchBonus': return I18n.t('prop.researchBonus');
+            case 'moveSpeed': return I18n.t('prop.moveSpeed');
+            case 'net': return I18n.t('prop.net');
+            case 'netAngle': return I18n.t('prop.netAngle');
             default: return property;
         }
     }

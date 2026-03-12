@@ -46,6 +46,62 @@ export class ResourceManager {
         }
     }
 
+    public spawnMeteor() {
+        const { width, height } = this.scene.scale;
+        
+        // 무작위 시작 지점과 목표 지점 설정 (화면 밖에서 시작해서 밖으로)
+        const side = Phaser.Math.Between(0, 3);
+        let startX, startY, endX, endY;
+        
+        if (side === 0) { // Top to Bottom
+            startX = Phaser.Math.Between(0, width); startY = -50;
+            endX = Phaser.Math.Between(0, width); endY = height + 50;
+        } else if (side === 1) { // Bottom to Top
+            startX = Phaser.Math.Between(0, width); startY = height + 50;
+            endX = Phaser.Math.Between(0, width); endY = -50;
+        } else if (side === 2) { // Left to Right
+            startX = -50; startY = Phaser.Math.Between(0, height);
+            endX = width + 50; endY = Phaser.Math.Between(0, height);
+        } else { // Right to Left
+            startX = width + 50; startY = Phaser.Math.Between(0, height);
+            endX = -50; endY = Phaser.Math.Between(0, height);
+        }
+
+        const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '40px' }).setOrigin(0.5);
+        this.worldContainer.add(meteor);
+
+        // 파티클 효과 (꼬리)
+        const emitter = this.scene.add.particles(0, 0, 'spark', {
+            speed: { min: 20, max: 100 },
+            scale: { start: 1.5, end: 0 },
+            lifespan: 600,
+            tint: [0xffaa00, 0xff4400, 0xffff00],
+            blendMode: 'ADD',
+            follow: meteor
+        });
+        this.worldContainer.add(emitter);
+
+        this.scene.tweens.add({
+            targets: meteor,
+            x: endX,
+            y: endY,
+            duration: 4000,
+            onUpdate: (tween) => {
+                // 일정 간격으로 자원 생성 (진행도 5% 마다)
+                const progress = tween.progress;
+                if (Math.floor(progress * 20) > Math.floor((tween as any).lastResourceProgress * 20 || 0)) {
+                    this.createResourceAt(meteor.x, meteor.y);
+                    (tween as any).lastResourceProgress = progress;
+                }
+            },
+            onComplete: () => {
+                emitter.destroy();
+                meteor.destroy();
+            }
+        });
+        (this.scene.tweens.getTweensOf(meteor)[0] as any).lastResourceProgress = 0;
+    }
+
     public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {
         const types = RESOURCE_CONFIG.TYPES;
         const type = types[Phaser.Math.Between(0, types.length - 1)];

@@ -185,6 +185,13 @@ export class GameScene extends Phaser.Scene {
             callbackScope: this, 
             loop: true 
         });
+
+        this.time.addEvent({ 
+            delay: DURATIONS.METEOR_INTERVAL, 
+            callback: () => this.resourceManager.spawnMeteor(), 
+            callbackScope: this, 
+            loop: true 
+        });
     }
 
     private updateSpawnTimer() {

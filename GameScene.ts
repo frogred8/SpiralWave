@@ -135,7 +135,11 @@ export class GameScene extends Phaser.Scene {
         this.setupTimers();
         this.setupUI(skillData);
 
-        this.input.on('pointerdown', this.handleInput, this);
+        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
+            // UI 요소를 클릭한 경우 게임 로직(로봇팔 발사 등)을 실행하지 않음
+            if (gameObjects.length > 0) return;
+            this.handleInput(pointer);
+        }, this);
         this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
             this.updateSpawnTimer();
             this.syncArmsCount();

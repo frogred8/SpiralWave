@@ -269,11 +269,15 @@ export class GameScene extends Phaser.Scene {
 
         this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, updateInfo);
         
-        // 자원 획득 시 플로팅 텍스트 표시
+        // 자원 획득 시 플로팅 텍스트 표시 (UI 패널용)
         this.gameStats.on('resourceCollected', (type: string, amount: number) => {
             const x = type === 'wood' ? 45 : 135;
-            // 자원량 수치보다 위쪽(-20)에서 생성되게 변경
-            this.showFloatingText(panelX + x, panelY + (panelHeight / 2) - 20, `+${amount}`, '#00ff00');
+            this.showFloatingText(panelX + x, panelY + (panelHeight / 2) - 20, `+${amount}`, '#00ff00', false);
+        });
+
+        // 월드 공간 자원 획득 시 플로팅 텍스트 표시 (흡수 지점용)
+        this.gameStats.on('worldResourceCollected', (data: { type: string, amount: number, x: number, y: number }) => {
+            this.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true);
         });
         
         // 1초마다 갱신 (최근 10초 획득량 갱신용)
@@ -475,7 +479,8 @@ export class GameScene extends Phaser.Scene {
         const isHighDim = collectible.isHighDim || false;
         this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.resourceManager.getParticleTint(collectible));
         
-        this.gameStats.addCollected(collectible.resourceType, isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1);
+        const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
+        this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);
         
         if (byArm && this.gameStats.researchReduction > 0) {
             this.gameStats.reduceResearchTime(this.gameStats.researchReduction);
@@ -545,9 +550,15 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.shake(100, 0.005);
     }
 
-    private showFloatingText(x: number, y: number, text: string, color: string) {
-        const ft = this.add.text(x, y, text, { fontSize: '14px', color, fontStyle: 'bold' }).setScrollFactor(0).setDepth(100);
-        this.uiContainer.add(ft);
+    private showFloatingText(x: number, y: number, text: string, color: string, isInWorld: boolean = false) {
+        const ft = this.add.text(x, y, text, { fontSize: '14px', color, fontStyle: 'bold' }).setDepth(100);
+        
+        if (isInWorld) {
+            this.worldContainer.add(ft);
+        } else {
+            ft.setScrollFactor(0);
+            this.uiContainer.add(ft);
+        }
 
         this.tweens.add({
             targets: ft,

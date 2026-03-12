@@ -195,9 +195,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         return true;
     }
 /**
- * 자원 획득 처리
+ * 자원 획득 처리 (위치 정보 포함)
  */
-addCollected(type: ResourceType, amount: number = 1) {
+addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
     if (amount < 0) return;
     this.collected[type] += amount;
     this.totalCollected[type] += amount;
@@ -205,8 +205,10 @@ addCollected(type: ResourceType, amount: number = 1) {
     this.collectionHistory.push({ timestamp: Date.now(), amount });
     this.emit(GameStats.EVENTS.UPDATE_SCORE);
     this.emit('resourceCollected', type, amount);
-}
-/**
+    if (x !== undefined && y !== undefined) {
+        this.emit('worldResourceCollected', { type, amount, x, y });
+    }
+}/**
  * 최근 10초간의 자원 획득량 합계 반환
  */
 getRecentCollectionAmount(): number {

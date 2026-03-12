@@ -67,7 +67,11 @@ export class SkillTreeUI {
 
             const btn = this.scene.add.container(x, y);
             const bg = this.scene.add.rectangle(0, 0, this.buttonWidth, this.buttonHeight, this.buttonBgColor).setStrokeStyle(3, this.buttonStrokeColor);
-            const nameTxt = this.scene.add.text(0, -10, I18n.t(`skill.${skill.id}.name`), { fontSize: '14px', fontStyle: 'bold' }).setOrigin(0.5);
+            
+            const skillName = I18n.t(`skill.${skill.id}.name`);
+            const nameTxt = this.scene.add.text(0, -10, skillName, { fontSize: '14px', fontStyle: 'bold' }).setOrigin(0.5);
+            this.adjustFontSize(nameTxt, this.buttonWidth - 10);
+
             const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { fontSize: '14px', color: '#00ff00' }).setOrigin(0.5);
             
             (btn as any).skillButtonData = { bg, nameTxt, lvTxt };
@@ -254,6 +258,11 @@ export class SkillTreeUI {
             if (!btn) return;
             const data = (btn as any).skillButtonData;
             if (!data) return; 
+
+            // 언어 변경 등으로 이름이 바뀌었을 수 있으므로 갱신
+            const skillName = I18n.t(`skill.${skill.id}.name`);
+            data.nameTxt.setText(skillName);
+            this.adjustFontSize(data.nameTxt, this.buttonWidth - 10);
             
             const lv = this.gameStats.skillLevels[skill.id];
             const isUnlocked = this.isSkillUnlocked(skill);
@@ -389,6 +398,16 @@ export class SkillTreeUI {
             yoyo: true,
             ease: 'Sine.easeInOut'
         });
+    }
+
+    private adjustFontSize(textObj: Phaser.GameObjects.Text, maxWidth: number) {
+        let fontSize = 14;
+        textObj.setFontSize(`${fontSize}px`);
+        
+        while (textObj.width > maxWidth && fontSize > 8) {
+            fontSize--;
+            textObj.setFontSize(`${fontSize}px`);
+        }
     }
 
     private getDynamicDescription(skill: SkillData, level: number): string {

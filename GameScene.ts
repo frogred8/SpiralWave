@@ -18,6 +18,7 @@ export class GameScene extends Phaser.Scene {
     private gameRenderer!: GameRenderer;
     private resourceManager!: ResourceManager;
     private arms: RoboticArm[] = [];
+    private languageButtons: Phaser.GameObjects.Container[] = [];
     
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
@@ -218,6 +219,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupUI(skillData: any) {
+        // 이전 리스너 제거 (중복 방지)
+        this.gameStats.removeAllListeners(GameStats.EVENTS.UPDATE_SCORE);
+        this.gameStats.removeAllListeners('resourceCollected');
+        this.gameStats.removeAllListeners('worldResourceCollected');
+
         // 상단 스탯 패널 구성
         const panelX = 50;
         const panelY = 15;
@@ -253,6 +259,13 @@ export class GameScene extends Phaser.Scene {
         statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
         this.uiContainer.add(statsContainer);
 
+        // 언어 선택 UI (우측 상단)
+        this.setupLanguageSelector();
+
+        // 기존 SkillTreeUI가 있다면 리스너 제거
+        if (this.skillTreeUI) {
+            this.skillTreeUI.destroy();
+        }
         this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);
 
         const updateInfo = () => {
@@ -292,6 +305,75 @@ export class GameScene extends Phaser.Scene {
 
         this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
+
+    private setupLanguageSelector() {
+        const languages: { code: string, label: string }[] = [
+            { code: 'ko', label: '🇰🇷 KO' },
+            { code: 'en', label: '🇺🇸 EN' },
+            { code: 'zh', label: '🇨🇳 ZH' },
+            { code: 'ja', label: '🇯🇵 JA' }
+        ];
+
+        const startX = this.scale.width - 20;
+        const startY = 15;
+        const btnWidth = 70;
+        const btnHeight = 25;
+        const spacing = 5;
+
+        languages.forEach((lang, index) => {
+            const x = startX - (btnWidth + spacing) * (languages.length - 1 - index) - btnWidth;
+            const container = this.add.container(x, startY);
+            
+            const isCurrent = I18n.getLanguage() === lang.code;
+            const bgColor = isCurrent ? 0x444444 : 0x1a1a1a;
+            
+            const bg = this.add.rectangle(0, 0, btnWidth, btnHeight, bgColor, 0.9)
+                .setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444)
+                .setOrigin(0);
+            
+            const text = this.add.text(btnWidth / 2, btnHeight / 2, lang.label, {
+                fontSize: '12px',
+                color: isCurrent ? '#00ff00' : '#ffffff',
+                fontStyle: isCurrent ? 'bold' : 'normal'
+            }).setOrigin(0.5);
+
+            container.add([bg, text]);
+            container.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
+            
+            container.on('pointerdown', () => {
+                if (I18n.getLanguage() !== lang.code) {
+                    I18n.setLanguage(lang.code as any);
+                    this.refreshUIAfterLanguageChange();
+                }
+            });
+
+            container.on('pointerover', () => {
+                bg.setStrokeStyle(1, 0xaaaaaa);
+            });
+
+            container.on('pointerout', () => {
+                const current = I18n.getLanguage() === lang.code;
+                bg.setStrokeStyle(1, current ? 0x00ff00 : 0x444444);
+            });
+
+            this.uiContainer.add(container);
+            this.languageButtons.push(container);
+        });
+    }
+
+    private refreshUIAfterLanguageChange() {
+        const currentSkillData = this.skillTreeUI ? this.skillTreeUI.skillTreeData : this.cache.json.get('skillTreeData');
+        
+        // UI 컨테이너 초기화
+        this.uiContainer.removeAll(true);
+        this.languageButtons = [];
+        
+        // UI 재생성 (현재 셔플된 상태 유지)
+        this.setupUI(currentSkillData);
+    }
+
+
+
 
     private handleInput(pointer: Phaser.Input.Pointer) {
         const activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;

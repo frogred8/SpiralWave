@@ -15,7 +15,7 @@ export class SkillTreeUI {
     private tipText!: Phaser.GameObjects.Text;
     private costLines: Phaser.GameObjects.Text[] = [];
     private skillButtons: Record<string, Phaser.GameObjects.Container> = {};
-    private skillTreeData: SkillData[];
+    public skillTreeData: SkillData[];
 
     private readonly startX = 100; // 버튼 절반 너비(50px)를 고려하여 상단 패널 시작점(50px)과 맞춤
     private readonly startY = 130; // 상단 스탯 패널(70px 지점 종료)과의 겹침 방지를 위해 하향 조정
@@ -181,6 +181,12 @@ export class SkillTreeUI {
         this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, this.refreshSkillTreeUI, this);
         this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, this.onSkillUpgraded, this);
         this.gameStats.on(GameStats.EVENTS.RESEARCH_REDUCED, this.onResearchTimeReduced, this);
+    }
+
+    public destroy() {
+        this.gameStats.off(GameStats.EVENTS.UPDATE_SCORE, this.refreshSkillTreeUI, this);
+        this.gameStats.off(GameStats.EVENTS.SKILL_UPGRADED, this.onSkillUpgraded, this);
+        this.gameStats.off(GameStats.EVENTS.RESEARCH_REDUCED, this.onResearchTimeReduced, this);
     }
 
     private onResearchTimeReduced(skillId: string) {

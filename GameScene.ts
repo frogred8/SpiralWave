@@ -19,6 +19,7 @@ export class GameScene extends Phaser.Scene {
     private resourceManager!: ResourceManager;
     private arms: RoboticArm[] = [];
     private languageButtons: Phaser.GameObjects.Container[] = [];
+    private isLanguageMenuOpen: boolean = false;
     
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
@@ -314,51 +315,73 @@ export class GameScene extends Phaser.Scene {
             { code: 'ja', label: '🇯🇵 JA' }
         ];
 
-        const startX = this.scale.width - 20;
-        const startY = 15;
         const btnWidth = 70;
         const btnHeight = 25;
-        const spacing = 5;
+        const startX = this.scale.width - 20 - btnWidth;
+        const startY = 15;
+
+        // 현재 선택된 언어 표시용 메인 버튼
+        const currentLang = languages.find(l => l.code === I18n.getLanguage()) || languages[0];
+        const mainBtn = this.add.container(startX, startY);
+        const mainBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95)
+            .setStrokeStyle(1, 0x444444)
+            .setOrigin(0);
+        const mainText = this.add.text(btnWidth / 2 - 5, btnHeight / 2, currentLang.label, { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
+        const arrow = this.add.text(btnWidth - 15, btnHeight / 2, this.isLanguageMenuOpen ? '▲' : '▼', { fontSize: '10px', color: '#aaaaaa' }).setOrigin(0.5);
+        
+        mainBtn.add([mainBg, mainText, arrow]);
+        mainBtn.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
+        this.uiContainer.add(mainBtn);
+
+        // 드롭다운 메뉴용 컨테이너
+        const menuContainer = this.add.container(startX, startY + btnHeight + 2).setVisible(this.isLanguageMenuOpen);
+        this.uiContainer.add(menuContainer);
 
         languages.forEach((lang, index) => {
-            const x = startX - (btnWidth + spacing) * (languages.length - 1 - index) - btnWidth;
-            const container = this.add.container(x, startY);
+            const itemY = index * (btnHeight + 1);
+            const item = this.add.container(0, itemY);
             
             const isCurrent = I18n.getLanguage() === lang.code;
-            const bgColor = isCurrent ? 0x444444 : 0x1a1a1a;
-            
-            const bg = this.add.rectangle(0, 0, btnWidth, btnHeight, bgColor, 0.9)
+            const itemBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x222222, 0.95)
                 .setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444)
                 .setOrigin(0);
             
-            const text = this.add.text(btnWidth / 2, btnHeight / 2, lang.label, {
+            const itemText = this.add.text(btnWidth / 2, btnHeight / 2, lang.label, {
                 fontSize: '12px',
                 color: isCurrent ? '#00ff00' : '#ffffff',
                 fontStyle: isCurrent ? 'bold' : 'normal'
             }).setOrigin(0.5);
 
-            container.add([bg, text]);
-            container.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
+            item.add([itemBg, itemText]);
+            item.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
             
-            container.on('pointerdown', () => {
+            item.on('pointerdown', () => {
                 if (I18n.getLanguage() !== lang.code) {
                     I18n.setLanguage(lang.code as any);
+                    this.isLanguageMenuOpen = false;
                     this.refreshUIAfterLanguageChange();
+                } else {
+                    this.isLanguageMenuOpen = false;
+                    menuContainer.setVisible(false);
+                    arrow.setText('▼');
                 }
             });
 
-            container.on('pointerover', () => {
-                bg.setStrokeStyle(1, 0xaaaaaa);
-            });
+            item.on('pointerover', () => itemBg.setStrokeStyle(1, 0xaaaaaa));
+            item.on('pointerout', () => itemBg.setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444));
 
-            container.on('pointerout', () => {
-                const current = I18n.getLanguage() === lang.code;
-                bg.setStrokeStyle(1, current ? 0x00ff00 : 0x444444);
-            });
-
-            this.uiContainer.add(container);
-            this.languageButtons.push(container);
+            menuContainer.add(item);
         });
+
+        // 메인 버튼 클릭 시 메뉴 토글
+        mainBtn.on('pointerdown', () => {
+            this.isLanguageMenuOpen = !this.isLanguageMenuOpen;
+            menuContainer.setVisible(this.isLanguageMenuOpen);
+            arrow.setText(this.isLanguageMenuOpen ? '▲' : '▼');
+        });
+
+        mainBtn.on('pointerover', () => mainBg.setStrokeStyle(1, 0xaaaaaa));
+        mainBtn.on('pointerout', () => mainBg.setStrokeStyle(1, 0x444444));
     }
 
     private refreshUIAfterLanguageChange() {

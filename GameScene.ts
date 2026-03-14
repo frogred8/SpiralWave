@@ -672,17 +672,32 @@ export class GameScene extends Phaser.Scene {
         const arm = this.arms.find(a => a.state === 'idle');
         if (!arm) return;
 
-        let closest: Collectible | null = null;
-        let minDistance = 200;
+        let bestTarget: Collectible | null = null;
+        let bestPriority = -1; // 2: Special, 1: HighDim, 0: Normal
+        let minDistance = 300; // 200 * 1.5
 
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as Collectible;
             if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
+            
             const dist = Utils.getDistance(pointer.worldX, pointer.worldY, res.x, res.y);
-            if (dist < minDistance) { minDistance = dist; closest = res; }
+            if (dist > minDistance) return;
+
+            let priority = 0;
+            if (res.itemType === 'special') priority = 2;
+            else if (res.isHighDim) priority = 1;
+
+            if (priority > bestPriority) {
+                bestPriority = priority;
+                minDistance = dist;
+                bestTarget = res;
+            } else if (priority === bestPriority && dist < minDistance) {
+                minDistance = dist;
+                bestTarget = res;
+            }
         });
 
-        if (closest) arm.fire(closest, this.time.now);
+        if (bestTarget) arm.fire(bestTarget, this.time.now);
     }
 
     update(time: number, delta: number) {
@@ -763,32 +778,36 @@ export class GameScene extends Phaser.Scene {
             let activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
             if (activeArmsCount < this.gameStats.maxArms) {
                 for (const arm of this.arms) {
-                    // console.log(`${this.arms.length},Arm state: ${arm.state}, Last fire: ${arm.lastFireTime}, Current time: ${time}`);
                     if (activeArmsCount >= this.gameStats.maxArms) break;
 
                     if (arm.state === 'idle' && time > arm.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN) {
-                        let bestHighDim: Collectible | null = null;
-                        let bestNormal: Collectible | null = null;
-                        let minHighDimDist = 400;
-                        let minNormalDist = 400;
+                        let bestTarget: Collectible | null = null;
+                        let bestPriority = -1;
+                        let minDistance = 600; // 400 * 1.5
 
                         this.resourceManager.getGroup().getChildren().forEach((child) => {
                             const collectible = child as Collectible;
                             if (!collectible.active || this.arms.some(a => a.grabbedResource === collectible)) return;
 
                             const distance = Utils.getDistance(this.spiralCenter.x, this.spiralCenter.y, collectible.x, collectible.y);
-                            const isHighDim = (collectible as any).isHighDim || false;
+                            if (distance > minDistance) return;
 
-                            if (isHighDim) {
-                                if (distance < minHighDimDist) { minHighDimDist = distance; bestHighDim = collectible; }
-                            } else {
-                                if (distance < minNormalDist) { minNormalDist = distance; bestNormal = collectible; }
+                            let priority = 0;
+                            if (collectible.itemType === 'special') priority = 2;
+                            else if (collectible.isHighDim) priority = 1;
+
+                            if (priority > bestPriority) {
+                                bestPriority = priority;
+                                minDistance = distance;
+                                bestTarget = collectible;
+                            } else if (priority === bestPriority && distance < minDistance) {
+                                minDistance = distance;
+                                bestTarget = collectible;
                             }
                         });
 
-                        const targetResource = bestHighDim || bestNormal;
-                        if (targetResource) {
-                            arm.fire(targetResource, time);
+                        if (bestTarget) {
+                            arm.fire(bestTarget, time);
                             activeArmsCount++;
                         }
                     }

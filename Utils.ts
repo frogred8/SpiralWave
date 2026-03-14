@@ -135,7 +135,6 @@ export const Utils = {
             case 'armSpeed': return `${value.toFixed(1)}x`;
             case 'maxResearchSlots': return `${value}`;
             case 'spawnRate': return `${value.toFixed(1)}x`;
-            // case 'researchBonus': return `${value}s ${I18n.t('ui.reduction')}`;
             case 'moveSpeed': return `${value.toFixed(2)}`;
             case 'netAngle': return `${value}°`;
             default: return `${value}`;
@@ -153,7 +152,7 @@ export const Utils = {
             case 'net': return level > 0 ? I18n.t('ui.activated') : I18n.t('ui.locked');
             case 'armSpeed': 
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;
-            case 'researchBonus': return `${bonus}s ${I18n.t('ui.reduction')}`;
+            case 'researchBonus': return `${bonus}s`;
             case 'netAngle': return `${sign}${bonus}°`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }

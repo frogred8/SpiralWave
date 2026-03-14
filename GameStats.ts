@@ -40,7 +40,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     private lastUpdateTime: number = 0;
     private gameStarted: boolean = false;
     public isGameOver: boolean = false;
-    public readonly TIME_LIMIT = 300; // 5분 (300초)
+    public readonly TIME_LIMIT = INITIAL_STATS.TIME_LIMIT; // 5분 (300초)
     public timeSpawnMultiplier: number = 1.0;
     
     public isBoosterCalculating: boolean = false;
@@ -80,10 +80,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.armSpeedFactor = INITIAL_STATS.ARM_SPEED_FACTOR;
         this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
         this.isNetEnabled = false;
-        this.netAngle = 45;
-        
-        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;
-        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
+        this.netAngle = INITIAL_STATS.NET_ANGLE;
+
+        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
         this.skillLevels = {};
         skillTreeData.forEach(skill => {

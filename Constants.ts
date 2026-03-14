@@ -8,12 +8,21 @@ export const INITIAL_STATS = {
     SPAWN_RATE_FACTOR: 1.0,
     RESEARCH_BONUS: 0,
     MOVE_SPEED: 0,
-    MAX_RESEARCH_SLOTS: 1
+    MAX_RESEARCH_SLOTS: 1,
+    TIME_LIMIT: 300,
+    NET_ANGLE: 45
+};
+
+export const SKILL_TREE_CONFIG = {
+    TOTAL_SKILLS: 12,
+    TREES: 3,
+    ROWS: 4
 };
 
 export const DURATIONS = {
     WHITE_HOLE: 3000,
     WHITE_HOLE_SHRINK: 500,
+    WHITE_HOLE_SPAWN: 8000,
     RADIUS_BOOST: 5000,
     RADIUS_BOOST_SHRINK: 2000,
     SPECIAL_ITEM_SPAWN: 15000,
@@ -65,18 +74,22 @@ export const UI_CONFIG = {
     BUTTON: {
         WIDTH: 100,
         HEIGHT: 60,
-        SPACING_X: 120,
+        SPACING_X: 140,
         SPACING_Y: 100,
         BG_COLOR: 0x222222,
-        STROKE_COLOR: 0x444444,
-        HOVER_STROKE_COLOR: 0xffffff,
+        STROKE_COLOR: 0x555555,
+        HOVER_STROKE_COLOR: 0x00ffff,
         DISABLED_BG_COLOR: 0x111111,
-        DISABLED_TEXT_COLOR: 0x666666
+        DISABLED_TEXT_COLOR: '#555555'
     },
     TOOLTIP: {
         WIDTH: 200,
         BG_COLOR: 0x111111,
         ALPHA: 0.9,
         STROKE_COLOR: 0x444444
+    },
+    SKILL_TREE: {
+        START_X: 100,
+        START_Y: 130
     }
 };

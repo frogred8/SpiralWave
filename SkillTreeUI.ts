@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { I18n } from './I18n';
 import { SkillData } from './SkillData';
 import { GameStats } from './GameStats';
-import { INITIAL_STATS } from './Constants';
+import { INITIAL_STATS, UI_CONFIG } from './Constants';
 import { Utils } from './Utils';
 
 export class SkillTreeUI {
@@ -17,31 +17,18 @@ export class SkillTreeUI {
     private skillButtons: Record<string, Phaser.GameObjects.Container> = {};
     public skillTreeData: SkillData[];
 
-    private readonly startX = 100; // 버튼 절반 너비(50px)를 고려하여 상단 패널 시작점(50px)과 맞춤
-    private readonly startY = 130; // 상단 스탯 패널(70px 지점 종료)과의 겹침 방지를 위해 하향 조정
-    private readonly spacingX = 140;
-    private readonly spacingY = 100;
-    private readonly buttonWidth = 100;
-    private readonly buttonHeight = 60;
-    private readonly buttonBgColor = 0x222222;
-    private readonly buttonStrokeColor = 0x555555;
-    private readonly buttonHoverStrokeColor = 0x00ffff;
-    private readonly buttonDisabledBgColor = 0x111111;
-    private readonly buttonDisabledTextColor = '#555555';
-    private readonly maxSkillLevel = 20; // Max level for all skills
-
     constructor(scene: Phaser.Scene, uiContainer: Phaser.GameObjects.Container, gameStats: GameStats, skillTreeData: SkillData[]) {
         this.scene = scene;
         this.gameStats = gameStats;
         this.skillTreeData = skillTreeData;
 
-        this.skillContainer = this.scene.add.container(this.startX, this.startY);
+        this.skillContainer = this.scene.add.container(UI_CONFIG.SKILL_TREE.START_X, UI_CONFIG.SKILL_TREE.START_Y);
         this.lineGraphics = this.scene.add.graphics();
         this.skillContainer.add(this.lineGraphics);
 
         // 툴팁 구성 요소 초기화
         this.tooltip = this.scene.add.container(0, 0).setVisible(false).setDepth(100);
-        this.tipBg = this.scene.add.rectangle(0, 0, 200, 100, 0x111111, 0.9).setStrokeStyle(2, 0x444444).setOrigin(0);
+        this.tipBg = this.scene.add.rectangle(0, 0, UI_CONFIG.TOOLTIP.WIDTH, 100, UI_CONFIG.TOOLTIP.BG_COLOR, UI_CONFIG.TOOLTIP.ALPHA).setStrokeStyle(2, UI_CONFIG.TOOLTIP.STROKE_COLOR).setOrigin(0);
         this.tipText = this.scene.add.text(10, 10, '', { fontSize: '14px', color: '#ffffff', wordWrap: { width: 180 } });
         this.tooltip.add([this.tipBg, this.tipText]);
 
@@ -62,26 +49,26 @@ export class SkillTreeUI {
     private createSkillButtons() {
         // 1단계: 버튼 객체들을 먼저 생성하여 참조 가능하게 함
         this.skillTreeData.forEach(skill => {
-            const x = skill.tree * this.spacingX;
-            const y = skill.row * this.spacingY;
+            const x = skill.tree * UI_CONFIG.BUTTON.SPACING_X;
+            const y = skill.row * UI_CONFIG.BUTTON.SPACING_Y;
 
             const btn = this.scene.add.container(x, y);
-            const bg = this.scene.add.rectangle(0, 0, this.buttonWidth, this.buttonHeight, this.buttonBgColor).setStrokeStyle(3, this.buttonStrokeColor);
+            const bg = this.scene.add.rectangle(0, 0, UI_CONFIG.BUTTON.WIDTH, UI_CONFIG.BUTTON.HEIGHT, UI_CONFIG.BUTTON.BG_COLOR).setStrokeStyle(3, UI_CONFIG.BUTTON.STROKE_COLOR);
             
             const skillName = I18n.t(`skill.${skill.id}.name`);
             const nameTxt = this.scene.add.text(0, -10, skillName, { fontSize: '14px', fontStyle: 'bold' }).setOrigin(0.5);
-            this.adjustFontSize(nameTxt, this.buttonWidth - 10);
+            this.adjustFontSize(nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
 
             const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { fontSize: '14px', color: '#00ff00' }).setOrigin(0.5);
             
             (btn as any).skillButtonData = { bg, nameTxt, lvTxt };
             btn.add([bg, nameTxt, lvTxt]);
-            btn.setSize(this.buttonWidth, this.buttonHeight).setInteractive({ useHandCursor: true });
+            btn.setSize(UI_CONFIG.BUTTON.WIDTH, UI_CONFIG.BUTTON.HEIGHT).setInteractive({ useHandCursor: true });
 
             btn.on('pointerdown', () => this.handleSkillUpgrade(skill));
             btn.on('pointerover', (p: any) => {
                 const data = (btn as any).skillButtonData;
-                if (data) data.bg.setStrokeStyle(3, this.buttonHoverStrokeColor);
+                if (data) data.bg.setStrokeStyle(3, UI_CONFIG.BUTTON.HOVER_STROKE_COLOR);
                 
                 const currentLevel = this.gameStats.skillLevels[skill.id];
                 const isMaxLevel = currentLevel >= skill.maxLevel;
@@ -172,7 +159,7 @@ export class SkillTreeUI {
             });
             btn.on('pointerout', () => {
                 const data = (btn as any).skillButtonData;
-                if (data) data.bg.setStrokeStyle(3, this.buttonStrokeColor);
+                if (data) data.bg.setStrokeStyle(3, UI_CONFIG.BUTTON.STROKE_COLOR);
                 this.tooltip.setVisible(false);
             });
 
@@ -200,7 +187,7 @@ export class SkillTreeUI {
         if (!data || !data.bg) return;
         
         // 버튼 주변에 살짝 빛나는 후광 효과 추가
-        const glow = this.scene.add.rectangle(btn.x, btn.y, this.buttonWidth + 10, this.buttonHeight + 10, 0x00ffff, 0.7)
+        const glow = this.scene.add.rectangle(btn.x, btn.y, UI_CONFIG.BUTTON.WIDTH + 10, UI_CONFIG.BUTTON.HEIGHT + 10, 0x00ffff, 0.7)
             .setOrigin(0.5)
             .setDepth(btn.depth - 1);
         this.skillContainer.add(glow);
@@ -262,7 +249,7 @@ export class SkillTreeUI {
             // 언어 변경 등으로 이름이 바뀌었을 수 있으므로 갱신
             const skillName = I18n.t(`skill.${skill.id}.name`);
             data.nameTxt.setText(skillName);
-            this.adjustFontSize(data.nameTxt, this.buttonWidth - 10);
+            this.adjustFontSize(data.nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
             
             const lv = this.gameStats.skillLevels[skill.id];
             const isUnlocked = this.isSkillUnlocked(skill);
@@ -305,22 +292,22 @@ export class SkillTreeUI {
                 btn.setInteractive({ useHandCursor: false }); 
             } else if (!isUnlocked) {
                 btn.setAlpha(0.5);
-                bg.setFillStyle(this.buttonDisabledBgColor);
-                bg.setStrokeStyle(3, this.buttonStrokeColor);
+                bg.setFillStyle(UI_CONFIG.BUTTON.DISABLED_BG_COLOR);
+                bg.setStrokeStyle(3, UI_CONFIG.BUTTON.STROKE_COLOR);
                 nameTxt.setColor('#aaaaaa');
-                lvTxt.setColor(this.buttonDisabledTextColor);
+                lvTxt.setColor(UI_CONFIG.BUTTON.DISABLED_TEXT_COLOR);
                 btn.setInteractive({ useHandCursor: true }); // Enable interaction for tooltip
             } else if (!canAfford) {
                 btn.setAlpha(0.7);
-                bg.setFillStyle(this.buttonBgColor);
+                bg.setFillStyle(UI_CONFIG.BUTTON.BG_COLOR);
                 bg.setStrokeStyle(3, 0x880000); 
                 nameTxt.setColor('#ffffff');
                 lvTxt.setColor('#ff8888');
                 btn.setInteractive({ useHandCursor: true }); 
             } else {
                 btn.setAlpha(1);
-                bg.setFillStyle(this.buttonBgColor);
-                bg.setStrokeStyle(3, this.buttonStrokeColor);
+                bg.setFillStyle(UI_CONFIG.BUTTON.BG_COLOR);
+                bg.setStrokeStyle(3, UI_CONFIG.BUTTON.STROKE_COLOR);
                 nameTxt.setColor('#ffffff');
                 btn.setInteractive({ useHandCursor: true });
             }
@@ -423,15 +410,10 @@ export class SkillTreeUI {
         }
 
         const currentVal = this.getFormattedValue(skill, level);
-        const nextVal = this.getFormattedValue(skill, level + 1, false);
+        const nextVal = this.getFormattedValue(skill, level + 1);
         
-        // 숫자가 포함된 부분(+1, 0.5, 3%, 0.2x 등)을 찾아 "현재값 -> 다음값"으로 변환
-        // const regex = /[+-]\d+(\.\d+)?|\d+\.\d+|\d+[%xX]/i;
-        // if (regex.test(skillDescTemplate)) {
-        //     return `${text}${skillDescTemplate.replace(regex, `${currentVal} -> ${nextVal}`)}`;
-        // }
-        // const regex = /([+-]?\d+(?:\.\d+)?)([xX%]?)/i;
-        const regex = /[+-]?\d+(\.\d+)?%?x?(\s?s\s?reduction|\s?s\s?단축|\s?초\s?단축|\s?秒)?/i;
+        // 숫자가 포함된 부분(+1, 0.5, 3%, 0.2x, 15° 등)을 찾아 "현재값 -> 다음값"으로 변환
+        const regex = /([+-]?\d+(?:\.\d+)?)([xX%°]?)/i;
         if (regex.test(skillDescTemplate)) {
             return `${text}${skillDescTemplate.replace(regex, `${currentVal} -> ${nextVal}`)}`;
         }
@@ -440,27 +422,9 @@ export class SkillTreeUI {
         return `${text}${skillDescTemplate}`;
     }
 
-    private getFormattedValue(skill: SkillData, level: number, includeUnit: boolean = true): string {
+    private getFormattedValue(skill: SkillData, level: number): string {
         const base = this.getInitialValue(skill.effectProperty);
-        const total = base + (skill.effectValue * level);
-        
-        if (!includeUnit) {
-            // 기호 제외하고 숫자값만 포맷팅
-            switch(skill.effectProperty) {
-                case 'force':
-                case 'armSpeed':
-                case 'spawnRate': return total.toFixed(1);
-                case 'highDimProb': return (total * 100).toFixed(0);
-                case 'moveSpeed': return total.toFixed(2);
-                case 'radius': return Math.floor(total).toString();
-                case 'researchBonus':
-                case 'maxArms':
-                case 'maxResearchSlots':
-                case 'netAngle': return total.toString();
-                default: return total.toString();
-            }
-        }
-        
+        const total = base + (skill.effectValue * level);        
         return Utils.formatStatValue(skill.effectProperty, total, level);
     }
 

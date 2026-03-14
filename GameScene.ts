@@ -43,79 +43,9 @@ export class GameScene extends Phaser.Scene {
 
         let skillData = this.cache.json.get('skillTreeData');
         
-        // 스킬 트리 랜덤 배치 로직 (12개 스킬을 tree:0~2, row:0~3에 분산)
-        if (skillData && skillData.length >= 12) {
-            // 1. 위치 풀 생성 (3x4 = 12개)
-            const positions: {tree: number, row: number}[] = [];
-            for(let r=0; r<4; r++) {
-                for(let t=0; t<3; t++) {
-                    positions.push({tree: t, row: r});
-                }
-            }
-            
-            // 2. 스킬 데이터 셔플 및 12개 선택
-            const shuffledSkills = Phaser.Utils.Array.Shuffle([...skillData]).slice(0, 12);
-            
-            // 3. 스킬에 위치 할당 및 초기 Prerequisites 제거
-            shuffledSkills.forEach((skill: any, index: number) => {
-                const pos = positions[index];
-                skill.tree = pos.tree;
-                skill.row = pos.row;
-                skill.prerequisites = []; // 기존 의존성 초기화
-            });
-
-            // 4. 새로운 Prerequisites 생성 로직
-            for(let r=1; r<4; r++) {
-                // 이 row에 있는 스킬들
-                const currentRows = shuffledSkills.filter((s: any) => s.row === r);
-                // 바로 위 row에 있는 스킬들
-                const upperRows = shuffledSkills.filter((s: any) => s.row === r - 1);
-                
-                // 해당 row에서 랜덤하게 하나 선택하여 추가 의존성(2개)을 부여할 대상 선정
-                const multiPrereqIndex = Phaser.Math.Between(0, currentRows.length - 1);
-
-                currentRows.forEach((skill: any, index: number) => {
-                    // 기본 규칙: 자신의 바로 위 tree의 스킬을 선행 조건으로 포함
-                    const directUpper = upperRows.find((s: any) => s.tree === skill.tree);
-                    if (directUpper && !skill.prerequisites.some((p: any) => p.id === directUpper.id)) {
-                        skill.prerequisites.push({ id: directUpper.id, level: 1 });
-                    }
-
-                    // 랜덤 규칙: row마다 하나는 이웃한 tree의 상위 스킬을 추가로 포함 (이웃: 인덱스 차이가 1)
-                    if (index === multiPrereqIndex) {
-                        const otherUpper = upperRows.filter((s: any) => 
-                            Math.abs(s.tree - skill.tree) === 1 && 
-                            !skill.prerequisites.some((p: any) => p.id === s.id)
-                        );
-                        if (otherUpper.length > 0) {
-                            const randomUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
-                            skill.prerequisites.push({ id: randomUpper.id, level: 1 });
-                        }
-                    }
-                });
-
-                // 마지막 row(r=3)인 경우, 추가로 이웃한 tree의 연결 하나 더 생성 (기존에 연결 가능한 대상이 있는지 확인)
-                if (r === 3) {
-                    const potentialSkills = currentRows.filter((skill: any) => 
-                        upperRows.some((up: any) => 
-                            Math.abs(up.tree - skill.tree) === 1 && 
-                            !skill.prerequisites.some((p: any) => p.id === up.id)
-                        )
-                    );
-
-                    if (potentialSkills.length > 0) {
-                        const randomSkill = Phaser.Utils.Array.GetRandom(potentialSkills) as any;
-                        const otherUpper = upperRows.filter((s: any) => 
-                            Math.abs(s.tree - randomSkill.tree) === 1 && 
-                            !randomSkill.prerequisites.some((p: any) => p.id === s.id)
-                        );
-                        const extraUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
-                        randomSkill.prerequisites.push({ id: extraUpper.id, level: 1 });
-                    }
-                }
-            }
-            // 업데이트된 스킬 데이터로 교체
-            skillData = shuffledSkills;
+        // 스킬 트리 랜덤 배치 로직
+        if (skillData) {
+            skillData = Utils.generateRandomSkillTree(skillData);
         }
 
         this.gameStats = new GameStats(skillData);
@@ -175,7 +105,7 @@ export class GameScene extends Phaser.Scene {
         });
         
         this.time.addEvent({ 
-            delay: 8000, 
+            delay: DURATIONS.WHITE_HOLE_SPAWN, 
             callback: () => this.resourceManager.spawnWhiteHole(), 
             callbackScope: this, 
             loop: true 

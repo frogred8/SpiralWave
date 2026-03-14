@@ -3,6 +3,7 @@ import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
 import { Collectible, ArmState } from './Types';
+import { DURATIONS } from './Constants';
 
 export class RoboticArm {
     public state: ArmState = 'idle';
@@ -46,7 +47,7 @@ export class RoboticArm {
 
         const factor = this.stats.armSpeedFactor;
         const distanceToTarget = Utils.getDistance(this.spiralCenter.x, this.spiralCenter.y, this.grabbedResource.x, this.grabbedResource.y);
-        const baseExtendSpeed = 600;
+        const baseExtendSpeed = DURATIONS.ARM_EXTEND_BASE;
         const extensionStep = (baseExtendSpeed * factor * (delta / 1000)) / Math.max(distanceToTarget, 1);
         
         this.extensionProgress = Math.min(1, this.extensionProgress + extensionStep);
@@ -61,7 +62,7 @@ export class RoboticArm {
     private handleRetracting(delta: number, collectCallback: (res: Collectible, byArm: boolean) => void) {
         const factor = this.stats.armSpeedFactor;
         const isHighDim = this.grabbedResource?.isHighDim || false;
-        const baseRetractSpeed = 800;
+        const baseRetractSpeed = DURATIONS.ARM_RETRACT_BASE;
         const speedMultiplier = isHighDim ? 0.25 : 1.0;
         const speed = baseRetractSpeed * factor * speedMultiplier;
 

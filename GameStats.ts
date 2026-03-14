@@ -41,13 +41,15 @@ export class GameStats extends Phaser.Events.EventEmitter {
     private gameStarted: boolean = false;
     public isGameOver: boolean = false;
     public readonly TIME_LIMIT = 300; // 5분 (300초)
+    public timeSpawnMultiplier: number = 1.0;
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {
         UPDATE_SCORE: 'updateScore',
         SKILL_UPGRADED: 'skillUpgraded',
         RESEARCH_REDUCED: 'researchTimeReduced',
-        GAME_OVER: 'gameOver'
+        GAME_OVER: 'gameOver',
+        SPAWN_RATE_CHANGED: 'spawnRateChanged'
     };
 
     constructor(skillTreeData: SkillData[]) {
@@ -87,6 +89,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.gameStarted = false;
         this.isGameOver = false;
         this.collectionHistory = [];
+        this.timeSpawnMultiplier = 1.0;
     }
 
     /**
@@ -116,7 +119,15 @@ export class GameStats extends Phaser.Events.EventEmitter {
         const cappedDt = Math.min(dt, 1000);
         let elapsedSeconds = cappedDt / 1000;
         
+        const oldMinutes = Math.floor(this.playtime / 60);
         this.playtime += elapsedSeconds;
+        const newMinutes = Math.floor(this.playtime / 60);
+
+        // 1분마다 자원 생성량 20% 증가 (배율 업데이트)
+        if (newMinutes > oldMinutes && newMinutes > 0) {
+            this.timeSpawnMultiplier = 1 + (newMinutes * 0.2);
+            this.emit(GameStats.EVENTS.SPAWN_RATE_CHANGED);
+        }
 
         // 제한시간 체크
         if (this.playtime >= this.TIME_LIMIT) {

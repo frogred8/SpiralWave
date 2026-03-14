@@ -411,8 +411,9 @@ export class GameScene extends Phaser.Scene {
         if (this.spawnTimer) {
             this.spawnTimer.remove();
         }
+        const effectiveSpawnFactor = (this.gameStats.spawnRateFactor || 1) * (this.gameStats.timeSpawnMultiplier || 1);
         this.spawnTimer = this.time.addEvent({
-            delay: Math.max(100, RESOURCE_CONFIG.SPAWN_INTERVAL_BASE / (this.gameStats.spawnRateFactor || 1)),
+            delay: Math.max(100, RESOURCE_CONFIG.SPAWN_INTERVAL_BASE / effectiveSpawnFactor),
             callback: () => this.resourceManager.spawnResource(),
             callbackScope: this,
             loop: true
@@ -452,6 +453,10 @@ export class GameScene extends Phaser.Scene {
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
             this.showGameOverScreen();
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.SPAWN_RATE_CHANGED, () => {
+            this.updateSpawnTimer();
         }, this);
 
         // 입력 리스너 (create에서 1회만 등록해도 되지만, setupUI에서 관리 효율을 위해 체크)

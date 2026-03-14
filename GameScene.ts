@@ -863,11 +863,11 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private collectResource(collectible: any, byArm: boolean = false) {
+    private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false) {
         if (!collectible.active) return;
 
         if (collectible.itemType === 'special') {
-            this.handleSpecialItem(collectible, byArm);
+            this.handleSpecialItem(collectible, byArm, byNet);
             return;
         }
 
@@ -921,7 +921,7 @@ export class GameScene extends Phaser.Scene {
                     },
                     onComplete: () => { 
                         if (res.active) {
-                            this.collectResource(res, false); 
+                            this.collectResource(res, false, true); 
                         }
                     }
                 });
@@ -929,8 +929,9 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private handleSpecialItem(item: SpecialItem, byArm: boolean) {
-        if (!byArm) {
+    private handleSpecialItem(item: SpecialItem, byArm: boolean, byNet: boolean) {
+        // 팔이나 그물로 직접 획득한 경우가 아니면 발동하지 않음 (단순 흡수는 파괴만 됨)
+        if (!byArm && !byNet) {
             item.destroy();
             this.cameras.main.shake(100, 0.005);
             return;

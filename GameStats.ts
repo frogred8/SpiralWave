@@ -8,48 +8,54 @@ import { ResourceType, ActiveResearch, SkillCosts } from './Types';
  */
 export class GameStats extends Phaser.Events.EventEmitter {
     // 핵심 스탯
-    public force: number;
-    public radius: number;
-    public highDimProb: number;
-    public moveSpeed: number;
+    public force!: number;
+    public radius!: number;
+    public highDimProb!: number;
+    public moveSpeed!: number;
     
     // 자원 및 인벤토리
-    public collected: Record<ResourceType, number>;
-    public totalCollected: Record<ResourceType, number>;
-    public totalAll: number;
-    public maxResources: number;
-    public isColorUnlocked: boolean;
+    public collected!: Record<ResourceType, number>;
+    public totalCollected!: Record<ResourceType, number>;
+    public totalAll!: number;
+    public maxResources!: number;
+    public isColorUnlocked!: boolean;
     
     private collectionHistory: { timestamp: number, amount: number }[] = [];
     
     // 로봇팔 및 보조 시스템
-    public maxArms: number;
-    public isAutoArmEnabled: boolean;
-    public armSpeedFactor: number;
-    public spawnRateFactor: number;
-    public isNetEnabled: boolean;
-    public netAngle: number;
+    public maxArms!: number;
+    public isAutoArmEnabled!: boolean;
+    public armSpeedFactor!: number;
+    public spawnRateFactor!: number;
+    public isNetEnabled!: boolean;
+    public netAngle!: number;
     
     // 연구 및 스킬 트리 상태
-    public skillLevels: Record<string, number>;
-    public researchReduction: number; // 기존 researchBonus 명칭 변경 (의미 명확화)
-    public maxResearchSlots: number;
+    public skillLevels!: Record<string, number>;
+    public researchReduction!: number; // 기존 researchBonus 명칭 변경 (의미 명확화)
+    public maxResearchSlots!: number;
     public activeResearches: ActiveResearch[] = [];
     
     public playtime: number = 0;
     private lastUpdateTime: number = 0;
     private gameStarted: boolean = false;
+    public isGameOver: boolean = false;
+    public readonly TIME_LIMIT = 300; // 5분 (300초)
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {
         UPDATE_SCORE: 'updateScore',
         SKILL_UPGRADED: 'skillUpgraded',
-        RESEARCH_REDUCED: 'researchTimeReduced'
+        RESEARCH_REDUCED: 'researchTimeReduced',
+        GAME_OVER: 'gameOver'
     };
 
     constructor(skillTreeData: SkillData[]) {
         super();
-        
+        this.initializeStats(skillTreeData);
+    }
+
+    private initializeStats(skillTreeData: SkillData[]) {
         // 초기 스탯 설정 (Constants 참조)
         this.force = INITIAL_STATS.FORCE;
         this.radius = INITIAL_STATS.RADIUS;
@@ -76,6 +82,19 @@ export class GameStats extends Phaser.Events.EventEmitter {
         skillTreeData.forEach(skill => {
             this.skillLevels[skill.id] = 0;
         });
+        this.activeResearches = [];
+        this.playtime = 0;
+        this.gameStarted = false;
+        this.isGameOver = false;
+        this.collectionHistory = [];
+    }
+
+    /**
+     * 모든 상태 초기화 (다시 시작용)
+     */
+    reset(skillTreeData: SkillData[]) {
+        this.initializeStats(skillTreeData);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
     /**
@@ -83,6 +102,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
      */
     startGame() {
         this.gameStarted = true;
+        this.isGameOver = false;
         this.lastUpdateTime = Date.now();
     }
 
@@ -90,13 +110,22 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 프레임 업데이트: 연구 진행도 처리 (백그라운드 캐치업 포함)
      */
     update(dt: number, skillTreeData: SkillData[]) {
-        if (!this.gameStarted) return;
+        if (!this.gameStarted || this.isGameOver) return;
 
         // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
         const cappedDt = Math.min(dt, 1000);
         let elapsedSeconds = cappedDt / 1000;
         
         this.playtime += elapsedSeconds;
+
+        // 제한시간 체크
+        if (this.playtime >= this.TIME_LIMIT) {
+            this.playtime = this.TIME_LIMIT;
+            this.isGameOver = true;
+            this.emit(GameStats.EVENTS.GAME_OVER);
+            this.emit(GameStats.EVENTS.UPDATE_SCORE);
+            return;
+        }
 
         if (this.activeResearches.length === 0) return;
 
@@ -143,6 +172,23 @@ export class GameStats extends Phaser.Events.EventEmitter {
      */
     grantSkill(skill: SkillData) {
         this.applySkillUpgrade(skill);
+    }
+
+    /**
+     * 남은 시간(초) 반환
+     */
+    getRemainingTime(): number {
+        return Math.max(0, this.TIME_LIMIT - this.playtime);
+    }
+
+    /**
+     * 남은 시간을 MM:SS 형식으로 반환
+     */
+    getFormattedRemainingTime(): string {
+        const remaining = this.getRemainingTime();
+        const m = Math.floor(remaining / 60);
+        const s = Math.floor(remaining % 60);
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
     /**

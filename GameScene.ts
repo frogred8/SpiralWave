@@ -27,6 +27,7 @@ export class GameScene extends Phaser.Scene {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private netTimerAccumulator: number = 0;
     private isGameStarted: boolean = false;
+    private timerText!: Phaser.GameObjects.Text;
 
     constructor() {
         super('GameScene');
@@ -148,6 +149,20 @@ export class GameScene extends Phaser.Scene {
             this.updateSpawnTimer();
             this.syncArmsCount();
         }, this);
+        
+        this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
+            this.showGameOverScreen();
+        }, this);
+
+        // 중앙 타이머 텍스트 생성
+        this.timerText = this.add.text(width / 2, 40, '05:00', {
+            fontSize: '48px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 6
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(false);
+        this.uiContainer.add(this.timerText);
         
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
@@ -308,6 +323,102 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.startGame();
         this.setupTimers();
         this.isGameStarted = true;
+        this.timerText.setVisible(true);
+    }
+
+    private showGameOverScreen() {
+        const { width, height } = this.scale;
+        
+        // 타이머 정지 효과
+        this.timerText.setAlpha(1);
+        
+        // 딤드 배경
+        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85)
+            .setOrigin(0).setInteractive().setDepth(3000);
+        this.uiContainer.add(overlay);
+
+        const title = this.add.text(width / 2, height / 2 - 120, I18n.t('ui.game_over'), {
+            fontSize: '64px',
+            color: '#ff0000',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 8
+        }).setOrigin(0.5).setDepth(3001);
+        this.uiContainer.add(title);
+
+        const resourceInfo = this.add.text(width / 2, height / 2, `${I18n.t('ui.total_resources')}\n${this.gameStats.totalAll}`, {
+            fontSize: '32px',
+            color: '#ffffff',
+            align: 'center',
+            lineSpacing: 15
+        }).setOrigin(0.5).setDepth(3001);
+        this.uiContainer.add(resourceInfo);
+
+        // 다시하기 버튼
+        const restartBtn = this.add.container(width / 2, height / 2 + 150).setDepth(3001);
+        const btnBg = this.add.rectangle(0, 0, 250, 60, 0x222222, 0.9)
+            .setStrokeStyle(3, 0x444444)
+            .setInteractive({ useHandCursor: true });
+        
+        const btnText = this.add.text(0, 0, I18n.t('ui.restart'), {
+            fontSize: '24px',
+            color: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        restartBtn.add([btnBg, btnText]);
+        this.uiContainer.add(restartBtn);
+
+        btnBg.on('pointerover', () => btnBg.setStrokeStyle(4, 0x00ff00));
+        btnBg.on('pointerout', () => btnBg.setStrokeStyle(3, 0x444444));
+        btnBg.on('pointerdown', () => {
+            this.restartGame();
+            overlay.destroy();
+            title.destroy();
+            resourceInfo.destroy();
+            restartBtn.destroy();
+        });
+
+        // 결과창 등장 애니메이션
+        restartBtn.setScale(0);
+        this.tweens.add({
+            targets: restartBtn,
+            scale: 1,
+            duration: 500,
+            ease: 'Back.easeOut',
+            delay: 1000
+        });
+    }
+
+    private restartGame() {
+        // 모든 리소스 제거
+        this.resourceManager.getGroup().clear(true, true);
+        
+        // 로봇팔 상태 초기화
+        this.arms.forEach(arm => {
+            arm.state = 'idle';
+            arm.grabbedResource = null;
+        });
+
+        // 타이머 텍스트 초기화
+        this.timerText.setVisible(false).setColor('#ffffff').setAlpha(1);
+
+        // 스탯 초기화
+        const skillData = this.cache.json.get('skillTreeData');
+        this.gameStats.reset(skillData);
+        
+        // 게임 상태 초기화
+        this.isGameStarted = false;
+        
+        // 스킬 트리 UI 재생성 (위치 랜덤화 유지 여부에 따라 다름. 여기서는 현재 Scene의 skillData 사용)
+        // 만약 완전 초기화(랜덤 배치 포함)를 원하면 create() 로직을 일부 재사용해야 함.
+        // 여기서는 GameScene의 create에서 섞은 skillData를 GameStats.reset에 전달함.
+        
+        // UI 갱신 (리셋된 스탯 반영)
+        this.refreshUIAfterLanguageChange();
+        
+        // 초기 스킬 선택 다시 표시
+        this.showInitialSkillSelection(this.skillTreeUI.skillTreeData);
     }
 
     private updateSpawnTimer() {
@@ -531,12 +642,28 @@ export class GameScene extends Phaser.Scene {
 
     update(time: number, delta: number) {
         // 게임 시작 전이면 상태 업데이트 및 입력 처리를 하지 않음
-        if (!this.isGameStarted) return;
+        if (!this.isGameStarted || this.gameStats.isGameOver) {
+            if (this.gameStats.isGameOver) {
+                this.gameRenderer.clearArmGraphics();
+                this.timerText.setText('00:00').setColor('#ff0000');
+            }
+            return;
+        }
 
         // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
         const cappedDelta = Math.min(delta, 1000);
 
         this.gameStats.update(cappedDelta, this.cache.json.get('skillTreeData'));
+        this.timerText.setText(this.gameStats.getFormattedRemainingTime());
+        
+        // 시간이 얼마 안 남았을 때 빨간색으로 변경 (30초 미만)
+        if (this.gameStats.getRemainingTime() < 30) {
+            this.timerText.setColor('#ff0000');
+            // 깜빡임 효과
+            this.timerText.setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
+        } else {
+            this.timerText.setColor('#ffffff').setAlpha(1);
+        }
 
         // 화살표 키로 블랙홀 이동
         if (this.cursors) {

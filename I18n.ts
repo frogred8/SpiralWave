@@ -44,6 +44,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.locked': 'Locked',
         'ui.reduction': 'reduction',
         'ui.choose_starting_skill': 'Choose a Starting Skill',
+        'ui.game_over': 'TIME\'S UP!',
+        'ui.total_resources': 'Total Resources Collected',
+        'ui.restart': 'RESTART GAME',
         
         // Skill Data (Keys matching SKILLTREE.json IDs or specific keys)
         'skill.q1.name': 'Radius Boost',
@@ -114,6 +117,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.locked': '잠김',
         'ui.reduction': '단축',
         'ui.choose_starting_skill': '시작 스킬을 선택하세요',
+        'ui.game_over': '시간 종료!',
+        'ui.total_resources': '총 수집 자원',
+        'ui.restart': '다시 시작',
         
         // Skill Data
         'skill.q1.name': '반지름 확장',
@@ -184,6 +190,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.locked': '未解锁',
         'ui.reduction': '减少',
         'ui.choose_starting_skill': '选择初始技能',
+        'ui.game_over': '时间到!',
+        'ui.total_resources': '总共收集的资源',
+        'ui.restart': '重新开始',
         
         // Skill Data
         'skill.q1.name': '半径提升',
@@ -254,6 +263,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.locked': 'ロック中',
         'ui.reduction': '短縮',
         'ui.choose_starting_skill': '開始スキルを選択してください',
+        'ui.game_over': 'タイムアップ！',
+        'ui.total_resources': '合計獲得資源',
+        'ui.restart': '最初からやり直す',
         
         // Skill Data
         'skill.q1.name': '半径拡張',

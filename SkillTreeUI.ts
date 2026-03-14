@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { I18n } from './I18n';
 import { SkillData } from './SkillData';
 import { GameStats } from './GameStats';
-import { INITIAL_STATS, UI_CONFIG } from './Constants';
+import { INITIAL_STATS, UI_CONFIG, RESOURCE_CONFIG } from './Constants';
 import { Utils } from './Utils';
 
 export class SkillTreeUI {
@@ -120,7 +120,8 @@ export class SkillTreeUI {
                                 const line = this.costLines[lineIdx++];
                                 
                                 if (line) {
-                                    line.setText(`${type.toUpperCase()}: ${current}/${required}`)
+                                    const icon = RESOURCE_CONFIG.ICONS[type as keyof typeof RESOURCE_CONFIG.ICONS] || '';
+                                    line.setText(`${icon} ${current}/${required}`)
                                         .setColor(isEnough ? '#00ff00' : '#ff0000')
                                         .setPosition(10, currentY)
                                         .setVisible(true);

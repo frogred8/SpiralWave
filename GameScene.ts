@@ -26,6 +26,7 @@ export class GameScene extends Phaser.Scene {
     private spawnTimer!: Phaser.Time.TimerEvent;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private netTimerAccumulator: number = 0;
+    private isGameStarted: boolean = false;
 
     constructor() {
         super('GameScene');
@@ -135,8 +136,8 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.ignore(this.uiContainer);
 
         this.setupPhysics();
-        this.setupTimers();
         this.setupUI(skillData);
+        this.showInitialSkillSelection(skillData);
 
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
             // UI 요소를 클릭한 경우 게임 로직(로봇팔 발사 등)을 실행하지 않음
@@ -172,6 +173,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupTimers() {
+        // 기존 타이머가 있다면 제거 (재시작 시 대비)
+        if (this.spawnTimer) this.spawnTimer.remove();
+        
         this.spawnTimer = this.time.addEvent({ 
             delay: Math.max(100, RESOURCE_CONFIG.SPAWN_INTERVAL_BASE / (this.gameStats.spawnRateFactor || 1)), 
             callback: () => this.resourceManager.spawnResource(), 
@@ -199,6 +203,111 @@ export class GameScene extends Phaser.Scene {
             callbackScope: this, 
             loop: true 
         });
+    }
+
+    private showInitialSkillSelection(skillData: any[]) {
+        const { width, height } = this.scale;
+        
+        // 딤드 배경
+        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.8)
+            .setOrigin(0).setInteractive().setDepth(2000);
+        this.uiContainer.add(overlay);
+
+        const title = this.add.text(width / 2, height / 2 - 200, I18n.t('ui.choose_starting_skill'), {
+            fontSize: '32px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 6
+        }).setOrigin(0.5).setDepth(2001);
+        this.uiContainer.add(title);
+
+        // 첫 번째 또는 두 번째 row의 스킬들 중에서 2개 랜덤 선택
+        const candidateSkills = skillData.filter(s => s.row <= 1);
+        const selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
+        
+        selectedSkills.forEach((skill, index) => {
+            const x = width / 2 + (index === 0 ? -180 : 180);
+            const y = height / 2 + 20;
+            
+            const btn = this.add.container(x, y).setDepth(2001);
+            
+            // 어둡고 거친 금속 느낌의 배경
+            const bg = this.add.rectangle(0, 0, 280, 320, 0x1a1a1a, 0.95)
+                .setStrokeStyle(3, 0x444444)
+                .setInteractive({ useHandCursor: true });
+            
+            // 스킬 이름 (I18n 활용)
+            const skillName = I18n.t(`skill.${skill.id}.name`) || skill.id;
+            const nameText = this.add.text(0, -100, skillName, {
+                fontSize: '24px',
+                color: '#00ff00',
+                fontStyle: 'bold',
+                align: 'center',
+                wordWrap: { width: 240 }
+            }).setOrigin(0.5);
+
+            // 효과 설명
+            const desc = I18n.t(`skill.${skill.id}.desc`) || '';
+            const descText = this.add.text(0, 0, desc, {
+                fontSize: '18px',
+                color: '#ffffff',
+                align: 'center',
+                lineSpacing: 8,
+                wordWrap: { width: 240 }
+            }).setOrigin(0.5);
+
+            // 클릭 유도 텍스트
+            const hintText = this.add.text(0, 110, 'CLICK TO SELECT', {
+                fontSize: '14px',
+                color: '#aaaaaa',
+                fontStyle: 'italic'
+            }).setOrigin(0.5);
+
+            btn.add([bg, nameText, descText, hintText]);
+            this.uiContainer.add(btn);
+
+            bg.on('pointerover', () => {
+                bg.setStrokeStyle(4, 0x00ff00);
+                this.tweens.add({ targets: btn, scale: 1.05, duration: 200, ease: 'Back.easeOut' });
+            });
+            bg.on('pointerout', () => {
+                bg.setStrokeStyle(3, 0x444444);
+                this.tweens.add({ targets: btn, scale: 1.0, duration: 200, ease: 'Back.easeOut' });
+            });
+            bg.on('pointerdown', () => {
+                this.gameStats.grantSkill(skill);
+                this.startGame();
+                
+                // 선택 UI 제거 애니메이션
+                this.tweens.add({
+                    targets: [overlay, title, btn],
+                    alpha: 0,
+                    duration: 500,
+                    onComplete: () => {
+                        overlay.destroy();
+                        title.destroy();
+                        // 모든 선택 버튼 제거
+                        this.uiContainer.iterate((child: any) => {
+                            if (child && child.depth >= 2000) child.destroy();
+                        });
+                    }
+                });
+                
+                // 다른 버튼도 페이드 아웃
+                this.uiContainer.iterate((child: any) => {
+                    if (child && child.depth >= 2001 && child !== btn) {
+                        this.tweens.add({ targets: child, alpha: 0, duration: 300 });
+                    }
+                });
+            });
+        });
+    }
+
+    private startGame() {
+        this.gameStats.startGame();
+        this.setupTimers();
+        this.isGameStarted = true;
     }
 
     private updateSpawnTimer() {
@@ -419,7 +528,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        this.gameStats.update(delta, this.cache.json.get('skillTreeData'));
+        // 게임 시작 전이면 상태 업데이트 및 입력 처리를 하지 않음
+        if (!this.isGameStarted) return;
+
+        // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
+        const cappedDelta = Math.min(delta, 1000);
+
+        this.gameStats.update(cappedDelta, this.cache.json.get('skillTreeData'));
 
         // 화살표 키로 블랙홀 이동
         if (this.cursors) {
@@ -438,7 +553,7 @@ export class GameScene extends Phaser.Scene {
 
         // 자동 그물 로직
         if (this.gameStats.isNetEnabled) {
-            this.netTimerAccumulator += delta;
+            this.netTimerAccumulator += cappedDelta;
             
             // 기모으기 표시: 발사 3초 전부터 (DURATIONS.NET_COOLDOWN - 3000ms)
             const chargeStartTime = Math.max(0, DURATIONS.NET_COOLDOWN - 3000);
@@ -464,7 +579,7 @@ export class GameScene extends Phaser.Scene {
 
         // 로봇팔 업데이트
         this.gameRenderer.clearArmGraphics();
-        this.arms.forEach(arm => arm.update(delta, this.gameRenderer, this.collectResource.bind(this)));
+        this.arms.forEach(arm => arm.update(cappedDelta, this.gameRenderer, this.collectResource.bind(this)));
 
         // 자동 로봇팔 로직
         if (this.gameStats.isAutoArmEnabled) {

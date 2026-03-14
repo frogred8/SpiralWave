@@ -37,7 +37,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public activeResearches: ActiveResearch[] = [];
     
     public playtime: number = 0;
-    private lastUpdateTime: number = Date.now();
+    private lastUpdateTime: number = 0;
+    private gameStarted: boolean = false;
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {
@@ -78,14 +79,23 @@ export class GameStats extends Phaser.Events.EventEmitter {
     }
 
     /**
+     * 게임 시작 처리
+     */
+    startGame() {
+        this.gameStarted = true;
+        this.lastUpdateTime = Date.now();
+    }
+
+    /**
      * 프레임 업데이트: 연구 진행도 처리 (백그라운드 캐치업 포함)
      */
     update(dt: number, skillTreeData: SkillData[]) {
-        const now = Date.now();
-        let elapsedSeconds = (now - this.lastUpdateTime) / 1000;
-        this.lastUpdateTime = now;
+        if (!this.gameStarted) return;
 
-        if (elapsedSeconds <= 0) return;
+        // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
+        const cappedDt = Math.min(dt, 1000);
+        let elapsedSeconds = cappedDt / 1000;
+        
         this.playtime += elapsedSeconds;
 
         if (this.activeResearches.length === 0) return;
@@ -126,6 +136,13 @@ export class GameStats extends Phaser.Events.EventEmitter {
         }
         
         if (updated) this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    /**
+     * 스킬을 즉시 습득 (초기 보너스 등)
+     */
+    grantSkill(skill: SkillData) {
+        this.applySkillUpgrade(skill);
     }
 
     /**

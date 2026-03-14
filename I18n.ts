@@ -43,6 +43,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.activated': 'Activated',
         'ui.locked': 'Locked',
         'ui.reduction': 'reduction',
+        'ui.choose_starting_skill': 'Choose a Starting Skill',
         
         // Skill Data (Keys matching SKILLTREE.json IDs or specific keys)
         'skill.q1.name': 'Radius Boost',
@@ -112,6 +113,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.activated': '개방됨',
         'ui.locked': '잠김',
         'ui.reduction': '단축',
+        'ui.choose_starting_skill': '시작 스킬을 선택하세요',
         
         // Skill Data
         'skill.q1.name': '반지름 확장',
@@ -181,6 +183,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.activated': '已激活',
         'ui.locked': '未解锁',
         'ui.reduction': '减少',
+        'ui.choose_starting_skill': '选择初始技能',
         
         // Skill Data
         'skill.q1.name': '半径提升',
@@ -250,6 +253,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.activated': '開放済み',
         'ui.locked': 'ロック中',
         'ui.reduction': '短縮',
+        'ui.choose_starting_skill': '開始スキルを選択してください',
         
         // Skill Data
         'skill.q1.name': '半径拡張',

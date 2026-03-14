@@ -540,6 +540,10 @@ export class SkillTreeUI {
                 // 마지막 스킬 애니메이션이 끝나면 콜백 호출
                 if (index === maxedSkills.length - 1) {
                     this.scene.time.delayedCall(800, () => {
+                        // 부스터 시간이 있으면 1초 추가
+                        if (addedTime > 0) {
+                            addedTime += 1;
+                        }
                         onComplete(addedTime);
                     });
                 }

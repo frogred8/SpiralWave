@@ -423,9 +423,14 @@ export class SkillTreeUI {
         }
 
         const currentVal = this.getFormattedValue(skill, level);
-        const nextVal = this.getFormattedValue(skill, level + 1);
+        const nextVal = this.getFormattedValue(skill, level + 1, false);
         
-        // 숫자가 포함된 부분(+1, 0.5, 3%, 0.2x, 1s reduction 등)을 찾아 "현재값 -> 다음값"으로 변환
+        // 숫자가 포함된 부분(+1, 0.5, 3%, 0.2x 등)을 찾아 "현재값 -> 다음값"으로 변환
+        // const regex = /[+-]\d+(\.\d+)?|\d+\.\d+|\d+[%xX]/i;
+        // if (regex.test(skillDescTemplate)) {
+        //     return `${text}${skillDescTemplate.replace(regex, `${currentVal} -> ${nextVal}`)}`;
+        // }
+        // const regex = /([+-]?\d+(?:\.\d+)?)([xX%]?)/i;
         const regex = /[+-]?\d+(\.\d+)?%?x?(\s?s\s?reduction|\s?s\s?단축|\s?초\s?단축|\s?秒)?/i;
         if (regex.test(skillDescTemplate)) {
             return `${text}${skillDescTemplate.replace(regex, `${currentVal} -> ${nextVal}`)}`;
@@ -435,9 +440,27 @@ export class SkillTreeUI {
         return `${text}${skillDescTemplate}`;
     }
 
-    private getFormattedValue(skill: SkillData, level: number): string {
+    private getFormattedValue(skill: SkillData, level: number, includeUnit: boolean = true): string {
         const base = this.getInitialValue(skill.effectProperty);
         const total = base + (skill.effectValue * level);
+        
+        if (!includeUnit) {
+            // 기호 제외하고 숫자값만 포맷팅
+            switch(skill.effectProperty) {
+                case 'force':
+                case 'armSpeed':
+                case 'spawnRate': return total.toFixed(1);
+                case 'highDimProb': return (total * 100).toFixed(0);
+                case 'moveSpeed': return total.toFixed(2);
+                case 'radius': return Math.floor(total).toString();
+                case 'researchBonus':
+                case 'maxArms':
+                case 'maxResearchSlots':
+                case 'netAngle': return total.toString();
+                default: return total.toString();
+            }
+        }
+        
         return Utils.formatStatValue(skill.effectProperty, total, level);
     }
 

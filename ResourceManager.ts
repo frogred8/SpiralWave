@@ -215,4 +215,12 @@ export class ResourceManager {
         const type = res.resourceType;
         return (RESOURCE_CONFIG.COLORS as any)[type] || RESOURCE_CONFIG.COLORS.default;
     }
+
+    public clear() {
+        this.resources.clear(true, true);
+        this.whiteHoles.forEach(wh => wh.destroy());
+        this.whiteHoles = [];
+        // 진행 중인 운석 트윈 등은 씬 전체 트윈 제거로 처리하거나 개별 관리 필요
+        // 여기서는 resources와 whiteHoles 위주로 정리
+    }
 }

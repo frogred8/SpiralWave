@@ -103,4 +103,12 @@ export class RoboticArm {
         this.target.copy(this.spiralCenter);
         this.lastFireTime = time;
     }
+
+    public reset() {
+        this.state = 'idle';
+        this.grabbedResource = null;
+        this.extensionProgress = 0;
+        this.lastFireTime = 0;
+        this.target.copy(this.spiralCenter);
+    }
 }

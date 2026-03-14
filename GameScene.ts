@@ -367,14 +367,28 @@ export class GameScene extends Phaser.Scene {
     }
 
     private restartGame() {
-        // 모든 리소스 제거
-        this.resourceManager.getGroup().clear(true, true);
+        const { width, height } = this.scale;
+
+        // 모든 리소스 및 화이트홀 제거
+        this.resourceManager.clear();
         
+        // 진행 중인 모든 트윈 제거 (운석 등)
+        this.tweens.killAll();
+
+        // 블랙홀 좌표 초기화
+        this.spiralCenter.set(width / 2, height / 2);
+        this.gameRenderer.updateSpiralPosition();
+
         // 로봇팔 상태 초기화
-        this.arms.forEach(arm => {
-            arm.state = 'idle';
-            arm.grabbedResource = null;
-        });
+        this.arms.forEach(arm => arm.reset());
+
+        // 기타 게임 상태 초기화
+        this.radiusMultiplier = 1.0;
+        this.netTimerAccumulator = 0;
+        if (this.boostTimerEvent) {
+            this.boostTimerEvent.remove();
+            this.boostTimerEvent = undefined;
+        }
 
         // 타이머 텍스트 초기화
         this.timerText.setVisible(false).setColor('#ffffff').setAlpha(1);
@@ -386,14 +400,10 @@ export class GameScene extends Phaser.Scene {
         // 게임 상태 초기화
         this.isGameStarted = false;
         
-        // 스킬 트리 UI 재생성 (위치 랜덤화 유지 여부에 따라 다름. 여기서는 현재 Scene의 skillData 사용)
-        // 만약 완전 초기화(랜덤 배치 포함)를 원하면 create() 로직을 일부 재사용해야 함.
-        // 여기서는 GameScene의 create에서 섞은 skillData를 GameStats.reset에 전달함.
-        
         // UI 갱신 (리셋된 스탯 반영)
         this.refreshUIAfterLanguageChange();
         
-        // 초기 스킬 선택 다시 표시
+        // 초기 스킬 선택 다시 표시 (현재 섞인 스킬 데이터 유지)
         this.showInitialSkillSelection(this.skillTreeUI.skillTreeData);
     }
 

@@ -425,11 +425,12 @@ export class SkillTreeUI {
         const currentVal = this.getFormattedValue(skill, level);
         const nextVal = this.getFormattedValue(skill, level + 1);
         
-        // 숫자가 포함된 부분(+1, 0.5, 3% 등)을 찾아 "현재값 -> 다음값"으로 변환
-        const regex = /[+-]?\d+(\.\d+)?%?/;
+        // 숫자가 포함된 부분(+1, 0.5, 3%, 0.2x 등)을 찾아 "현재값 -> 다음값"으로 변환
+        const regex = /[+-]?\d+(\.\d+)?%?x?/;
         if (regex.test(skillDescTemplate)) {
             return `${text}${skillDescTemplate.replace(regex, `${currentVal} -> ${nextVal}`)}`;
         }
+
         
         return `${text}${skillDescTemplate}`;
     }

@@ -140,30 +140,6 @@ export class GameScene extends Phaser.Scene {
         this.setupUI(skillData);
         this.showInitialSkillSelection(skillData);
 
-        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
-            // UI 요소를 클릭한 경우 게임 로직(로봇팔 발사 등)을 실행하지 않음
-            if (gameObjects.length > 0) return;
-            this.handleInput(pointer);
-        }, this);
-        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
-            this.updateSpawnTimer();
-            this.syncArmsCount();
-        }, this);
-        
-        this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            this.showGameOverScreen();
-        }, this);
-
-        // 중앙 타이머 텍스트 생성
-        this.timerText = this.add.text(width / 2, 40, '05:00', {
-            fontSize: '48px',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(false);
-        this.uiContainer.add(this.timerText);
-        
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
         }
@@ -440,10 +416,40 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupUI(skillData: any) {
+        const { width, height } = this.scale;
+
+        // 중앙 타이머 텍스트 생성 (setupUI로 이동하여 리셋 시 재생성되도록 함)
+        this.timerText = this.add.text(width / 2, 40, this.gameStats.getFormattedRemainingTime(), {
+            fontSize: '48px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 6
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(this.isGameStarted);
+        this.uiContainer.add(this.timerText);
+
         // 이전 리스너 제거 (중복 방지)
         this.gameStats.removeAllListeners(GameStats.EVENTS.UPDATE_SCORE);
         this.gameStats.removeAllListeners('resourceCollected');
         this.gameStats.removeAllListeners('worldResourceCollected');
+        this.gameStats.removeAllListeners(GameStats.EVENTS.SKILL_UPGRADED);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.GAME_OVER);
+
+        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
+            this.updateSpawnTimer();
+            this.syncArmsCount();
+        }, this);
+        
+        this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
+            this.showGameOverScreen();
+        }, this);
+
+        // 입력 리스너 (create에서 1회만 등록해도 되지만, setupUI에서 관리 효율을 위해 체크)
+        this.input.off('pointerdown');
+        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
+            if (gameObjects.length > 0) return;
+            this.handleInput(pointer);
+        }, this);
 
         // 상단 스탯 패널 구성
         const panelX = 50;

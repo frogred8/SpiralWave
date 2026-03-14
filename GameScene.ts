@@ -372,6 +372,9 @@ export class GameScene extends Phaser.Scene {
         // 모든 리소스 및 화이트홀 제거
         this.resourceManager.clear();
         
+        // 모든 타이머 제거
+        this.time.removeAllEvents();
+
         // 진행 중인 모든 트윈 제거 (운석 등)
         this.tweens.killAll();
 
@@ -540,7 +543,11 @@ export class GameScene extends Phaser.Scene {
         // 1초마다 갱신 (최근 10초 획득량 갱신용)
         this.time.addEvent({
             delay: 1000,
-            callback: updateInfo,
+            callback: () => {
+                if (this.isGameStarted && !this.gameStats.isGameOver) {
+                    updateInfo();
+                }
+            },
             loop: true
         });
 

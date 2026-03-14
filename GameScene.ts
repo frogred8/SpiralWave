@@ -458,6 +458,23 @@ export class GameScene extends Phaser.Scene {
             this.showGameOverScreen();
         }, this);
 
+        this.gameStats.on(GameStats.EVENTS.CALCULATE_BOOSTER, () => {
+            // 게임 일시 정지
+            this.physics.pause();
+            if (this.spawnTimer) this.spawnTimer.paused = true;
+            
+            // 중앙 텍스트 안내 추가 가능 (예: "부스터 시간 계산 중...")
+            this.timerText.setText('BONUS TIME!').setColor('#ffff00').setAlpha(1);
+
+            this.skillTreeUI.playBoosterAnimation((addedTime) => {
+                this.gameStats.addBoosterTime(addedTime);
+                this.physics.resume();
+                if (this.spawnTimer) this.spawnTimer.paused = false;
+                
+                // 만약 추가된 시간이 없으면 바로 게임 오버 처리되도록 update가 돌게 됨
+            });
+        }, this);
+
         this.gameStats.on(GameStats.EVENTS.SPAWN_RATE_CHANGED, () => {
             this.updateSpawnTimer();
         }, this);
@@ -669,8 +686,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        // 게임 시작 전이면 상태 업데이트 및 입력 처리를 하지 않음
-        if (!this.isGameStarted || this.gameStats.isGameOver) {
+        // 게임 시작 전이거나 부스터 계산 중이거나 게임 오버면 업데이트 중지
+        if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
             if (this.gameStats.isGameOver) {
                 this.gameRenderer.clearArmGraphics();
                 this.timerText.setText('00:00').setColor('#ff0000');
@@ -684,10 +701,13 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.update(cappedDelta, this.cache.json.get('skillTreeData'));
         this.timerText.setText(this.gameStats.getFormattedRemainingTime());
         
-        // 시간이 얼마 안 남았을 때 빨간색으로 변경 (30초 미만)
-        if (this.gameStats.getRemainingTime() < 30) {
+        if (this.gameStats.isBoosterTime) {
+            // 부스터 시간 중에는 타이머를 노란색으로 표시하고 깜빡임 효과 유지
+            this.timerText.setColor('#ffff00');
+            this.timerText.setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
+        } else if (this.gameStats.getRemainingTime() < 30) {
+            // 정규 시간이 얼마 안 남았을 때 빨간색으로 변경
             this.timerText.setColor('#ff0000');
-            // 깜빡임 효과
             this.timerText.setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
         } else {
             this.timerText.setColor('#ffffff').setAlpha(1);

@@ -479,4 +479,72 @@ export class SkillTreeUI {
         const bonus = skill.effectValue * level;
         return Utils.formatBonusValue(skill.effectProperty, bonus, level);
     }
-}
+
+    public playBoosterAnimation(onComplete: (addedTime: number) => void) {
+        // 최대 레벨에 도달한 스킬들을 찾아서 row(0~3) 기준으로 정렬
+        const maxedSkills = this.skillTreeData.filter(s => this.gameStats.skillLevels[s.id] >= s.maxLevel);
+        maxedSkills.sort((a, b) => {
+            if (a.row !== b.row) return a.row - b.row;
+            return a.tree - b.tree;
+        });
+
+        if (maxedSkills.length === 0) {
+            onComplete(0);
+            return;
+        }
+
+        let addedTime = 0;
+        let delay = 0;
+        const animationStep = 400; // 각 스킬당 400ms
+
+        maxedSkills.forEach((skill, index) => {
+            this.scene.time.delayedCall(delay, () => {
+                const btn = this.skillButtons[skill.id];
+                if (btn) {
+                    addedTime += 2; // 스킬당 2초 추가
+
+                    // 버튼 강조 트윈
+                    this.scene.tweens.add({
+                        targets: btn,
+                        scaleX: 1.15,
+                        scaleY: 1.15,
+                        duration: 150,
+                        yoyo: true,
+                        ease: 'Quad.easeInOut'
+                    });
+
+                    // "+2s" 플로팅 텍스트 생성
+                    const ft = this.scene.add.text(btn.x, btn.y - 20, '+2s', {
+                        fontSize: '24px',
+                        color: '#ffff00',
+                        fontStyle: 'bold',
+                        stroke: '#000000',
+                        strokeThickness: 4
+                    }).setOrigin(0.5).setDepth(200);
+
+                    this.skillContainer.add(ft);
+
+                    this.scene.tweens.add({
+                        targets: ft,
+                        y: btn.y - 60,
+                        alpha: 0,
+                        duration: 800,
+                        ease: 'Sine.easeOut',
+                        onComplete: () => ft.destroy()
+                    });
+
+                    // (선택 사항) 화면 중앙 타이머 업데이트를 위해 이벤트를 강제로 발생시키거나,
+                    // GameStats에 중간중간 더해주면 되지만, 여기서는 최종에 한 번에 더함.
+                }
+
+                // 마지막 스킬 애니메이션이 끝나면 콜백 호출
+                if (index === maxedSkills.length - 1) {
+                    this.scene.time.delayedCall(800, () => {
+                        onComplete(addedTime);
+                    });
+                }
+            });
+            delay += animationStep;
+        });
+    }
+    }

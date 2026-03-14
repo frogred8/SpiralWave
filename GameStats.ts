@@ -42,6 +42,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public isGameOver: boolean = false;
     public readonly TIME_LIMIT = 300; // 5분 (300초)
     public timeSpawnMultiplier: number = 1.0;
+    
+    public isBoosterCalculating: boolean = false;
+    public isBoosterTime: boolean = false;
+    public boosterTimeAdded: number = 0;
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {
@@ -49,7 +53,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
         SKILL_UPGRADED: 'skillUpgraded',
         RESEARCH_REDUCED: 'researchTimeReduced',
         GAME_OVER: 'gameOver',
-        SPAWN_RATE_CHANGED: 'spawnRateChanged'
+        SPAWN_RATE_CHANGED: 'spawnRateChanged',
+        CALCULATE_BOOSTER: 'calculateBooster'
     };
 
     constructor(skillTreeData: SkillData[]) {
@@ -90,6 +95,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.isGameOver = false;
         this.collectionHistory = [];
         this.timeSpawnMultiplier = 1.0;
+        this.isBoosterCalculating = false;
+        this.isBoosterTime = false;
+        this.boosterTimeAdded = 0;
     }
 
     /**
@@ -113,7 +121,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 프레임 업데이트: 연구 진행도 처리 (백그라운드 캐치업 포함)
      */
     update(dt: number, skillTreeData: SkillData[]) {
-        if (!this.gameStarted || this.isGameOver) return;
+        if (!this.gameStarted || this.isGameOver || this.isBoosterCalculating) return;
 
         // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
         const cappedDt = Math.min(dt, 1000);
@@ -129,11 +137,17 @@ export class GameStats extends Phaser.Events.EventEmitter {
             this.emit(GameStats.EVENTS.SPAWN_RATE_CHANGED);
         }
 
-        // 제한시간 체크
-        if (this.playtime >= this.TIME_LIMIT) {
-            this.playtime = this.TIME_LIMIT;
-            this.isGameOver = true;
-            this.emit(GameStats.EVENTS.GAME_OVER);
+        // 제한시간 체크 (부스터 시간 포함)
+        const totalLimit = this.TIME_LIMIT + this.boosterTimeAdded;
+        if (this.playtime >= totalLimit) {
+            this.playtime = totalLimit;
+            if (!this.isBoosterTime && !this.isBoosterCalculating) {
+                this.isBoosterCalculating = true;
+                this.emit(GameStats.EVENTS.CALCULATE_BOOSTER);
+            } else if (this.isBoosterTime) {
+                this.isGameOver = true;
+                this.emit(GameStats.EVENTS.GAME_OVER);
+            }
             this.emit(GameStats.EVENTS.UPDATE_SCORE);
             return;
         }
@@ -186,10 +200,20 @@ export class GameStats extends Phaser.Events.EventEmitter {
     }
 
     /**
+     * 부스터 시간 추가 완료 처리
+     */
+    addBoosterTime(seconds: number) {
+        this.boosterTimeAdded = seconds;
+        this.isBoosterCalculating = false;
+        this.isBoosterTime = true;
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    /**
      * 남은 시간(초) 반환
      */
     getRemainingTime(): number {
-        return Math.max(0, this.TIME_LIMIT - this.playtime);
+        return Math.max(0, (this.TIME_LIMIT + this.boosterTimeAdded) - this.playtime);
     }
 
     /**

@@ -395,12 +395,14 @@ export class GameScene extends Phaser.Scene {
         // 자원 획득 시 플로팅 텍스트 표시 (UI 패널용)
         this.gameStats.on('resourceCollected', (type: string, amount: number) => {
             const x = type === 'wood' ? 45 : 135;
-            this.showFloatingText(panelX + x, panelY + (panelHeight / 2) - 20, `+${amount}`, '#00ff00', false);
+            const fontSize = amount > 1 ? '21px' : '14px';
+            this.showFloatingText(panelX + x, panelY + (panelHeight / 2) - 20, `+${amount}`, '#00ff00', false, fontSize);
         });
 
         // 월드 공간 자원 획득 시 플로팅 텍스트 표시 (흡수 지점용)
         this.gameStats.on('worldResourceCollected', (data: { type: string, amount: number, x: number, y: number }) => {
-            this.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true);
+            const fontSize = data.amount > 1 ? '21px' : '14px';
+            this.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize);
         });
         
         // 1초마다 갱신 (최근 10초 획득량 갱신용)
@@ -766,8 +768,8 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.shake(100, 0.005);
     }
 
-    private showFloatingText(x: number, y: number, text: string, color: string, isInWorld: boolean = false) {
-        const ft = this.add.text(x, y, text, { fontSize: '14px', color, fontStyle: 'bold' }).setDepth(100);
+    private showFloatingText(x: number, y: number, text: string, color: string, isInWorld: boolean = false, fontSize: string = '14px') {
+        const ft = this.add.text(x, y, text, { fontSize, color, fontStyle: 'bold' }).setDepth(100);
         
         if (isInWorld) {
             this.worldContainer.add(ft);

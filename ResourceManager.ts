@@ -230,9 +230,11 @@ export class ResourceManager {
         } while (dist < this.stats.radius || dist > 600);
 
         const sbh = this.scene.add.container(targetX, targetY);
-        const core = this.scene.add.circle(0, 0, 25, 0x000000, 1.0).setStrokeStyle(2, 0x333333);
-        const swirl = this.scene.add.circle(0, 0, 30, 0x111111, 0.5).setStrokeStyle(1, 0x444444);
-        sbh.add([swirl, core]);
+        // 외곽 경계선 (중력 범위 표시)
+        const boundary = this.scene.add.circle(0, 0, 150, 0x333333, 0.1).setStrokeStyle(1, 0x666666, 0.3);
+        const core = this.scene.add.circle(0, 0, 25, 0x000000, 1.0).setStrokeStyle(2, 0x444444);
+        const swirl = this.scene.add.circle(0, 0, 30, 0x111111, 0.5).setStrokeStyle(1, 0x666666);
+        sbh.add([boundary, swirl, core]);
         this.worldContainer.add(sbh);
 
         // 회전 애니메이션
@@ -240,6 +242,15 @@ export class ResourceManager {
             targets: swirl,
             angle: 360,
             duration: 2000,
+            loop: -1
+        });
+
+        // 경계선 깜빡임 효과
+        this.scene.tweens.add({
+            targets: boundary,
+            alpha: 0.2,
+            duration: 1000,
+            yoyo: true,
             loop: -1
         });
 

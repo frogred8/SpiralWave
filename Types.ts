@@ -79,4 +79,5 @@ export type EffectProperty =
     | 'researchBonus' 
     | 'moveSpeed' 
     | 'net'
-    | 'netAngle';
+    | 'netAngle'
+    | 'smallBlackHole';

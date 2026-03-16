@@ -127,6 +127,18 @@ export class GameScene extends Phaser.Scene {
             callbackScope: this, 
             loop: true 
         });
+
+        this.time.addEvent({
+            delay: DURATIONS.SMALL_BLACK_HOLE_SPAWN,
+            callback: () => {
+                const count = this.gameStats.smallBlackHoleCount;
+                for (let i = 0; i < count; i++) {
+                    this.time.delayedCall(i * 500, () => this.resourceManager.spawnSmallBlackHole());
+                }
+            },
+            callbackScope: this,
+            loop: true
+        });
     }
 
     private showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = []) {
@@ -813,19 +825,49 @@ export class GameScene extends Phaser.Scene {
                 this.applyGravity(res, dist, effectiveRadius);
             }
 
+            // 작은 블랙홀 중력 적용
+            this.resourceManager.getSmallBlackHoles().forEach(sbh => {
+                if (!res.active) return;
+                const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
+                const sbhRadius = 150 * sbh.scale; // 축소 중일 때 반지름도 줄어듦
+                if (sbhDist < sbhRadius) {
+                    this.applyGravityToPoint(res, sbhDist, sbhRadius, sbh.x, sbh.y);
+                }
+            });
+
             const collectionRadius = res.isHighDim ? RESOURCE_CONFIG.COLLECTION_RADIUS.HIGH_DIM : RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL;
             if (dist < collectionRadius) {
                 this.collectResource(res);
-            } else if (dist > 1200) {
-                res.destroy();
             } else {
-                this.limitSpeed(res, dist);
+                // 작은 블랙홀 수집 체크
+                let collectedBySBH = false;
+                this.resourceManager.getSmallBlackHoles().forEach(sbh => {
+                    if (!res.active || collectedBySBH) return;
+                    const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
+                    // 작은 블랙홀의 수집 반경 (기본 30)
+                    if (sbhDist < 30 * sbh.scale) {
+                        this.collectResource(res);
+                        collectedBySBH = true;
+                    }
+                });
+
+                if (!collectedBySBH) {
+                    if (dist > 1200) {
+                        res.destroy();
+                    } else {
+                        this.limitSpeed(res, dist);
+                    }
+                }
             }
         });
     }
 
     private applyGravity(res: any, dist: number, radius: number) {
-        const dir = new Phaser.Math.Vector2(this.spiralCenter.x - res.x, this.spiralCenter.y - res.y).normalize();
+        this.applyGravityToPoint(res, dist, radius, this.spiralCenter.x, this.spiralCenter.y);
+    }
+
+    private applyGravityToPoint(res: any, dist: number, radius: number, targetX: number, targetY: number) {
+        const dir = new Phaser.Math.Vector2(targetX - res.x, targetY - res.y).normalize();
         const tangent = new Phaser.Math.Vector2(-dir.y, dir.x);
         const force = (1 - (dist / radius)) * this.gameStats.force * PHYSICS_CONFIG.ACCEL_BASE;
         const boost = dist < 150 ? Math.pow((150 - dist) / 150, 2) * 5 : 0;

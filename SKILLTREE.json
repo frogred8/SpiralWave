@@ -17,21 +17,19 @@
         "maxLevel": 5
     },
     {
-        "id": "q2",
+        "id": "small_black_hole",
         "tree": 1,
         "row": 0,
         "costs": [
-            { "rock": 5 },
-            { "rock": 20 },
-            { "rock": 30 },
-            { "rock": 60 },
-            { "rock": 120 }
+            { "rock": 15 },
+            { "rock": 45 },
+            { "rock": 90 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 15, 30, 40],
-        "effectProperty": "force",
-        "effectValue": 0.2,
-        "maxLevel": 5
+        "researchTimes": [10, 20, 30],
+        "effectProperty": "smallBlackHole",
+        "effectValue": 1,
+        "maxLevel": 3
     },
     {
         "id": "f2",

@@ -13,6 +13,7 @@ export class ResourceManager {
     private worldContainer: Phaser.GameObjects.Container;
     private spiralCenter: Phaser.Math.Vector2;
     private whiteHoles: Phaser.GameObjects.Container[] = [];
+    private smallBlackHoles: Phaser.GameObjects.Container[] = [];
     private meteors: Phaser.GameObjects.Text[] = [];
     private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
@@ -36,6 +37,10 @@ export class ResourceManager {
 
     public getWhiteHoles(): Phaser.GameObjects.Container[] {
         return this.whiteHoles;
+    }
+
+    public getSmallBlackHoles(): Phaser.GameObjects.Container[] {
+        return this.smallBlackHoles;
     }
 
     public spawnResource(count: number = 2) {
@@ -213,6 +218,50 @@ export class ResourceManager {
         });
     }
 
+    public spawnSmallBlackHole() {
+        const { width, height } = this.scene.scale;
+        let targetX, targetY;
+
+        let dist;
+        do {
+            targetX = Phaser.Math.Between(150, width - 150);
+            targetY = Phaser.Math.Between(150, height - 150);
+            dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
+        } while (dist < this.stats.radius || dist > 600);
+
+        const sbh = this.scene.add.container(targetX, targetY);
+        const core = this.scene.add.circle(0, 0, 25, 0x000000, 1.0).setStrokeStyle(2, 0x333333);
+        const swirl = this.scene.add.circle(0, 0, 30, 0x111111, 0.5).setStrokeStyle(1, 0x444444);
+        sbh.add([swirl, core]);
+        this.worldContainer.add(sbh);
+
+        // 회전 애니메이션
+        this.scene.tweens.add({
+            targets: swirl,
+            angle: 360,
+            duration: 2000,
+            loop: -1
+        });
+
+        sbh.setScale(0);
+        this.scene.tweens.add({ targets: sbh, scale: 1.0, duration: 500, ease: 'Back.Out' });
+        this.smallBlackHoles.push(sbh);
+
+        // 3초 유지 후 2초간 축소하며 제거
+        this.scene.time.delayedCall(DURATIONS.SMALL_BLACK_HOLE_ACTIVE, () => {
+            this.scene.tweens.add({ 
+                targets: sbh, 
+                scale: 0, 
+                alpha: 0, 
+                duration: DURATIONS.SMALL_BLACK_HOLE_SHRINK, 
+                onComplete: () => {
+                    this.smallBlackHoles = this.smallBlackHoles.filter(h => h !== sbh);
+                    sbh.destroy();
+                }
+            });
+        });
+    }
+
     public getIcon(type: string): string {
         return (RESOURCE_CONFIG.ICONS as any)[type] || RESOURCE_CONFIG.ICONS.default;
     }
@@ -226,6 +275,9 @@ export class ResourceManager {
         this.resources.clear(true, true);
         this.whiteHoles.forEach(wh => wh.destroy());
         this.whiteHoles = [];
+        
+        this.smallBlackHoles.forEach(sbh => sbh.destroy());
+        this.smallBlackHoles = [];
         
         this.meteors.forEach(m => m.destroy());
         this.meteors = [];

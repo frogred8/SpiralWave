@@ -29,6 +29,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public spawnRateFactor!: number;
     public isNetEnabled!: boolean;
     public netAngle!: number;
+    public smallBlackHoleCount: number = 0;
     
     // 연구 및 스킬 트리 상태
     public skillLevels!: Record<string, number>;
@@ -83,6 +84,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
         this.isNetEnabled = false;
         this.netAngle = INITIAL_STATS.NET_ANGLE;
+        this.smallBlackHoleCount = 0;
 
         this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
@@ -361,6 +363,7 @@ getRecentCollectionAmount(): number {
             case 'moveSpeed': this.moveSpeed += val; break;
             case 'net': this.isNetEnabled = true; break;
             case 'netAngle': this.netAngle += val; break;
+            case 'smallBlackHole': this.smallBlackHoleCount += val; break;
         }
 
         this.emit(GameStats.EVENTS.SKILL_UPGRADED, skill.id);

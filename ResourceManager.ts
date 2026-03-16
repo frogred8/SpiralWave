@@ -181,7 +181,7 @@ export class ResourceManager {
                 targetX = Phaser.Math.Between(200, width - 200);
                 targetY = Phaser.Math.Between(200, height - 200);
                 dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
-            } while (dist < this.stats.radius || dist > 600);
+            } while (dist < (this.stats.radius + 100) || dist > 600);
         }
 
         const wh = this.scene.add.container(targetX, targetY);
@@ -230,8 +230,8 @@ export class ResourceManager {
             targetY = Phaser.Math.Between(150, height - 150);
             const distFromCenter = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
             
-            // 메인 블랙홀과의 거리 체크
-            if (distFromCenter >= this.stats.radius && distFromCenter <= 600) {
+            // 메인 블랙홀과의 거리 체크 (메인 반지름 + 작은 블랙홀 반지름 150 이상 떨어져야 함)
+            if (distFromCenter >= (this.stats.radius + 150) && distFromCenter <= 600) {
                 // 기존 작은 블랙홀들과의 중첩 체크 (반지름 150이므로 거리 300 이상 필요)
                 isValid = this.smallBlackHoles.every(sbh => {
                     return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= 300;

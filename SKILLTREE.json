@@ -21,12 +21,12 @@
         "tree": 1,
         "row": 0,
         "costs": [
-            { "rock": 15 },
-            { "rock": 45 },
-            { "rock": 90 }
+            { "wood": 5, "rock": 10 },
+            { "wood": 10, "rock": 30 },
+            { "wood": 40, "rock": 80 }
         ],
         "prerequisites": [],
-        "researchTimes": [10, 20, 30],
+        "researchTimes": [5, 15, 30],
         "effectProperty": "smallBlackHole",
         "effectValue": 1,
         "maxLevel": 3

@@ -232,8 +232,9 @@ export class ResourceManager {
         const sbh = this.scene.add.container(targetX, targetY);
         // 외곽 경계선 (중력 범위 표시) - 항상 보이도록 고정 alpha 사용
         const boundary = this.scene.add.circle(0, 0, 150, 0x333333, 0.15).setStrokeStyle(1, 0x666666, 0.4);
-        const core = this.scene.add.circle(0, 0, 8, 0x000000, 1.0).setStrokeStyle(1, 0x444444);
-        const swirl = this.scene.add.circle(0, 0, 30, 0x111111, 0.5).setStrokeStyle(1, 0x666666);
+        const core = this.scene.add.circle(0, 0, 8, 0x000000, 1);
+        const swirl = this.scene.add.circle(0, 0, 18, 0xffffff, 0.2);
+
         sbh.add([boundary, swirl, core]);
         this.worldContainer.add(sbh);
 

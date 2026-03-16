@@ -41,7 +41,8 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = this.scale;
         this.spiralCenter = new Phaser.Math.Vector2(width / 2, height / 2);
 
-        let skillData = this.cache.json.get('skillTreeData');
+        // 스킬 트리 데이터 로드 및 복제 (캐시된 원본 데이터 수정을 방지하기 위해 딥 카피)
+        let skillData = JSON.parse(JSON.stringify(this.cache.json.get('skillTreeData')));
         
         // 스킬 트리 랜덤 배치 로직
         if (skillData) {
@@ -326,18 +327,25 @@ export class GameScene extends Phaser.Scene {
         // 타이머 텍스트 초기화
         this.timerText.setVisible(false).setColor('#ffffff').setAlpha(1);
 
-        // 스탯 초기화
-        const skillData = this.cache.json.get('skillTreeData');
+        // 스탯 초기화 (새로운 스킬 트리 랜덤 배치 포함)
+        let skillData = JSON.parse(JSON.stringify(this.cache.json.get('skillTreeData')));
+        if (skillData) {
+            skillData = Utils.generateRandomSkillTree(skillData);
+        }
         this.gameStats.reset(skillData);
         
         // 게임 상태 초기화
         this.isGameStarted = false;
         
         // UI 갱신 (리셋된 스탯 반영)
-        this.refreshUIAfterLanguageChange();
+        // refreshUIAfterLanguageChange는 내부적으로 skillTreeUI.skillTreeData를 쓰므로, 
+        // 여기서 직접 setupUI를 호출하거나, skillTreeUI를 먼저 갱신해야 함
+        this.uiContainer.removeAll(true);
+        this.languageButtons = [];
+        this.setupUI(skillData);
         
-        // 초기 스킬 선택 다시 표시 (현재 섞인 스킬 데이터 유지)
-        this.showInitialSkillSelection(this.skillTreeUI.skillTreeData);
+        // 초기 스킬 선택 다시 표시
+        this.showInitialSkillSelection(skillData);
     }
 
     private updateSpawnTimer() {
@@ -643,7 +651,7 @@ export class GameScene extends Phaser.Scene {
         // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
         const cappedDelta = Math.min(delta, 1000);
 
-        this.gameStats.update(cappedDelta, this.cache.json.get('skillTreeData'));
+        this.gameStats.update(cappedDelta);
         this.timerText.setText(this.gameStats.getFormattedRemainingTime());
         
         if (this.gameStats.isBoosterTime) {

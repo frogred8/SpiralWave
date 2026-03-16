@@ -46,6 +46,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public isBoosterCalculating: boolean = false;
     public isBoosterTime: boolean = false;
     public boosterTimeAdded: number = 0;
+    private skillTreeData: SkillData[] = [];
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {
@@ -63,6 +64,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     }
 
     private initializeStats(skillTreeData: SkillData[]) {
+        this.skillTreeData = skillTreeData;
         // 초기 스탯 설정 (Constants 참조)
         this.force = INITIAL_STATS.FORCE;
         this.radius = INITIAL_STATS.RADIUS;
@@ -85,7 +87,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
         this.skillLevels = {};
-        skillTreeData.forEach(skill => {
+        this.skillTreeData.forEach(skill => {
             this.skillLevels[skill.id] = 0;
         });
         this.activeResearches = [];
@@ -119,7 +121,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     /**
      * 프레임 업데이트: 연구 진행도 처리 (백그라운드 캐치업 포함)
      */
-    update(dt: number, skillTreeData: SkillData[]) {
+    update(dt: number) {
         if (!this.gameStarted || this.isGameOver || this.isBoosterCalculating) return;
 
         // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
@@ -177,7 +179,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
             for (let i = 0; i < activeCount; i++) {
                 if (this.activeResearches[i].remainingTime <= 0) {
                     const skillId = this.activeResearches[i].skillId;
-                    const skill = skillTreeData.find(s => s.id === skillId);
+                    const skill = this.skillTreeData.find(s => s.id === skillId);
                     this.activeResearches.splice(i, 1);
                     i--;
                     activeCount--;

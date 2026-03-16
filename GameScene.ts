@@ -8,6 +8,7 @@ import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from './Con
 import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
 import { Resource, SpecialItem, Collectible } from './Types';
+import { SoundManager } from './SoundManager';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -907,12 +908,15 @@ export class GameScene extends Phaser.Scene {
         if (!collectible.active) return;
 
         if (collectible.itemType === 'special') {
+            SoundManager.getInstance().play('special');
             this.handleSpecialItem(collectible, byArm, byNet);
             return;
         }
 
         const isHighDim = collectible.isHighDim || false;
         this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.resourceManager.getParticleTint(collectible), centerX, centerY);
+        
+        SoundManager.getInstance().play('resource');
         
         const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
         this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);

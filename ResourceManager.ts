@@ -220,14 +220,27 @@ export class ResourceManager {
 
     public spawnSmallBlackHole() {
         const { width, height } = this.scene.scale;
-        let targetX, targetY;
+        let targetX: number = 0, targetY: number = 0;
+        let attempts = 0;
+        const maxAttempts = 20;
 
-        let dist;
+        let isValid = false;
         do {
             targetX = Phaser.Math.Between(150, width - 150);
             targetY = Phaser.Math.Between(150, height - 150);
-            dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
-        } while (dist < this.stats.radius || dist > 600);
+            const distFromCenter = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
+            
+            // 메인 블랙홀과의 거리 체크
+            if (distFromCenter >= this.stats.radius && distFromCenter <= 600) {
+                // 기존 작은 블랙홀들과의 중첩 체크 (반지름 150이므로 거리 300 이상 필요)
+                isValid = this.smallBlackHoles.every(sbh => {
+                    return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= 300;
+                });
+            }
+            attempts++;
+        } while (!isValid && attempts < maxAttempts);
+
+        if (!isValid) return; // 적절한 위치를 찾지 못한 경우 생성 취소
 
         const sbh = this.scene.add.container(targetX, targetY);
         // 외곽 경계선 (중력 범위 표시) - 항상 보이도록 고정 alpha 사용

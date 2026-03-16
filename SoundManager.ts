@@ -9,10 +9,13 @@ export class SoundManager {
     private volume: number = 0.5;
 
     private constructor() {
-        // Initialize with default sounds if URLs were provided.
-        // For now, these are placeholders for the user to fill.
-        this.loadSound('resource', 'https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-click-1112.mp3'); // Example short sound
-        this.loadSound('special', 'https://assets.mixkit.co/sfx/preview/mixkit-magic-marimba-notif-2481.mp3'); // Example special sound
+        // Initialize with sounds from the sounds folder
+        this.loadSound('gather', 'sounds/gather.mp3');
+        this.loadSound('skilllevelup', 'sounds/skilllevelup.mp3');
+        this.loadSound('reroll', 'sounds/reroll.mp3');
+        this.loadSound('gamestart', 'sounds/gamestart.mp3');
+        this.loadSound('restart', 'sounds/restart.mp3');
+        this.loadSound('winning', 'sounds/winning.mp3');
     }
 
     public static getInstance(): SoundManager {

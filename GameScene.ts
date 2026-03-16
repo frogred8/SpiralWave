@@ -192,6 +192,7 @@ export class GameScene extends Phaser.Scene {
             rerollBg.on('pointerout', () => rerollBg.setFillStyle(0x333333));
             rerollBg.on('pointerdown', () => {
                 this.canReroll = false;
+                SoundManager.getInstance().play('reroll');
                 // 현재 선택 UI 제거
                 this.uiContainer.iterate((child: any) => {
                     if (child && child.depth >= 2000) child.destroy();
@@ -283,10 +284,13 @@ export class GameScene extends Phaser.Scene {
         this.setupTimers();
         this.isGameStarted = true;
         this.timerText.setVisible(true);
+        SoundManager.getInstance().play('gamestart');
     }
 
     private showGameOverScreen() {
         const { width, height } = this.scale;
+        
+        SoundManager.getInstance().play('winning');
         
         // 타이머 정지 효과
         this.timerText.setAlpha(1);
@@ -331,6 +335,7 @@ export class GameScene extends Phaser.Scene {
         btnBg.on('pointerover', () => btnBg.setStrokeStyle(4, 0x00ff00));
         btnBg.on('pointerout', () => btnBg.setStrokeStyle(3, 0x444444));
         btnBg.on('pointerdown', () => {
+            SoundManager.getInstance().play('restart');
             this.restartGame();
             overlay.destroy();
             title.destroy();
@@ -444,6 +449,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
             this.updateSpawnTimer();
             this.syncArmsCount();
+            SoundManager.getInstance().play('skilllevelup');
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
@@ -908,7 +914,7 @@ export class GameScene extends Phaser.Scene {
         if (!collectible.active) return;
 
         if (collectible.itemType === 'special') {
-            SoundManager.getInstance().play('special');
+            SoundManager.getInstance().play('gather');
             this.handleSpecialItem(collectible, byArm, byNet);
             return;
         }
@@ -916,7 +922,7 @@ export class GameScene extends Phaser.Scene {
         const isHighDim = collectible.isHighDim || false;
         this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.resourceManager.getParticleTint(collectible), centerX, centerY);
         
-        SoundManager.getInstance().play('resource');
+        SoundManager.getInstance().play('gather');
         
         const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
         this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);

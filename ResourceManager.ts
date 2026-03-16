@@ -13,6 +13,8 @@ export class ResourceManager {
     private worldContainer: Phaser.GameObjects.Container;
     private spiralCenter: Phaser.Math.Vector2;
     private whiteHoles: Phaser.GameObjects.Container[] = [];
+    private meteors: Phaser.GameObjects.Text[] = [];
+    private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
     constructor(scene: Phaser.Scene, stats: GameStats, renderer: GameRenderer, worldContainer: Phaser.GameObjects.Container, spiralCenter: Phaser.Math.Vector2) {
         this.scene = scene;
@@ -69,6 +71,7 @@ export class ResourceManager {
 
         const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '80px' }).setOrigin(0.5);
         this.worldContainer.add(meteor);
+        this.meteors.push(meteor);
 
         // 진행 방향으로 회전 (기존 대비 180도 반전하여 머리가 앞으로 오게 수정)
         const angle = Phaser.Math.Angle.Between(startX, startY, endX, endY);
@@ -84,6 +87,7 @@ export class ResourceManager {
             follow: meteor
         });
         this.worldContainer.add(emitter);
+        this.emitters.push(emitter);
 
         this.scene.tweens.add({
             targets: meteor,
@@ -100,7 +104,9 @@ export class ResourceManager {
             },
             onComplete: () => {
                 emitter.destroy();
+                this.emitters = this.emitters.filter(e => e !== emitter);
                 meteor.destroy();
+                this.meteors = this.meteors.filter(m => m !== meteor);
             }
         });
         (this.scene.tweens.getTweensOf(meteor)[0] as any).lastResourceProgress = 0;
@@ -220,7 +226,11 @@ export class ResourceManager {
         this.resources.clear(true, true);
         this.whiteHoles.forEach(wh => wh.destroy());
         this.whiteHoles = [];
-        // 진행 중인 운석 트윈 등은 씬 전체 트윈 제거로 처리하거나 개별 관리 필요
-        // 여기서는 resources와 whiteHoles 위주로 정리
+        
+        this.meteors.forEach(m => m.destroy());
+        this.meteors = [];
+        
+        this.emitters.forEach(e => e.destroy());
+        this.emitters = [];
     }
 }

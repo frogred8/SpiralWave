@@ -460,6 +460,7 @@ export class SkillTreeUI {
             case 'moveSpeed': return I18n.t('prop.moveSpeed');
             case 'net': return I18n.t('prop.net');
             case 'netAngle': return I18n.t('prop.netAngle');
+            case 'smallBlackHole': return I18n.t('prop.smallBlackHole');
             default: return property;
         }
     }

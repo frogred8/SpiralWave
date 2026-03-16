@@ -34,6 +34,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.moveSpeed': 'Move Speed',
         'prop.net': 'Resource Net',
         'prop.netAngle': 'Net Angle',
+        'prop.smallBlackHole': 'Small Black Holes',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -107,6 +108,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.moveSpeed': '이동 속도',
         'prop.net': '자원 그물',
         'prop.netAngle': '그물 각도',
+        'prop.smallBlackHole': '작은 블랙홀 개수',
         
         // Utils / Formatting
         'ui.on': '켬',
@@ -180,6 +182,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.moveSpeed': '移动速度',
         'prop.net': '资源网',
         'prop.netAngle': '网角度',
+        'prop.smallBlackHole': '小黑洞数量',
         
         // Utils / Formatting
         'ui.on': '开',
@@ -253,6 +256,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.moveSpeed': '移動速度',
         'prop.net': '資源ネット',
         'prop.netAngle': 'ネット角度',
+        'prop.smallBlackHole': '小型ブラックホール数',
         
         // Utils / Formatting
         'ui.on': 'ON',

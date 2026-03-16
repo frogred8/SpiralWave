@@ -129,9 +129,9 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private showInitialSkillSelection(skillData: any[]) {
+    private showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = []) {
         const { width, height } = this.scale;
-        
+
         // 딤드 배경
         const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.8)
             .setOrigin(0).setInteractive().setDepth(2000);
@@ -146,6 +146,11 @@ export class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
 
+        // 첫 번째 또는 두 번째 row의 스킬들 중에서 2개 랜덤 선택 (제외 목록 반영)
+        const candidateSkills = skillData.filter(s => s.row <= 1 && !excludeSkillIds.includes(s.id));
+        const selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
+        const currentSelectionIds = selectedSkills.map(s => s.id);
+
         // 다시 시작한 경우 1회에 한해 다시 뽑기 버튼 제공
         if (this.isRestarted && this.canReroll) {
             const rerollBtn = this.add.container(width / 2, height / 2 + 250).setDepth(2001);
@@ -157,7 +162,7 @@ export class GameScene extends Phaser.Scene {
                 color: '#00ff00',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             rerollBtn.add([rerollBg, rerollText]);
             this.uiContainer.add(rerollBtn);
 
@@ -169,17 +174,12 @@ export class GameScene extends Phaser.Scene {
                 this.uiContainer.iterate((child: any) => {
                     if (child && child.depth >= 2000) child.destroy();
                 });
-                // 다시 생성
-                this.showInitialSkillSelection(skillData);
+                // 현재 선택된 스킬들을 제외하고 다시 생성
+                this.showInitialSkillSelection(skillData, currentSelectionIds);
             });
         }
 
-        // 첫 번째 또는 두 번째 row의 스킬들 중에서 2개 랜덤 선택
-        const candidateSkills = skillData.filter(s => s.row <= 1);
-        const selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
-        
-        selectedSkills.forEach((skill, index) => {
-            const x = width / 2 + (index === 0 ? -180 : 180);
+        selectedSkills.forEach((skill, index) => {            const x = width / 2 + (index === 0 ? -180 : 180);
             const y = height / 2 + 20;
             
             const btn = this.add.container(x, y).setDepth(2001);

@@ -27,6 +27,8 @@ export class GameScene extends Phaser.Scene {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private netTimerAccumulator: number = 0;
     private isGameStarted: boolean = false;
+    private isRestarted: boolean = false;
+    private canReroll: boolean = false;
     private timerText!: Phaser.GameObjects.Text;
 
     constructor() {
@@ -143,6 +145,34 @@ export class GameScene extends Phaser.Scene {
             strokeThickness: 6
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
+
+        // 다시 시작한 경우 1회에 한해 다시 뽑기 버튼 제공
+        if (this.isRestarted && this.canReroll) {
+            const rerollBtn = this.add.container(width / 2, height / 2 + 250).setDepth(2001);
+            const rerollBg = this.add.rectangle(0, 0, 160, 45, 0x333333, 0.9)
+                .setStrokeStyle(2, 0x00ff00)
+                .setInteractive({ useHandCursor: true });
+            const rerollText = this.add.text(0, 0, I18n.t('ui.reroll'), {
+                fontSize: '18px',
+                color: '#00ff00',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            rerollBtn.add([rerollBg, rerollText]);
+            this.uiContainer.add(rerollBtn);
+
+            rerollBg.on('pointerover', () => rerollBg.setFillStyle(0x444444));
+            rerollBg.on('pointerout', () => rerollBg.setFillStyle(0x333333));
+            rerollBg.on('pointerdown', () => {
+                this.canReroll = false;
+                // 현재 선택 UI 제거
+                this.uiContainer.iterate((child: any) => {
+                    if (child && child.depth >= 2000) child.destroy();
+                });
+                // 다시 생성
+                this.showInitialSkillSelection(skillData);
+            });
+        }
 
         // 첫 번째 또는 두 번째 row의 스킬들 중에서 2개 랜덤 선택
         const candidateSkills = skillData.filter(s => s.row <= 1);
@@ -336,6 +366,8 @@ export class GameScene extends Phaser.Scene {
         
         // 게임 상태 초기화
         this.isGameStarted = false;
+        this.isRestarted = true;
+        this.canReroll = true;
         
         // UI 갱신 (리셋된 스탯 반영)
         // refreshUIAfterLanguageChange는 내부적으로 skillTreeUI.skillTreeData를 쓰므로, 

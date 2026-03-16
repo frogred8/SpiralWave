@@ -46,6 +46,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.game_over': 'TIME\'S UP!',
         'ui.total_resources': 'Total Resources Collected',
         'ui.restart': 'RESTART GAME',
+        'ui.reroll': 'REROLL',
         
         // Skill Data (Keys matching SKILLTREE.json IDs or specific keys)
         'skill.q1.name': 'Radius Boost',
@@ -118,6 +119,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.game_over': '시간 종료!',
         'ui.total_resources': '총 수집 자원',
         'ui.restart': '다시 시작',
+        'ui.reroll': '다시 선택',
         
         // Skill Data
         'skill.q1.name': '반지름 확장',
@@ -190,6 +192,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.game_over': '时间到!',
         'ui.total_resources': '总共收集的资源',
         'ui.restart': '重新开始',
+        'ui.reroll': '重新选择',
         
         // Skill Data
         'skill.q1.name': '半径提升',
@@ -262,6 +265,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.game_over': 'タイムアップ！',
         'ui.total_resources': '合計獲得資源',
         'ui.restart': '最初からやり直す',
+        'ui.reroll': '再選択',
         
         // Skill Data
         'skill.q1.name': '半径拡張',

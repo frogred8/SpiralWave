@@ -128,16 +128,23 @@ export class GameScene extends Phaser.Scene {
             loop: true 
         });
 
-        this.time.addEvent({
-            delay: DURATIONS.SMALL_BLACK_HOLE_SPAWN,
-            callback: () => {
+        this.scheduleSmallBlackHoleSpawn();
+    }
+
+    private scheduleSmallBlackHoleSpawn() {
+        const delay = Phaser.Math.Between(DURATIONS.SMALL_BLACK_HOLE_SPAWN_MIN, DURATIONS.SMALL_BLACK_HOLE_SPAWN_MAX);
+        this.time.delayedCall(delay, () => {
+            // 게임이 실행 중이고 종료되지 않은 경우에만 스폰 시도
+            if (this.isGameStarted && !this.gameStats.isGameOver && !this.gameStats.isBoosterCalculating) {
                 const count = this.gameStats.smallBlackHoleCount;
                 for (let i = 0; i < count; i++) {
                     this.time.delayedCall(i * 500, () => this.resourceManager.spawnSmallBlackHole());
                 }
-            },
-            callbackScope: this,
-            loop: true
+            }
+            // 다음 스폰 예약 (게임 오버 시에는 중지)
+            if (!this.gameStats.isGameOver) {
+                this.scheduleSmallBlackHoleSpawn();
+            }
         });
     }
 

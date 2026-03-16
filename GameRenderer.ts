@@ -114,8 +114,11 @@ export class GameRenderer {
         this.roboticArmGraphics.fillCircle(endX, endY, 8);
     }
 
-    public emitCollectionParticles(x: number, y: number, isHighDim: boolean, tint: number) {
-        const angle = Phaser.Math.Angle.Between(this.spiralCenter.x, this.spiralCenter.y, x, y);
+    public emitCollectionParticles(x: number, y: number, isHighDim: boolean, tint: number, centerX?: number, centerY?: number) {
+        const targetX = centerX !== undefined ? centerX : this.spiralCenter.x;
+        const targetY = centerY !== undefined ? centerY : this.spiralCenter.y;
+        
+        const angle = Phaser.Math.Angle.Between(targetX, targetY, x, y);
         const angleDeg = Phaser.Math.RadToDeg(angle);
         
         this.sparks.setConfig({
@@ -126,8 +129,8 @@ export class GameRenderer {
             tint: tint
         });
         
-        const px = (x - this.spiralCenter.x) / 2 + this.spiralCenter.x;
-        const py = (y - this.spiralCenter.y) / 2 + this.spiralCenter.y;
+        const px = (x - targetX) / 2 + targetX;
+        const py = (y - targetY) / 2 + targetY;
         this.sparks.emitParticle(isHighDim ? 25 : 5, px, py);
     }
 

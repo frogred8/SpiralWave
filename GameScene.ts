@@ -132,13 +132,15 @@ export class GameScene extends Phaser.Scene {
     }
 
     private scheduleSmallBlackHoleSpawn() {
-        const delay = Phaser.Math.Between(DURATIONS.SMALL_BLACK_HOLE_SPAWN_MIN, DURATIONS.SMALL_BLACK_HOLE_SPAWN_MAX);
-        this.time.delayedCall(delay, () => {
+        this.time.delayedCall(DURATIONS.SMALL_BLACK_HOLE_SPAWN, () => {
             // 게임이 실행 중이고 종료되지 않은 경우에만 스폰 시도
             if (this.isGameStarted && !this.gameStats.isGameOver && !this.gameStats.isBoosterCalculating) {
                 const count = this.gameStats.smallBlackHoleCount;
+                let spawnDelay = 0;
                 for (let i = 0; i < count; i++) {
-                    this.time.delayedCall(i * 500, () => this.resourceManager.spawnSmallBlackHole());
+                    const delay = Phaser.Math.Between(DURATIONS.SMALL_BLACK_HOLE_DELAY_MIN, DURATIONS.SMALL_BLACK_HOLE_DELAY_MAX);
+                    spawnDelay += delay;
+                    this.time.delayedCall(spawnDelay, () => this.resourceManager.spawnSmallBlackHole());
                 }
             }
             // 다음 스폰 예약 (게임 오버 시에는 중지)
@@ -853,7 +855,7 @@ export class GameScene extends Phaser.Scene {
                     const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
                     // 작은 블랙홀의 수집 반경 (기본 30)
                     if (sbhDist < 30 * sbh.scale) {
-                        this.collectResource(res);
+                        this.collectResource(res, false, false, sbh.x, sbh.y);
                         collectedBySBH = true;
                     }
                 });
@@ -901,7 +903,7 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false) {
+    private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number) {
         if (!collectible.active) return;
 
         if (collectible.itemType === 'special') {
@@ -910,7 +912,7 @@ export class GameScene extends Phaser.Scene {
         }
 
         const isHighDim = collectible.isHighDim || false;
-        this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.resourceManager.getParticleTint(collectible));
+        this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.resourceManager.getParticleTint(collectible), centerX, centerY);
         
         const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
         this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);

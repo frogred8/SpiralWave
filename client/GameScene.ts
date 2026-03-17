@@ -648,6 +648,32 @@ export class GameScene extends Phaser.Scene {
 
         mainBtn.on('pointerover', () => mainBg.setStrokeStyle(1, 0xaaaaaa));
         mainBtn.on('pointerout', () => mainBg.setStrokeStyle(1, 0x444444));
+
+        // 사운드 ON/OFF 버튼 추가 (언어 버튼 아래)
+        const soundBtnY = startY + btnHeight + 5;
+        const soundBtn = this.add.container(startX, soundBtnY);
+        const soundBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95)
+            .setStrokeStyle(1, 0x444444)
+            .setOrigin(0);
+        
+        const getSoundLabel = () => SoundManager.getInstance().isMuted() ? "🔇 OFF" : "🔊 ON";
+        const soundText = this.add.text(btnWidth / 2, btnHeight / 2, getSoundLabel(), { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
+        
+        soundBtn.add([soundBg, soundText]);
+        soundBtn.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
+        this.uiContainer.add(soundBtn);
+
+        soundBtn.on('pointerdown', () => {
+            const isMuted = SoundManager.getInstance().toggleMute();
+            soundText.setText(getSoundLabel());
+            soundBg.setStrokeStyle(1, isMuted ? 0xff0000 : 0x00ff00);
+        });
+
+        soundBtn.on('pointerover', () => soundBg.setStrokeStyle(1, 0xaaaaaa));
+        soundBtn.on('pointerout', () => {
+            const isMuted = SoundManager.getInstance().isMuted();
+            soundBg.setStrokeStyle(1, isMuted ? 0xaa0000 : 0x444444);
+        });
     }
 
     private refreshUIAfterLanguageChange() {

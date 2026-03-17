@@ -1,4 +1,4 @@
-import { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 
 /**
  * SoundManager handles sound effect playback using howler.js.
@@ -8,6 +8,7 @@ export class SoundManager {
     private sounds: Map<string, Howl> = new Map();
     private playingCounts: Map<string, number> = new Map();
     private volume: number = 0.15;
+    private muted: boolean = false;
 
     private constructor() {
         // Initialize with sounds from the sounds folder
@@ -26,6 +27,22 @@ export class SoundManager {
             SoundManager.instance = new SoundManager();
         }
         return SoundManager.instance;
+    }
+
+    /**
+     * Toggles global mute state.
+     */
+    public toggleMute(): boolean {
+        this.muted = !this.muted;
+        Howler.mute(this.muted);
+        return this.muted;
+    }
+
+    /**
+     * Returns the current mute state.
+     */
+    public isMuted(): boolean {
+        return this.muted;
     }
 
     /**

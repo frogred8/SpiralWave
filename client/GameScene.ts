@@ -26,6 +26,7 @@ export class GameScene extends Phaser.Scene {
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
     private statsContainer!: Phaser.GameObjects.Container;
+    private uiUpdateTimer?: Phaser.Time.TimerEvent;
     
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
@@ -592,11 +593,17 @@ export class GameScene extends Phaser.Scene {
             this.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize);
         });
         
+        // 기존 타이머가 있다면 제거 (언어 변경 시 중복 호출 방지)
+        if (this.uiUpdateTimer) {
+            this.uiUpdateTimer.remove();
+        }
+
         // 1초마다 갱신 (최근 10초 획득량 갱신용)
-        this.time.addEvent({
+        this.uiUpdateTimer = this.time.addEvent({
             delay: 1000,
             callback: () => {
-                if (this.isGameStarted && !this.gameStats.isGameOver) {
+                // 장면이 활성 상태이고, 게임이 진행 중이며, UI가 파괴되지 않았을 때만 실행
+                if (this.isGameStarted && !this.gameStats.isGameOver && this.statsContainer.active) {
                     updateInfo();
                 }
             },

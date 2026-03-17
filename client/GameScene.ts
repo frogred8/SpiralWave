@@ -86,6 +86,29 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
+    private updateUIPositions() {
+        const { width } = this.scale;
+        const btnWidth = 70;
+        const btnHeight = 25;
+        const startX = width - 20 - btnWidth;
+        const startY = 15;
+
+        if (this.langSelectorContainer) {
+            this.langSelectorContainer.setPosition(startX, startY);
+        }
+
+        if (this.langMenuContainer) {
+            this.langMenuContainer.setPosition(startX, startY + btnHeight + 2);
+        }
+
+        if (this.soundBtnContainer) {
+            // 언어 메뉴가 열려 있으면 메뉴의 높이만큼 사운드 버튼을 아래로 내림
+            // 언어 4개 * (버튼 높이 25 + 간격 1) = 104px
+            const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
+            this.soundBtnContainer.setPosition(startX, startY + btnHeight + 5 + menuOffset);
+        }
+    }
+
     private handleResize(gameSize: Phaser.Structs.Size) {
         const { width, height } = gameSize;
         
@@ -98,20 +121,7 @@ export class GameScene extends Phaser.Scene {
             this.timerText.setPosition(width / 2, 40);
         }
 
-        if (this.langSelectorContainer) {
-            const btnWidth = 70;
-            const startX = width - 20 - btnWidth;
-            const startY = 15;
-            this.langSelectorContainer.setPosition(startX, startY);
-            
-            if (this.langMenuContainer) {
-                this.langMenuContainer.setPosition(startX, startY + 25 + 2);
-            }
-            
-            if (this.soundBtnContainer) {
-                this.soundBtnContainer.setPosition(startX, startY + 25 + 5);
-            }
-        }
+        this.updateUIPositions();
 
         // 스탯 컨테이너는 왼쪽 상단 고정이므로 별도 이동 불필요 (필요시 추가)
     }
@@ -675,6 +685,7 @@ export class GameScene extends Phaser.Scene {
                     this.isLanguageMenuOpen = false;
                     this.langMenuContainer.setVisible(false);
                     arrow.setText('▼');
+                    this.updateUIPositions();
                 }
             });
 
@@ -689,6 +700,7 @@ export class GameScene extends Phaser.Scene {
             this.isLanguageMenuOpen = !this.isLanguageMenuOpen;
             this.langMenuContainer.setVisible(this.isLanguageMenuOpen);
             arrow.setText(this.isLanguageMenuOpen ? '▲' : '▼');
+            this.updateUIPositions();
         });
 
         this.langSelectorContainer.on('pointerover', () => mainBg.setStrokeStyle(1, 0xaaaaaa));

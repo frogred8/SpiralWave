@@ -7,7 +7,7 @@ export class SoundManager {
     private static instance: SoundManager;
     private sounds: Map<string, Howl> = new Map();
     private playingCounts: Map<string, number> = new Map();
-    private volume: number = 0.5;
+    private volume: number = 0.3;
 
     private constructor() {
         // Initialize with sounds from the sounds folder
@@ -18,7 +18,7 @@ export class SoundManager {
         this.loadSound('gamestart', 'sounds/gamestart.mp3');
         this.loadSound('restart', 'sounds/restart.mp3');
         this.loadSound('winning', 'sounds/winning.mp3');
-        this.loadSound('background', 'sounds/background.mp3', true, 0.3);
+        this.loadSound('background', 'sounds/background.mp3', true, 0.2);
     }
 
     public static getInstance(): SoundManager {

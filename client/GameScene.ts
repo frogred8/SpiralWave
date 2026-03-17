@@ -249,6 +249,7 @@ export class GameScene extends Phaser.Scene {
             });
             bg.on('pointerdown', () => {
                 this.gameStats.grantSkill(skill);
+                SoundManager.getInstance().play('skillupgrade');
                 this.startGame();
                 
                 // 선택 UI 제거 애니메이션

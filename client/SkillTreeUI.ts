@@ -4,6 +4,7 @@ import { SkillData } from '@shared/SkillData';
 import { GameStats } from '@shared/GameStats';
 import { INITIAL_STATS, UI_CONFIG, RESOURCE_CONFIG } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
+import { SoundManager } from './SoundManager';
 
 export class SkillTreeUI {
     private scene: Phaser.Scene;
@@ -232,6 +233,7 @@ export class SkillTreeUI {
 
         if (this.gameStats.startResearch(skill)) {
             this.scene.cameras.main.flash(200, 0, 255, 0, true);
+            SoundManager.getInstance().play('skillupgrade');
         } else {
             this.scene.cameras.main.flash(200, 255, 0, 0, true);
         }

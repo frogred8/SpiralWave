@@ -643,7 +643,9 @@ export class GameScene extends Phaser.Scene {
         this.uiContainer.add(this.langSelectorContainer);
 
         // 드롭다운 메뉴용 컨테이너
-        this.langMenuContainer = this.add.container(startX, startY + btnHeight + 2).setVisible(this.isLanguageMenuOpen);
+        this.langMenuContainer = this.add.container(startX, startY + btnHeight + 2)
+            .setVisible(this.isLanguageMenuOpen)
+            .setDepth(100); // 사운드 버튼 등 다른 UI보다 위에 오도록 설정
         this.uiContainer.add(this.langMenuContainer);
 
         languages.forEach((lang, index) => {

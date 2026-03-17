@@ -911,11 +911,11 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number) {
+    private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number, silent: boolean = false) {
         if (!collectible.active) return;
 
         if (collectible.itemType === 'special') {
-            SoundManager.getInstance().play('gather');
+            if (!silent) SoundManager.getInstance().play('gather');
             this.handleSpecialItem(collectible, byArm, byNet);
             return;
         }
@@ -923,7 +923,7 @@ export class GameScene extends Phaser.Scene {
         const isHighDim = collectible.isHighDim || false;
         this.gameRenderer.emitCollectionParticles(collectible.x, collectible.y, isHighDim, this.resourceManager.getParticleTint(collectible), centerX, centerY);
         
-        SoundManager.getInstance().play('gather');
+        if (!silent) SoundManager.getInstance().play('gather');
         
         const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
         this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);
@@ -940,6 +940,7 @@ export class GameScene extends Phaser.Scene {
 
         const angleToTarget = Utils.getAngle(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY);
         const spread = Phaser.Math.DegToRad(this.gameStats.netAngle);
+        let hasPlayedSound = false;
 
         this.resourceManager.getGroup().getChildren().forEach((child) => {
             const res = child as any;
@@ -972,7 +973,9 @@ export class GameScene extends Phaser.Scene {
                     },
                     onComplete: () => { 
                         if (res.active) {
-                            this.collectResource(res, false, true); 
+                            const silent = hasPlayedSound;
+                            if (!silent) hasPlayedSound = true;
+                            this.collectResource(res, false, true, undefined, undefined, silent); 
                         }
                     }
                 });

@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import { GameStats } from './GameStats';
+import { GameStats } from '@shared/GameStats';
 import { GameRenderer } from './GameRenderer';
-import { Utils } from './Utils';
-import { Collectible, ArmState } from './Types';
-import { DURATIONS } from './Constants';
+import { Utils } from '@shared/Utils';
+import { Collectible, ArmState } from '@shared/Types';
+import { DURATIONS } from '@shared/Constants';
 
 export class RoboticArm {
     public state: ArmState = 'idle';

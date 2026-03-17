@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { GameStats } from './GameStats';
-import { DURATIONS } from './Constants';
+import { GameStats } from '@shared/GameStats';
+import { DURATIONS } from '@shared/Constants';
 
 export class GameRenderer {
     private scene: Phaser.Scene;

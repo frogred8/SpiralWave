@@ -10,6 +10,12 @@ SpiralWave는 `idle healing game`입니다. 플레이어는 화면 중앙에 있
     -   **패시브 (그물):** 일정 시간마다 중심부에서 마우스 커서 방향으로 그물을 던져 범위 안의 자원을 회수합니다.
     -   **액티브 (로봇팔):** 플레이어가 마우스를 클릭하면, 클릭한 지점으로 로봇팔이 쭉 늘어나서 자원을 붙잡아 빠르게 회수합니다.
 
+## 프로젝트 구조
+이 프로젝트는 모노레포 구조로 관리됩니다.
+- **client/**: 프론트엔드 (Phaser, TypeScript, Vite)
+- **server/**: 백엔드 (Node.js, Socket.io) - 예정
+- **shared/**: 공통 타입 정의, 상수, 게임 로직 (Types, Constants, GameStats 등)
+
 ## 기술 스택
 -   **게임 엔진:** Phaser 3 (Phaser.js)
 -   **언어:** TypeScript

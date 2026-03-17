@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import { GameStats } from './GameStats';
+import { GameStats } from '@shared/GameStats';
 import { GameRenderer } from './GameRenderer';
-import { Utils } from './Utils';
-import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS } from './Constants';
-import { Resource, SpecialItem, Collectible } from './Types';
+import { Utils } from '@shared/Utils';
+import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS } from '@shared/Constants';
+import { Resource, SpecialItem, Collectible } from '@shared/Types';
 
 export class ResourceManager {
     private scene: Phaser.Scene;

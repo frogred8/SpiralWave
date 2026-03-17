@@ -1,14 +1,15 @@
 import Phaser from 'phaser';
-import { I18n } from './I18n';
-import { GameStats } from './GameStats';
+import { I18n } from '@shared/I18n';
+import { GameStats } from '@shared/GameStats';
 import { SkillTreeUI } from './SkillTreeUI';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm } from './RoboticArm';
-import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from './Constants';
-import { Utils } from './Utils';
+import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
+import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
-import { Resource, SpecialItem, Collectible } from './Types';
+import { Resource, SpecialItem, Collectible } from '@shared/Types';
 import { SoundManager } from './SoundManager';
+import skillTreeData from '@shared/SKILLTREE.json';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -36,16 +37,12 @@ export class GameScene extends Phaser.Scene {
         super('GameScene');
     }
 
-    preload() {
-        this.load.json('skillTreeData', 'SKILLTREE.json');
-    }
-
     create() {
         const { width, height } = this.scale;
         this.spiralCenter = new Phaser.Math.Vector2(width / 2, height / 2);
 
-        // 스킬 트리 데이터 로드 및 복제 (캐시된 원본 데이터 수정을 방지하기 위해 딥 카피)
-        let skillData = JSON.parse(JSON.stringify(this.cache.json.get('skillTreeData')));
+        // 스킬 트리 데이터 복제 (원본 데이터 수정을 방지하기 위해 딥 카피)
+        let skillData = JSON.parse(JSON.stringify(skillTreeData));
         
         // 스킬 트리 랜덤 배치 로직
         if (skillData) {
@@ -385,7 +382,7 @@ export class GameScene extends Phaser.Scene {
         this.timerText.setVisible(false).setColor('#ffffff').setAlpha(1);
 
         // 스탯 초기화 (새로운 스킬 트리 랜덤 배치 포함)
-        let skillData = JSON.parse(JSON.stringify(this.cache.json.get('skillTreeData')));
+        let skillData = JSON.parse(JSON.stringify(skillTreeData));
         if (skillData) {
             skillData = Utils.generateRandomSkillTree(skillData);
         }

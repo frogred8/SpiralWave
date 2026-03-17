@@ -12,7 +12,7 @@ export class SoundManager {
 
     private constructor() {
         // Initialize with sounds from the sounds folder
-        this.loadSound('gather', 'sounds/gather.mp3');
+        this.loadSound('gather', 'sounds/gather.mp3', false, 0.1);
         this.loadSound('skilllevelup', 'sounds/skilllevelup.mp3');
         this.loadSound('skillupgrade', 'sounds/skillupgrade.mp3');
         this.loadSound('reroll', 'sounds/reroll.mp3');

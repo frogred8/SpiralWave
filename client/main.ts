@@ -3,10 +3,17 @@ import { GameScene } from './GameScene';
 
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
-    width: window.innerWidth,
-    height: window.innerHeight,
     backgroundColor: '#000000',
     parent: 'game-container',
+    pixelArt: false,
+    roundPixels: true,
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        expandParent: true
+    },
     physics: {
         default: 'arcade',
         arcade: {
@@ -14,10 +21,7 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: false,
         }
     },
-    fps: {
-        target: 60,
-        forceSetTimeOut: true
-    },
+    antialias: true,
     scene: [GameScene]
 };
 

@@ -22,6 +22,10 @@ export class GameScene extends Phaser.Scene {
     private arms: RoboticArm[] = [];
     private languageButtons: Phaser.GameObjects.Container[] = [];
     private isLanguageMenuOpen: boolean = false;
+    private langSelectorContainer!: Phaser.GameObjects.Container;
+    private langMenuContainer!: Phaser.GameObjects.Container;
+    private soundBtnContainer!: Phaser.GameObjects.Container;
+    private statsContainer!: Phaser.GameObjects.Container;
     
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
@@ -74,9 +78,41 @@ export class GameScene extends Phaser.Scene {
         this.setupUI(skillData);
         this.showInitialSkillSelection(skillData);
 
+        this.scale.on('resize', this.handleResize, this);
+
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
         }
+    }
+
+    private handleResize(gameSize: Phaser.Structs.Size) {
+        const { width, height } = gameSize;
+        
+        // 중앙 좌표 업데이트
+        this.spiralCenter.set(width / 2, height / 2);
+        this.gameRenderer.updateSpiralPosition();
+
+        // UI 위치 업데이트
+        if (this.timerText) {
+            this.timerText.setPosition(width / 2, 40);
+        }
+
+        if (this.langSelectorContainer) {
+            const btnWidth = 70;
+            const startX = width - 20 - btnWidth;
+            const startY = 15;
+            this.langSelectorContainer.setPosition(startX, startY);
+            
+            if (this.langMenuContainer) {
+                this.langMenuContainer.setPosition(startX, startY + 25 + 2);
+            }
+            
+            if (this.soundBtnContainer) {
+                this.soundBtnContainer.setPosition(startX, startY + 25 + 5);
+            }
+        }
+
+        // 스탯 컨테이너는 왼쪽 상단 고정이므로 별도 이동 불필요 (필요시 추가)
     }
 
     private setupPhysics() {
@@ -491,7 +527,7 @@ export class GameScene extends Phaser.Scene {
         const panelWidth = 380; // 스킬 트리 영역(World X 430)에 맞춤
         const panelHeight = 55;
 
-        const statsContainer = this.add.container(panelX, panelY).setScrollFactor(0);
+        this.statsContainer = this.add.container(panelX, panelY).setScrollFactor(0);
         
         // 배경 (어두운 금속/돌 느낌)
         const bg = this.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95)
@@ -517,8 +553,8 @@ export class GameScene extends Phaser.Scene {
         // 기타 스탯 (반지름, 팔 개수 등)
         const gameStatsText = this.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
 
-        statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
-        this.uiContainer.add(statsContainer);
+        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
+        this.uiContainer.add(this.statsContainer);
 
         // 언어 선택 UI (우측 상단)
         this.setupLanguageSelector();
@@ -588,20 +624,20 @@ export class GameScene extends Phaser.Scene {
 
         // 현재 선택된 언어 표시용 메인 버튼
         const currentLang = languages.find(l => l.code === I18n.getLanguage()) || languages[0];
-        const mainBtn = this.add.container(startX, startY);
+        this.langSelectorContainer = this.add.container(startX, startY);
         const mainBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95)
             .setStrokeStyle(1, 0x444444)
             .setOrigin(0);
         const mainText = this.add.text(btnWidth / 2 - 5, btnHeight / 2, currentLang.label, { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
         const arrow = this.add.text(btnWidth - 15, btnHeight / 2, this.isLanguageMenuOpen ? '▲' : '▼', { fontSize: '10px', color: '#aaaaaa' }).setOrigin(0.5);
         
-        mainBtn.add([mainBg, mainText, arrow]);
-        mainBtn.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
-        this.uiContainer.add(mainBtn);
+        this.langSelectorContainer.add([mainBg, mainText, arrow]);
+        this.langSelectorContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
+        this.uiContainer.add(this.langSelectorContainer);
 
         // 드롭다운 메뉴용 컨테이너
-        const menuContainer = this.add.container(startX, startY + btnHeight + 2).setVisible(this.isLanguageMenuOpen);
-        this.uiContainer.add(menuContainer);
+        this.langMenuContainer = this.add.container(startX, startY + btnHeight + 2).setVisible(this.isLanguageMenuOpen);
+        this.uiContainer.add(this.langMenuContainer);
 
         languages.forEach((lang, index) => {
             const itemY = index * (btnHeight + 1);
@@ -628,7 +664,7 @@ export class GameScene extends Phaser.Scene {
                     this.refreshUIAfterLanguageChange();
                 } else {
                     this.isLanguageMenuOpen = false;
-                    menuContainer.setVisible(false);
+                    this.langMenuContainer.setVisible(false);
                     arrow.setText('▼');
                 }
             });
@@ -636,22 +672,22 @@ export class GameScene extends Phaser.Scene {
             item.on('pointerover', () => itemBg.setStrokeStyle(1, 0xaaaaaa));
             item.on('pointerout', () => itemBg.setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444));
 
-            menuContainer.add(item);
+            this.langMenuContainer.add(item);
         });
 
         // 메인 버튼 클릭 시 메뉴 토글
-        mainBtn.on('pointerdown', () => {
+        this.langSelectorContainer.on('pointerdown', () => {
             this.isLanguageMenuOpen = !this.isLanguageMenuOpen;
-            menuContainer.setVisible(this.isLanguageMenuOpen);
+            this.langMenuContainer.setVisible(this.isLanguageMenuOpen);
             arrow.setText(this.isLanguageMenuOpen ? '▲' : '▼');
         });
 
-        mainBtn.on('pointerover', () => mainBg.setStrokeStyle(1, 0xaaaaaa));
-        mainBtn.on('pointerout', () => mainBg.setStrokeStyle(1, 0x444444));
+        this.langSelectorContainer.on('pointerover', () => mainBg.setStrokeStyle(1, 0xaaaaaa));
+        this.langSelectorContainer.on('pointerout', () => mainBg.setStrokeStyle(1, 0x444444));
 
         // 사운드 ON/OFF 버튼 추가 (언어 버튼 아래)
         const soundBtnY = startY + btnHeight + 5;
-        const soundBtn = this.add.container(startX, soundBtnY);
+        this.soundBtnContainer = this.add.container(startX, soundBtnY);
         const soundBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95)
             .setStrokeStyle(1, 0x444444)
             .setOrigin(0);
@@ -659,18 +695,18 @@ export class GameScene extends Phaser.Scene {
         const getSoundLabel = () => SoundManager.getInstance().isMuted() ? "🔇 OFF" : "🔊 ON";
         const soundText = this.add.text(btnWidth / 2, btnHeight / 2, getSoundLabel(), { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
         
-        soundBtn.add([soundBg, soundText]);
-        soundBtn.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
-        this.uiContainer.add(soundBtn);
+        this.soundBtnContainer.add([soundBg, soundText]);
+        this.soundBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
+        this.uiContainer.add(this.soundBtnContainer);
 
-        soundBtn.on('pointerdown', () => {
+        this.soundBtnContainer.on('pointerdown', () => {
             const isMuted = SoundManager.getInstance().toggleMute();
             soundText.setText(getSoundLabel());
             soundBg.setStrokeStyle(1, isMuted ? 0xff0000 : 0x00ff00);
         });
 
-        soundBtn.on('pointerover', () => soundBg.setStrokeStyle(1, 0xaaaaaa));
-        soundBtn.on('pointerout', () => {
+        this.soundBtnContainer.on('pointerover', () => soundBg.setStrokeStyle(1, 0xaaaaaa));
+        this.soundBtnContainer.on('pointerout', () => {
             const isMuted = SoundManager.getInstance().isMuted();
             soundBg.setStrokeStyle(1, isMuted ? 0xaa0000 : 0x444444);
         });

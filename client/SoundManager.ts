@@ -17,6 +17,7 @@ export class SoundManager {
         this.loadSound('gamestart', 'sounds/gamestart.mp3');
         this.loadSound('restart', 'sounds/restart.mp3');
         this.loadSound('winning', 'sounds/winning.mp3');
+        this.loadSound('background', 'sounds/background.mp3', true, 0.3);
     }
 
     public static getInstance(): SoundManager {
@@ -30,16 +31,19 @@ export class SoundManager {
      * Loads a sound effect.
      * @param key Unique identifier for the sound.
      * @param url URL or path to the sound file.
+     * @param loop Whether the sound should loop.
+     * @param volume Initial volume for this specific sound.
      */
-    public loadSound(key: string, url: string) {
+    public loadSound(key: string, url: string, loop: boolean = false, volume: number = this.volume) {
         if (this.sounds.has(key)) {
             this.sounds.get(key)?.unload();
         }
 
         const sound = new Howl({
             src: [url],
-            volume: this.volume,
-            preload: true
+            volume: volume,
+            preload: true,
+            loop: loop
         });
 
         this.sounds.set(key, sound);

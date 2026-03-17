@@ -41,6 +41,9 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = this.scale;
         this.spiralCenter = new Phaser.Math.Vector2(width / 2, height / 2);
 
+        // 배경음악 재생 (루프 설정은 SoundManager에서 이미 되어 있음)
+        SoundManager.getInstance().play('background');
+
         // 스킬 트리 데이터 복제 (원본 데이터 수정을 방지하기 위해 딥 카피)
         let skillData = JSON.parse(JSON.stringify(skillTreeData));
         

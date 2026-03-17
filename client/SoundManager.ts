@@ -19,6 +19,7 @@ export class SoundManager {
         this.loadSound('gamestart', 'sounds/gamestart.mp3');
         this.loadSound('restart', 'sounds/restart.mp3');
         this.loadSound('winning', 'sounds/winning.mp3');
+        this.loadSound('specialitem', 'sounds/specialitem.mp3');
         this.loadSound('background', 'sounds/background.mp3', true, 0.2);
     }
 

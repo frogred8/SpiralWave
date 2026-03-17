@@ -941,8 +941,7 @@ export class GameScene extends Phaser.Scene {
         if (!collectible.active) return;
 
         if (collectible.itemType === 'special') {
-            if (!silent) SoundManager.getInstance().play('gather');
-            this.handleSpecialItem(collectible, byArm, byNet);
+            this.handleSpecialItem(collectible, byArm, byNet, silent);
             return;
         }
 
@@ -1009,13 +1008,15 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private handleSpecialItem(item: SpecialItem, byArm: boolean, byNet: boolean) {
+    private handleSpecialItem(item: SpecialItem, byArm: boolean, byNet: boolean, silent: boolean = false) {
         // 팔이나 그물로 직접 획득한 경우가 아니면 발동하지 않음 (단순 흡수는 파괴만 됨)
         if (!byArm && !byNet) {
             item.destroy();
             this.cameras.main.shake(100, 0.005);
             return;
         }
+
+        if (!silent) SoundManager.getInstance().play('specialitem');
 
         if (item.specialType === 'whitehole') this.resourceManager.spawnWhiteHole(undefined, undefined, true);
         else if (item.specialType === 'boost') this.triggerRadiusBoost();

@@ -7,7 +7,7 @@ export class SoundManager {
     private static instance: SoundManager;
     private sounds: Map<string, Howl> = new Map();
     private playingCounts: Map<string, number> = new Map();
-    private volume: number = 0.3;
+    private volume: number = 0.15;
 
     private constructor() {
         // Initialize with sounds from the sounds folder

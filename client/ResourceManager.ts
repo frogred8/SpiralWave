@@ -60,9 +60,12 @@ export class ResourceManager {
     private getRandomPositionAroundCenter(minDist: number, maxDist: number) {
         const angle = Math.random() * Math.PI * 2;
         const dist = Phaser.Math.Between(minDist, maxDist);
+        const x = this.spiralCenter.x + Math.cos(angle) * dist;
+        const y = this.spiralCenter.y + Math.sin(angle) * dist;
+        
         return {
-            x: this.spiralCenter.x + Math.cos(angle) * dist,
-            y: this.spiralCenter.y + Math.sin(angle) * dist
+            x: x,
+            y: Phaser.Math.Clamp(y, SPAWN_BOUNDARY.Y_MIN, SPAWN_BOUNDARY.Y_MAX)
         };
     }
 
@@ -214,7 +217,10 @@ export class ResourceManager {
         let targetY = y;
 
         if (targetX === undefined || targetY === undefined) {
-            const { x: rx, y: ry } = this.getRandomPositionAroundCenter(this.stats.radius + 100, 500);
+            const { x: rx, y: ry } = this.getRandomPositionAroundCenter(
+                this.stats.radius + RESOURCE_CONFIG.WHITE_HOLE.MIN_DIST_OFFSET, 
+                RESOURCE_CONFIG.WHITE_HOLE.MAX_DIST
+            );
             targetX = rx;
             targetY = ry;
         }
@@ -255,8 +261,8 @@ export class ResourceManager {
 
     public spawnSmallBlackHole() {
         const { width, height } = this.getSpawnBaseDimensions();
-        const minDist = this.stats.radius + 150;
-        const maxDist = Math.max(800, width / 2, height / 2);
+        const minDist = this.stats.radius + RESOURCE_CONFIG.SMALL_BLACK_HOLE.MIN_DIST_OFFSET;
+        const maxDist = Math.max(RESOURCE_CONFIG.SMALL_BLACK_HOLE.MAX_DIST_BASE, width / 2, height / 2);
 
         let targetX: number = 0, targetY: number = 0;
         let attempts = 0;
@@ -269,7 +275,7 @@ export class ResourceManager {
             targetY = pos.y;
             
             isValid = this.smallBlackHoles.every(sbh => {
-                return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= 300;
+                return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= RESOURCE_CONFIG.SMALL_BLACK_HOLE.MIN_GAP;
             });
             attempts++;
         } while (!isValid && attempts < maxAttempts);

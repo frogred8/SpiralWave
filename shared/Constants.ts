@@ -1,6 +1,8 @@
 export const SPAWN_BOUNDARY = {
     WIDTH: 1200,
-    HEIGHT: 800
+    HEIGHT: 800,
+    Y_MIN: 150,
+    Y_MAX: 650
 };
 
 export const INITIAL_STATS = {
@@ -69,7 +71,16 @@ export const RESOURCE_CONFIG = {
         NORMAL: 30,
         HIGH_DIM: 45
     },
-    HIGH_DIM_MULTIPLIER: 5
+    HIGH_DIM_MULTIPLIER: 5,
+    WHITE_HOLE: {
+        MIN_DIST_OFFSET: 100,
+        MAX_DIST: 500
+    },
+    SMALL_BLACK_HOLE: {
+        MIN_DIST_OFFSET: 150,
+        MAX_DIST_BASE: 800,
+        MIN_GAP: 300
+    }
 };
 
 export const PHYSICS_CONFIG = {

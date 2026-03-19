@@ -2,7 +2,15 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
 const fastify = Fastify({
-  logger: true
+  logger: {
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        translateTime: 'HH:MM:ss Z',
+        ignore: 'pid,hostname',
+      },
+    },
+  },
 });
 
 // Register CORS

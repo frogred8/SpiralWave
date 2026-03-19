@@ -266,8 +266,9 @@ export class SkillTreeUI {
 
             if (isActiveResearch) {
                 const research = this.gameStats.activeResearches[researchIndex];
-                const progress = 1 - (research.remainingTime / research.totalTime);
-                data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s (${Math.floor(progress * 100)}%)`);
+                // const progress = 1 - (research.remainingTime / research.totalTime);
+                // data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s (${Math.floor(progress * 100)}%)`);
+                data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s`);
                 data.lvTxt.setColor('#ffff00');
             } else if (isResearching) {
                 queueIndex++;

@@ -200,6 +200,7 @@ export class ResourceManager {
 
         let targetX = x;
         let targetY = y;
+        const maxDist = Math.max(600, width/2, height/2);
 
         if (targetX === undefined || targetY === undefined) {
             let dist;
@@ -214,7 +215,7 @@ export class ResourceManager {
                 // Let's assume they should spawn at least 600 units away from center if we want them "outside".
                 // The current logic spawns them within 600.
                 // To fulfill "always larger than 1200x800", I'll allow them to spawn further out.
-            } while (dist < (this.stats.radius + 150) || dist > Math.max(800, width/2, height/2));
+            } while (dist < (this.stats.radius + 100) || dist > maxDist);
         }
 
         const wh = this.scene.add.container(targetX, targetY);

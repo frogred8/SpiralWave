@@ -57,6 +57,15 @@ export class ResourceManager {
         };
     }
 
+    private getRandomPositionAroundCenter(minDist: number, maxDist: number) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Phaser.Math.Between(minDist, maxDist);
+        return {
+            x: this.spiralCenter.x + Math.cos(angle) * dist,
+            y: this.spiralCenter.y + Math.sin(angle) * dist
+        };
+    }
+
     public spawnResource(count: number = 2) {
         if (this.resources.getLength() >= INITIAL_STATS.MAX_RESOURCES) return;
 
@@ -205,13 +214,9 @@ export class ResourceManager {
         let targetY = y;
 
         if (targetX === undefined || targetY === undefined) {
-            const angle = Math.random() * Math.PI * 2;
-            const minDist = this.stats.radius + 100;
-            const maxDist = 500;
-            const dist = Phaser.Math.Between(minDist, maxDist);
-            
-            targetX = this.spiralCenter.x + Math.cos(angle) * dist;
-            targetY = this.spiralCenter.y + Math.sin(angle) * dist;
+            const { x: rx, y: ry } = this.getRandomPositionAroundCenter(this.stats.radius + 100, 500);
+            targetX = rx;
+            targetY = ry;
         }
 
         const wh = this.scene.add.container(targetX, targetY);
@@ -250,8 +255,8 @@ export class ResourceManager {
 
     public spawnSmallBlackHole() {
         const { width, height } = this.getSpawnBaseDimensions();
-        const offsetX = (width - this.scene.scale.width) / 2;
-        const offsetY = (height - this.scene.scale.height) / 2;
+        const minDist = this.stats.radius + 150;
+        const maxDist = Math.max(800, width / 2, height / 2);
 
         let targetX: number = 0, targetY: number = 0;
         let attempts = 0;
@@ -259,16 +264,13 @@ export class ResourceManager {
 
         let isValid = false;
         do {
-            targetX = Phaser.Math.Between(0, width) - offsetX;
-            targetY = Phaser.Math.Between(0, height) - offsetY;
-            const distFromCenter = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
+            const pos = this.getRandomPositionAroundCenter(minDist, maxDist);
+            targetX = pos.x;
+            targetY = pos.y;
             
-            // Allow spawning further out (up to 800 or half the spawn width/height)
-            if (distFromCenter >= (this.stats.radius + 150) && distFromCenter <= Math.max(800, width/2, height/2)) {
-                isValid = this.smallBlackHoles.every(sbh => {
-                    return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= 300;
-                });
-            }
+            isValid = this.smallBlackHoles.every(sbh => {
+                return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= 300;
+            });
             attempts++;
         } while (!isValid && attempts < maxAttempts);
 

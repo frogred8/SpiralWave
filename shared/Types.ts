@@ -80,4 +80,7 @@ export type EffectProperty =
     | 'moveSpeed' 
     | 'net'
     | 'netAngle'
-    | 'smallBlackHole';
+    | 'smallBlackHole'
+    | 'smallBlackHoleRange'
+    | 'netLength'
+    | 'specialItemBooster';

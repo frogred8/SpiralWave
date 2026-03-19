@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GameStats } from '@shared/GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from '@shared/Utils';
-import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS } from '@shared/Constants';
+import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
 import { Resource, SpecialItem, Collectible } from '@shared/Types';
 
 export class ResourceManager {
@@ -43,36 +43,52 @@ export class ResourceManager {
         return this.smallBlackHoles;
     }
 
+    private getSpawnDimensions() {
+        return {
+            width: Math.max(this.scene.scale.width, SPAWN_BOUNDARY.WIDTH),
+            height: Math.max(this.scene.scale.height, SPAWN_BOUNDARY.HEIGHT)
+        };
+    }
+
     public spawnResource(count: number = 2) {
         if (this.resources.getLength() >= INITIAL_STATS.MAX_RESOURCES) return;
 
-        const { width, height } = this.scene.scale;
+        const { width, height } = this.getSpawnDimensions();
         for (let i = 0; i < count; i++) {
             const { x, y } = Utils.getRandomEdgePosition(width, height);
-            this.createResourceAt(x, y);
+            // Center the spawn area if it's larger than the screen
+            const offsetX = (width - this.scene.scale.width) / 2;
+            const offsetY = (height - this.scene.scale.height) / 2;
+            this.createResourceAt(x - offsetX, y - offsetY);
         }
     }
 
     public spawnMeteor() {
-        const { width, height } = this.scene.scale;
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
         
         // 무작위 시작 지점과 목표 지점 설정 (화면 밖에서 시작해서 밖으로)
         const side = Phaser.Math.Between(0, 3);
         let startX, startY, endX, endY;
         
         if (side === 0) { // Bottom to Top
-            startX = Phaser.Math.Between(0, width); startY = height + 50;
-            endX = Phaser.Math.Between(0, width); endY = -50;
+            startX = Phaser.Math.Between(0, width); startY = height + 100;
+            endX = Phaser.Math.Between(0, width); endY = -100;
         } else if (side === 1) { // Top to Bottom
-            startX = Phaser.Math.Between(0, width); startY = -50;
-            endX = Phaser.Math.Between(0, width); endY = height + 50;
+            startX = Phaser.Math.Between(0, width); startY = -100;
+            endX = Phaser.Math.Between(0, width); endY = height + 100;
         } else if (side === 2) { // Right to Left
-            startX = width + 50; startY = Phaser.Math.Between(0, height);
-            endX = -50; endY = Phaser.Math.Between(0, height);
+            startX = width + 100; startY = Phaser.Math.Between(0, height);
+            endX = -100; endY = Phaser.Math.Between(0, height);
         } else { // Left to Right
-            startX = -50; startY = Phaser.Math.Between(0, height);
-            endX = width + 50; endY = Phaser.Math.Between(0, height);
+            startX = -100; startY = Phaser.Math.Between(0, height);
+            endX = width + 100; endY = Phaser.Math.Between(0, height);
         }
+
+        // Adjust coordinates relative to actual screen center
+        startX -= offsetX; startY -= offsetY;
+        endX -= offsetX; endY -= offsetY;
 
         const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '80px' }).setOrigin(0.5);
         this.worldContainer.add(meteor);
@@ -136,7 +152,10 @@ export class ResourceManager {
         const radius = isHighDim ? 30 : 12;
         res.body.setCircle(radius, (res.width - radius * 2) / 2, (res.height - radius * 2) / 2);
         
-        const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Utils.getAngle(x, y, Math.random() * this.scene.scale.width, Math.random() * this.scene.scale.height);
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
+        const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Utils.getAngle(x, y, Math.random() * width - offsetX, Math.random() * height - offsetY);
         const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(150, 250);
         const speed = baseSpeed * (isHighDim ? 0.5 : 1);
         
@@ -145,8 +164,12 @@ export class ResourceManager {
     }
 
     public spawnSpecialItem() {
-        const { width, height } = this.scene.scale;
-        const { x, y } = Utils.getRandomEdgePosition(width, height);
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
+        const { x: rawX, y: rawY } = Utils.getRandomEdgePosition(width, height);
+        const x = rawX - offsetX;
+        const y = rawY - offsetY;
 
         const type = Math.random() > 0.5 ? 'whitehole' : 'boost';
         const item = this.scene.add.text(x, y, this.getIcon(type), { fontSize: '40px' }).setOrigin(0.5) as SpecialItem;
@@ -171,17 +194,27 @@ export class ResourceManager {
     }
 
     public spawnWhiteHole(x?: number, y?: number, isEnhanced: boolean = false) {
-        const { width, height } = this.scene.scale;
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
+
         let targetX = x;
         let targetY = y;
 
         if (targetX === undefined || targetY === undefined) {
             let dist;
             do {
-                targetX = Phaser.Math.Between(200, width - 200);
-                targetY = Phaser.Math.Between(200, height - 200);
+                // Spawn in a range that is at least 1200x800
+                targetX = Phaser.Math.Between(0, width) - offsetX;
+                targetY = Phaser.Math.Between(0, height) - offsetY;
                 dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
-            } while (dist < (this.stats.radius + 100) || dist > 600);
+                
+                // If the user wants them to spawn OUTSIDE 1200x800, we should ensure that.
+                // But the requirement says "calculate in a range larger than 1200x800".
+                // Let's assume they should spawn at least 600 units away from center if we want them "outside".
+                // The current logic spawns them within 600.
+                // To fulfill "always larger than 1200x800", I'll allow them to spawn further out.
+            } while (dist < (this.stats.radius + 150) || dist > Math.max(800, width/2, height/2));
         }
 
         const wh = this.scene.add.container(targetX, targetY);
@@ -219,20 +252,22 @@ export class ResourceManager {
     }
 
     public spawnSmallBlackHole() {
-        const { width, height } = this.scene.scale;
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
+
         let targetX: number = 0, targetY: number = 0;
         let attempts = 0;
         const maxAttempts = 20;
 
         let isValid = false;
         do {
-            targetX = Phaser.Math.Between(150, width - 150);
-            targetY = Phaser.Math.Between(150, height - 150);
+            targetX = Phaser.Math.Between(0, width) - offsetX;
+            targetY = Phaser.Math.Between(0, height) - offsetY;
             const distFromCenter = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
             
-            // 메인 블랙홀과의 거리 체크 (메인 반지름 + 작은 블랙홀 반지름 150 이상 떨어져야 함)
-            if (distFromCenter >= (this.stats.radius + 150) && distFromCenter <= 600) {
-                // 기존 작은 블랙홀들과의 중첩 체크 (반지름 150이므로 거리 300 이상 필요)
+            // Allow spawning further out (up to 800 or half the spawn width/height)
+            if (distFromCenter >= (this.stats.radius + 150) && distFromCenter <= Math.max(800, width/2, height/2)) {
                 isValid = this.smallBlackHoles.every(sbh => {
                     return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= 300;
                 });
@@ -240,10 +275,9 @@ export class ResourceManager {
             attempts++;
         } while (!isValid && attempts < maxAttempts);
 
-        if (!isValid) return; // 적절한 위치를 찾지 못한 경우 생성 취소
+        if (!isValid) return; 
 
         const sbh = this.scene.add.container(targetX, targetY);
-        // 외곽 경계선 (중력 범위 표시) - 항상 보이도록 고정 alpha 사용
         const boundary = this.scene.add.circle(0, 0, 150, 0x333333, 0.15).setStrokeStyle(1, 0x666666, 0.4);
         const core = this.scene.add.circle(0, 0, 8, 0x000000, 1);
         const swirl = this.scene.add.circle(0, 0, 18, 0xffffff, 0.2);
@@ -251,7 +285,6 @@ export class ResourceManager {
         sbh.add([boundary, swirl, core]);
         this.worldContainer.add(sbh);
 
-        // 회전 애니메이션
         this.scene.tweens.add({
             targets: swirl,
             angle: 360,
@@ -263,7 +296,6 @@ export class ResourceManager {
         this.scene.tweens.add({ targets: sbh, scale: 1.0, duration: 500, ease: 'Back.Out' });
         this.smallBlackHoles.push(sbh);
 
-        // 3초 유지 후 2초간 축소하며 제거
         this.scene.time.delayedCall(DURATIONS.SMALL_BLACK_HOLE_ACTIVE, () => {
             this.scene.tweens.add({ 
                 targets: sbh, 

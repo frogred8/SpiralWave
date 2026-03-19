@@ -926,7 +926,8 @@ export class GameScene extends Phaser.Scene {
             if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
 
             if (res.itemType === 'special') {
-                if (Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y) > 1200) res.destroy();
+                const limit = Math.max(1200, this.scale.width, this.scale.height);
+                if (Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y) > limit) res.destroy();
                 return;
             }
 
@@ -962,7 +963,8 @@ export class GameScene extends Phaser.Scene {
                 });
 
                 if (!collectedBySBH) {
-                    if (dist > 1200) {
+                    const limit = Math.max(1200, this.scale.width, this.scale.height);
+                    if (dist > limit) {
                         res.destroy();
                     } else {
                         this.limitSpeed(res, dist);

@@ -1,3 +1,8 @@
+export const SPAWN_BOUNDARY = {
+    WIDTH: 1200,
+    HEIGHT: 800
+};
+
 export const INITIAL_STATS = {
     FORCE: 0.5,
     RADIUS: 200,
@@ -12,7 +17,7 @@ export const INITIAL_STATS = {
     TIME_LIMIT: 300,
     NET_ANGLE: 45,
     SMALL_BLACK_HOLE_RADIUS: 150,
-    NET_DISTANCE: 600,
+    NET_DISTANCE: 500,
     SPECIAL_ITEM_INTERVAL: 15000
 };
 

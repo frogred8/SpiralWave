@@ -43,6 +43,13 @@ export class ResourceManager {
         return this.smallBlackHoles;
     }
 
+    private getSpawnBaseDimensions() {
+        return {
+            width: SPAWN_BOUNDARY.WIDTH,
+            height: SPAWN_BOUNDARY.HEIGHT
+        };
+    }
+
     private getSpawnDimensions() {
         return {
             width: Math.max(this.scene.scale.width, SPAWN_BOUNDARY.WIDTH),
@@ -194,28 +201,17 @@ export class ResourceManager {
     }
 
     public spawnWhiteHole(x?: number, y?: number, isEnhanced: boolean = false) {
-        const { width, height } = this.getSpawnDimensions();
-        const offsetX = (width - this.scene.scale.width) / 2;
-        const offsetY = (height - this.scene.scale.height) / 2;
-
         let targetX = x;
         let targetY = y;
-        const maxDist = Math.max(600, width/2, height/2);
 
         if (targetX === undefined || targetY === undefined) {
-            let dist;
-            do {
-                // Spawn in a range that is at least 1200x800
-                targetX = Phaser.Math.Between(0, width) - offsetX;
-                targetY = Phaser.Math.Between(0, height) - offsetY;
-                dist = Utils.getDistance(targetX, targetY, this.spiralCenter.x, this.spiralCenter.y);
-                
-                // If the user wants them to spawn OUTSIDE 1200x800, we should ensure that.
-                // But the requirement says "calculate in a range larger than 1200x800".
-                // Let's assume they should spawn at least 600 units away from center if we want them "outside".
-                // The current logic spawns them within 600.
-                // To fulfill "always larger than 1200x800", I'll allow them to spawn further out.
-            } while (dist < (this.stats.radius + 100) || dist > maxDist);
+            const angle = Math.random() * Math.PI * 2;
+            const minDist = this.stats.radius + 100;
+            const maxDist = 500;
+            const dist = Phaser.Math.Between(minDist, maxDist);
+            
+            targetX = this.spiralCenter.x + Math.cos(angle) * dist;
+            targetY = this.spiralCenter.y + Math.sin(angle) * dist;
         }
 
         const wh = this.scene.add.container(targetX, targetY);
@@ -253,7 +249,7 @@ export class ResourceManager {
     }
 
     public spawnSmallBlackHole() {
-        const { width, height } = this.getSpawnDimensions();
+        const { width, height } = this.getSpawnBaseDimensions();
         const offsetX = (width - this.scene.scale.width) / 2;
         const offsetY = (height - this.scene.scale.height) / 2;
 

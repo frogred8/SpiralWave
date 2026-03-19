@@ -179,5 +179,50 @@
         "effectProperty": "net",
         "effectValue": 1,
         "maxLevel": 1
+    },
+    {
+        "id": "small_black_hole_range",
+        "tree": 0,
+        "row": 4,
+        "costs": [
+            { "wood": 10, "rock": 10 },
+            { "wood": 40, "rock": 40 },
+            { "wood": 60, "rock": 60 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [5, 20, 30],
+        "effectProperty": "smallBlackHoleRange",
+        "effectValue": 5,
+        "maxLevel": 3
+    },
+    {
+        "id": "net_length",
+        "tree": 1,
+        "row": 4,
+        "costs": [
+            { "wood": 10, "rock": 5 },
+            { "wood": 50, "rock": 20 },
+            { "wood": 90, "rock": 60 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [5, 20, 30],
+        "effectProperty": "netLength",
+        "effectValue": 100,
+        "maxLevel": 3
+    },
+    {
+        "id": "special_item_booster",
+        "tree": 2,
+        "row": 4,
+        "costs": [
+            { "wood": 10, "rock": 20 },
+            { "wood": 20, "rock": 50 },
+            { "wood": 60, "rock": 80 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [5, 20, 30],
+        "effectProperty": "specialItemBooster",
+        "effectValue": -1,
+        "maxLevel": 3
     }
 ]

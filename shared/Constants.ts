@@ -10,13 +10,16 @@ export const INITIAL_STATS = {
     MOVE_SPEED: 0,
     MAX_RESEARCH_SLOTS: 1,
     TIME_LIMIT: 300,
-    NET_ANGLE: 45
+    NET_ANGLE: 45,
+    SMALL_BLACK_HOLE_RADIUS: 150,
+    NET_DISTANCE: 600,
+    SPECIAL_ITEM_INTERVAL: 15000
 };
 
 export const SKILL_TREE_CONFIG = {
-    TOTAL_SKILLS: 12,
+    TOTAL_SKILLS: 15,
     TREES: 3,
-    ROWS: 4
+    ROWS: 5
 };
 
 export const DURATIONS = {

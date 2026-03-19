@@ -30,6 +30,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public isNetEnabled!: boolean;
     public netAngle!: number;
     public smallBlackHoleCount: number = 0;
+    public smallBlackHoleRadius: number = 150;
+    public netDistance: number = 600;
+    public specialItemInterval: number = 15000;
     
     // 연구 및 스킬 트리 상태
     public skillLevels!: Record<string, number>;
@@ -56,6 +59,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         RESEARCH_REDUCED: 'researchTimeReduced',
         GAME_OVER: 'gameOver',
         SPAWN_RATE_CHANGED: 'spawnRateChanged',
+        SPECIAL_ITEM_INTERVAL_CHANGED: 'specialItemIntervalChanged',
         CALCULATE_BOOSTER: 'calculateBooster'
     };
 
@@ -85,6 +89,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.isNetEnabled = false;
         this.netAngle = INITIAL_STATS.NET_ANGLE;
         this.smallBlackHoleCount = 0;
+        this.smallBlackHoleRadius = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
+        this.netDistance = INITIAL_STATS.NET_DISTANCE;
+        this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
 
         this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
@@ -364,6 +371,12 @@ getRecentCollectionAmount(): number {
             case 'net': this.isNetEnabled = true; break;
             case 'netAngle': this.netAngle += val; break;
             case 'smallBlackHole': this.smallBlackHoleCount += val; break;
+            case 'smallBlackHoleRange': this.smallBlackHoleRadius += val; break;
+            case 'netLength': this.netDistance += val; break;
+            case 'specialItemBooster': 
+                this.specialItemInterval += val * 1000; // val is in seconds (-1), convert to ms (-1000)
+                this.emit(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
+                break;
         }
 
         this.emit(GameStats.EVENTS.SKILL_UPGRADED, skill.id);

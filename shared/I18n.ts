@@ -35,6 +35,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.net': 'Resource Net',
         'prop.netAngle': 'Net Angle',
         'prop.smallBlackHole': 'Small Black Holes',
+        'prop.smallBlackHoleRange': 'Small Black Hole Range',
+        'prop.netLength': 'Net Length',
+        'prop.specialItemBooster': 'Special Item Interval',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -73,7 +76,13 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.arm_sync.name': 'Research Slot',
         'skill.arm_sync.desc': 'Research Slot +1',
         'skill.f1.name': 'Resource Net',
-        'skill.f1.desc': 'Resource Net Activation'
+        'skill.f1.desc': 'Resource Net Activation',
+        'skill.small_black_hole_range.name': 'SBH Range',
+        'skill.small_black_hole_range.desc': 'Small Black Hole Range +5',
+        'skill.net_length.name': 'Net Length',
+        'skill.net_length.desc': 'Net Length +100',
+        'skill.special_item_booster.name': 'Item Booster',
+        'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s'
     },
     ko: {
         // Resources
@@ -109,6 +118,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.net': '자원 그물',
         'prop.netAngle': '그물 각도',
         'prop.smallBlackHole': '작은 블랙홀 개수',
+        'prop.smallBlackHoleRange': '작은 블랙홀 범위',
+        'prop.netLength': '그물 길이',
+        'prop.specialItemBooster': '특수 아이템 주기',
         
         // Utils / Formatting
         'ui.on': '켬',
@@ -147,7 +159,13 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.arm_sync.name': '연구 슬롯',
         'skill.arm_sync.desc': '연구 슬롯 +1',
         'skill.f1.name': '자원 그물',
-        'skill.f1.desc': '자원 그물 활성화'
+        'skill.f1.desc': '자원 그물 활성화',
+        'skill.small_black_hole_range.name': '작은 블랙홀 범위',
+        'skill.small_black_hole_range.desc': '작은 블랙홀 범위 +5',
+        'skill.net_length.name': '그물 길이',
+        'skill.net_length.desc': '그물 길이 +100',
+        'skill.special_item_booster.name': '특수 아이템 부스터',
+        'skill.special_item_booster.desc': '특수 아이템 생성 간격 -1초'
     },
     zh: {
         // Resources
@@ -183,6 +201,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.net': '资源网',
         'prop.netAngle': '网角度',
         'prop.smallBlackHole': '小黑洞数量',
+        'prop.smallBlackHoleRange': '小黑洞范围',
+        'prop.netLength': '网长度',
+        'prop.specialItemBooster': '特殊物品间隔',
         
         // Utils / Formatting
         'ui.on': '开',
@@ -221,7 +242,13 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.arm_sync.name': '研究位',
         'skill.arm_sync.desc': '研究位 +1',
         'skill.f1.name': '资源网',
-        'skill.f1.desc': '资源网激活'
+        'skill.f1.desc': '资源网激活',
+        'skill.small_black_hole_range.name': '小黑洞范围',
+        'skill.small_black_hole_range.desc': '小黑洞范围 +5',
+        'skill.net_length.name': '网长度',
+        'skill.net_length.desc': '网长度 +100',
+        'skill.special_item_booster.name': '特殊物品助推器',
+        'skill.special_item_booster.desc': '特殊物品生成间隔 -1秒'
     },
     ja: {
         // Resources
@@ -257,6 +284,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.net': '資源ネット',
         'prop.netAngle': 'ネット角度',
         'prop.smallBlackHole': '小型ブラックホール数',
+        'prop.smallBlackHoleRange': '小型ブラックホール範囲',
+        'prop.netLength': 'ネットの長さ',
+        'prop.specialItemBooster': '特殊アイテム間隔',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -296,7 +326,13 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.arm_sync.name': '研究スロット',
         'skill.arm_sync.desc': '研究スロット +1',
         'skill.f1.name': '資源ネット',
-        'skill.f1.desc': '資源ネット活性化'
+        'skill.f1.desc': '資源ネット活性化',
+        'skill.small_black_hole_range.name': '小型ブラックホール範囲',
+        'skill.small_black_hole_range.desc': '小型ブラックホール範囲 +5',
+        'skill.net_length.name': 'ネットの長さ',
+        'skill.net_length.desc': 'ネットの長さ +100',
+        'skill.special_item_booster.name': 'アイテムブースター',
+        'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒'
     }
 };
 

@@ -37,6 +37,7 @@ export class GameScene extends Phaser.Scene {
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
     private timerText!: Phaser.GameObjects.Text;
+    private specialItemTimer?: Phaser.Time.TimerEvent;
 
     constructor() {
         super('GameScene');
@@ -162,12 +163,7 @@ export class GameScene extends Phaser.Scene {
             loop: true 
         });
 
-        this.time.addEvent({ 
-            delay: DURATIONS.SPECIAL_ITEM_SPAWN, 
-            callback: () => this.resourceManager.spawnSpecialItem(), 
-            callbackScope: this, 
-            loop: true 
-        });
+        this.updateSpecialItemTimer();
 
         this.time.addEvent({ 
             delay: DURATIONS.METEOR_INTERVAL, 
@@ -455,6 +451,16 @@ export class GameScene extends Phaser.Scene {
         this.showInitialSkillSelection(skillData);
     }
 
+    private updateSpecialItemTimer() {
+        if (this.specialItemTimer) this.specialItemTimer.remove();
+        this.specialItemTimer = this.time.addEvent({ 
+            delay: this.gameStats.specialItemInterval, 
+            callback: () => this.resourceManager.spawnSpecialItem(), 
+            callbackScope: this, 
+            loop: true 
+        });
+    }
+
     private updateSpawnTimer() {
         if (this.spawnTimer) {
             this.spawnTimer.remove();
@@ -523,6 +529,10 @@ export class GameScene extends Phaser.Scene {
 
         this.gameStats.on(GameStats.EVENTS.SPAWN_RATE_CHANGED, () => {
             this.updateSpawnTimer();
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED, () => {
+            this.updateSpecialItemTimer();
         }, this);
 
         // 입력 리스너 (create에서 1회만 등록해도 되지만, setupUI에서 관리 효율을 위해 체크)
@@ -833,14 +843,14 @@ export class GameScene extends Phaser.Scene {
             const chargeStartTime = Math.max(0, DURATIONS.NET_COOLDOWN - 3000);
             if (this.netTimerAccumulator >= chargeStartTime) {
                 const chargeProgress = (this.netTimerAccumulator - chargeStartTime) / 3000;
-                this.gameRenderer.drawNetCharge(this.input.activePointer.worldX, this.input.activePointer.worldY, DURATIONS.NET_DISTANCE, chargeProgress);
+                this.gameRenderer.drawNetCharge(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance, chargeProgress);
             } else {
                 this.gameRenderer.clearNetCharge();
             }
 
             if (this.netTimerAccumulator >= DURATIONS.NET_COOLDOWN) {
                 this.gameRenderer.clearNetCharge();
-                this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, DURATIONS.NET_DISTANCE);
+                this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance);
                 this.netTimerAccumulator = 0;
             }
         } else {
@@ -929,7 +939,7 @@ export class GameScene extends Phaser.Scene {
             this.resourceManager.getSmallBlackHoles().forEach(sbh => {
                 if (!res.active) return;
                 const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
-                const sbhRadius = 150 * sbh.scale; // 축소 중일 때 반지름도 줄어듦
+                const sbhRadius = this.gameStats.smallBlackHoleRadius * sbh.scale; // 축소 중일 때 반지름도 줄어듦
                 if (sbhDist < sbhRadius) {
                     this.applyGravityToPoint(res, sbhDist, sbhRadius, sbh.x, sbh.y);
                 }

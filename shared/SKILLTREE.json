@@ -11,7 +11,7 @@
             { "wood": 160 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 20, 30, 40],
+        "researchTimes": [5, 10, 15, 20, 30],
         "effectProperty": "radius",
         "effectValue": 5,
         "maxLevel": 5
@@ -22,8 +22,8 @@
         "row": 0,
         "costs": [
             { "wood": 5, "rock": 10 },
-            { "wood": 10, "rock": 30 },
-            { "wood": 40, "rock": 80 }
+            { "wood": 20, "rock": 30 },
+            { "wood": 50, "rock": 80 }
         ],
         "prerequisites": [],
         "researchTimes": [5, 15, 30],
@@ -58,7 +58,7 @@
             { "wood": 60, "rock": 150 }
         ],
         "prerequisites": [],
-        "researchTimes": [10, 15, 30, 40, 50],
+        "researchTimes": [5, 15, 20, 30, 40],
         "effectProperty": "moveSpeed",
         "effectValue": 0.5,
         "maxLevel": 5
@@ -71,11 +71,11 @@
             { "wood": 10, "rock": 10 },
             { "wood": 20, "rock": 20 },
             { "wood": 40, "rock": 40 },
-            { "wood": 60, "rock": 60 },
+            { "wood": 70, "rock": 70 },
             { "wood": 150, "rock": 150 }            
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 15, 30, 40],
+        "researchTimes": [5, 10, 15, 20, 30],
         "effectProperty": "highDimProb",
         "effectValue": 0.05,
         "maxLevel": 5
@@ -87,22 +87,22 @@
         "costs": [
             { "wood": 5 },
             { "wood": 20 },
-            { "wood": 50 },
+            { "wood": 40 },
             { "wood": 70 },
-            { "wood": 120 }
+            { "wood": 100 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 15, 30, 40],
+        "researchTimes": [5, 10, 15, 20, 30],
         "effectProperty": "armSpeed",
         "effectValue": 0.2,
-        "maxLevel": 1
+        "maxLevel": 5
     },
     {
         "id": "r2",
         "tree": 0,
         "row": 2,
         "costs": [
-            { "wood": 60 }
+            { "wood": 70 }
         ],
         "prerequisites": [],
         "researchTimes": [15],
@@ -122,7 +122,7 @@
             { "wood": 120, "rock": 120 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 10, 30, 40],
+        "researchTimes": [5, 10, 15, 20, 30],
         "effectProperty": "spawnRate",
         "effectValue": 0.2,
         "maxLevel": 5
@@ -159,7 +159,7 @@
         "tree": 1,
         "row": 3,
         "costs": [
-            { "wood": 100, "rock": 100 }
+            { "wood": 100, "rock": 50 }
         ],
         "prerequisites": [],
         "researchTimes": [20],

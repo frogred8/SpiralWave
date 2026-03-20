@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../client/shared/*"]
+      "@shared/*": ["../client/src/shared/*"]
     }
   },
   "include": ["src/**/*.ts"],

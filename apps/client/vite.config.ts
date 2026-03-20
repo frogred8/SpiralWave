@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 export default defineConfig({
+  root: '.',
   server: {
     watch: {
       usePolling: true,
@@ -13,8 +14,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@shared': path.resolve(__dirname, 'shared'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
     },
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.json'],
   },
 });

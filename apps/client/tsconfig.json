@@ -11,10 +11,12 @@
     "lib": ["ESNext", "DOM"],
     "types": ["vite/client", "node"],
     "baseUrl": ".",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./src/shared/*"]
     }
   },
-  "include": ["./**/*.ts", "./shared/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

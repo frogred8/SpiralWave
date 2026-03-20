@@ -2,18 +2,19 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "outDir": "./dist",
+    "moduleResolution": "Node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "lib": ["ESNext", "DOM"],
+    "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["./**/*.ts", "./shared/**/*.ts"],
+  "exclude": ["node_modules"]
 }

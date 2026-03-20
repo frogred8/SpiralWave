@@ -9,7 +9,7 @@
             { "wood": 120 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 20],
+        "researchTimes": [5, 10, 25],
         "effectProperty": "radius",
         "effectValue": 10,
         "maxLevel": 3
@@ -21,10 +21,10 @@
         "costs": [
             { "wood": 5, "rock": 10 },
             { "wood": 20, "rock": 30 },
-            { "wood": 50, "rock": 80 }
+            { "wood": 60, "rock": 80 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 15, 20],
+        "researchTimes": [5, 15, 25],
         "effectProperty": "smallBlackHole",
         "effectValue": 1,
         "maxLevel": 3
@@ -39,7 +39,7 @@
             { "wood": 120, "rock": 50 }
         ],
         "prerequisites": [],
-        "researchTimes": [10, 15, 20],
+        "researchTimes": [10, 15, 25],
         "effectProperty": "netAngle",
         "effectValue": 15,
         "maxLevel": 3
@@ -73,7 +73,7 @@
             { "wood": 100, "rock": 100 }            
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 10, 15, 30],
+        "researchTimes": [5, 10, 10, 20, 30],
         "effectProperty": "highDimProb",
         "effectValue": 0.05,
         "maxLevel": 5
@@ -113,12 +113,12 @@
         "costs": [
             { "wood": 5, "rock": 5 },
             { "wood": 10, "rock": 10 },
-            { "wood": 15, "rock": 15 },
+            { "wood": 25, "rock": 25 },
             { "wood": 50, "rock": 50 },
             { "wood": 100, "rock": 100 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 10, 15, 30],
+        "researchTimes": [5, 10, 10, 20, 30],
         "effectProperty": "spawnRate",
         "effectValue": 0.3,
         "maxLevel": 5
@@ -183,7 +183,7 @@
         "costs": [
             { "wood": 10, "rock": 10 },
             { "wood": 40, "rock": 40 },
-            { "wood": 60, "rock": 60 }
+            { "wood": 70, "rock": 70 }
         ],
         "prerequisites": [],
         "researchTimes": [5, 15, 25],

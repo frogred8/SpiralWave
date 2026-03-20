@@ -17,7 +17,7 @@ const fastify = Fastify({
 });
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/spiralwave'
+  connectionString: process.env.DATABASE_URL || 'postgres://user:password@localhost:5432/spiralwave'
 });
 
 // Register CORS

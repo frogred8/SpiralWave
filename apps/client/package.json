@@ -1,5 +1,5 @@
 {
-  "name": "spiral-wave-client",
+  "name": "@repo/client",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "howler": "^2.2.4",
-    "phaser": "^3.60.0",
-    "spiral-wave-shared": "*"
+    "phaser": "^3.60.0"
   },
   "devDependencies": {
     "@types/howler": "^2.2.12",

@@ -2,17 +2,17 @@
   "name": "spiral-wave-monorepo",
   "private": true,
   "workspaces": [
-    "client",
-    "server",
-    "shared"
+    "apps/*"
   ],
+  "packageManager": "npm@11.1.0",
   "scripts": {
-    "client:dev": "npm run dev -w client",
-    "client:build": "npm run build -w client",
-    "server:dev": "npm run dev -w server",
-    "build": "npm run build --workspaces --if-present"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "db": "turbo run db",
+    "start": "turbo run start"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "turbo": "^2.8.20"
   }
 }

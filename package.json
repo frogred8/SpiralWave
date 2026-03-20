@@ -12,7 +12,6 @@
     "start": "turbo run start"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
     "turbo": "^2.8.20"
   }
 }

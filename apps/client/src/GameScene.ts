@@ -368,7 +368,7 @@ export class GameScene extends Phaser.Scene {
         const formContainer = this.add.container(width / 2, height / 2).setDepth(4001);
         this.uiContainer.add(formContainer);
 
-        // 폼 배경
+        // 폼 배경 및 타이틀은 Phaser로 유지 (디자인 통일성)
         const bg = this.add.rectangle(0, 0, 340, 420, 0x222222, 0.95)
             .setStrokeStyle(2, 0x444444);
         
@@ -378,25 +378,22 @@ export class GameScene extends Phaser.Scene {
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        // Email 라벨 및 입력창
-        const emailLabel = this.add.text(-145, -120, 'Email', {
-            fontSize: '16px',
-            color: '#aaaaaa'
-        }).setOrigin(0, 0.5);
+        // 입력 폼만 DOM으로 통합 관리 (Phaser ScaleManager 대응)
+        const html = `
+            <div style="width: 290px; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; pointer-events: auto;">
+                <div>
+                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">Email</label>
+                    <input type="email" id="playerEmail" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
+                </div>
+                <div style="margin-top: 10px;">
+                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">Message</label>
+                    <textarea id="playerMsg" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
+                </div>
+            </div>
+        `;
 
-        const emailInput = this.add.dom(width / 2, height / 2 - 85).createFromHTML(
-            '<input type="email" id="playerEmail" style="width: 290px; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px;">'
-        ).setDepth(4002);
-
-        // Message 라벨 및 입력창
-        const msgLabel = this.add.text(-145, -30, 'Message', {
-            fontSize: '16px',
-            color: '#aaaaaa'
-        }).setOrigin(0, 0.5);
-
-        const msgInput = this.add.dom(width / 2, height / 2 + 35).createFromHTML(
-            '<textarea id="playerMsg" style="width: 290px; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 80px; resize: none; font-size: 16px; font-family: sans-serif;"></textarea>'
-        ).setDepth(4002);
+        const domForm = this.add.dom(width / 2, height / 2 - 20).createFromHTML(html)
+            .setOrigin(0.5).setDepth(4002);
 
         // 제출 버튼
         const submitBtn = this.add.container(0, 150);
@@ -410,7 +407,7 @@ export class GameScene extends Phaser.Scene {
 
         submitBtn.add([btnBg, btnText]);
 
-        formContainer.add([bg, title, emailLabel, msgLabel, submitBtn]);
+        formContainer.add([bg, title, submitBtn]);
 
         btnBg.on('pointerover', () => btnBg.setFillStyle(0x00dd00));
         btnBg.on('pointerout', () => btnBg.setFillStyle(0x00ff00));
@@ -420,8 +417,7 @@ export class GameScene extends Phaser.Scene {
             
             await this.sendEndGameSignal(email, msg);
             
-            emailInput.destroy();
-            msgInput.destroy();
+            domForm.destroy();
             formContainer.destroy();
             overlay.destroy();
             this.showGameOverScreen();
@@ -429,10 +425,9 @@ export class GameScene extends Phaser.Scene {
 
         // 등장 애니메이션
         formContainer.setScale(0);
-        emailInput.setScale(0);
-        msgInput.setScale(0);
+        domForm.setScale(0);
         this.tweens.add({
-            targets: [formContainer, emailInput, msgInput],
+            targets: [formContainer, domForm],
             scale: 1,
             duration: 400,
             ease: 'Back.easeOut'
@@ -638,7 +633,7 @@ export class GameScene extends Phaser.Scene {
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            if (this.gameStats.totalAll > 10) {
+            if (this.gameStats.totalAll > 1) {
                 this.showInputForm();
             } else {
                 this.showGameOverScreen();

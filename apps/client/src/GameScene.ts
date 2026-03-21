@@ -384,9 +384,9 @@ export class GameScene extends Phaser.Scene {
             color: '#aaaaaa'
         }).setOrigin(0, 0.5);
 
-        const emailInput = this.add.dom(0, -85).createFromHTML(
+        const emailInput = this.add.dom(width / 2, height / 2 - 85).createFromHTML(
             '<input type="email" id="playerEmail" style="width: 290px; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px;">'
-        );
+        ).setDepth(4002);
 
         // Message 라벨 및 입력창
         const msgLabel = this.add.text(-145, -30, 'Message', {
@@ -394,9 +394,9 @@ export class GameScene extends Phaser.Scene {
             color: '#aaaaaa'
         }).setOrigin(0, 0.5);
 
-        const msgInput = this.add.dom(0, 35).createFromHTML(
+        const msgInput = this.add.dom(width / 2, height / 2 + 35).createFromHTML(
             '<textarea id="playerMsg" style="width: 290px; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 80px; resize: none; font-size: 16px; font-family: sans-serif;"></textarea>'
-        );
+        ).setDepth(4002);
 
         // 제출 버튼
         const submitBtn = this.add.container(0, 150);
@@ -410,7 +410,7 @@ export class GameScene extends Phaser.Scene {
 
         submitBtn.add([btnBg, btnText]);
 
-        formContainer.add([bg, title, emailLabel, emailInput, msgLabel, msgInput, submitBtn]);
+        formContainer.add([bg, title, emailLabel, msgLabel, submitBtn]);
 
         btnBg.on('pointerover', () => btnBg.setFillStyle(0x00dd00));
         btnBg.on('pointerout', () => btnBg.setFillStyle(0x00ff00));
@@ -420,6 +420,8 @@ export class GameScene extends Phaser.Scene {
             
             await this.sendEndGameSignal(email, msg);
             
+            emailInput.destroy();
+            msgInput.destroy();
             formContainer.destroy();
             overlay.destroy();
             this.showGameOverScreen();
@@ -427,8 +429,10 @@ export class GameScene extends Phaser.Scene {
 
         // 등장 애니메이션
         formContainer.setScale(0);
+        emailInput.setScale(0);
+        msgInput.setScale(0);
         this.tweens.add({
-            targets: formContainer,
+            targets: [formContainer, emailInput, msgInput],
             scale: 1,
             duration: 400,
             ease: 'Back.easeOut'
@@ -634,7 +638,7 @@ export class GameScene extends Phaser.Scene {
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            if (this.gameStats.totalAll > 1000) {
+            if (this.gameStats.totalAll > 10) {
                 this.showInputForm();
             } else {
                 this.showGameOverScreen();

@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import pg from 'pg';
+import { StartRequest, EndRequest, VoteRequest, BoardResponse } from '@shared/ApiTypes';
 
 const { Pool } = pg;
 
@@ -62,30 +63,32 @@ fastify.post('/wish', async (request, reply) => {
 
 // Game Session Start endpoint
 fastify.post('/start', async (request, reply) => {
-  fastify.log.info('Game session start requested');
+  const { select_skill_id } = request.body as StartRequest;
+  fastify.log.info({ select_skill_id }, 'Game session start requested');
   return { status: 'ok', message: 'Game session started' };
 });
 
 // Game Session End endpoint
 fastify.post('/end', async (request, reply) => {
-  fastify.log.info('Game session end requested');
+  const { game_id, hash, email, score, msg } = request.body as EndRequest;
+  fastify.log.info({ game_id, email, score }, 'Game session end requested');
   return { status: 'ok', message: 'Game session ended' };
 });
 
 // Vote endpoint
 fastify.put('/vote', async (request, reply) => {
-  fastify.log.info('Vote requested');
+  const { seq_id, game_id, hash } = request.body as VoteRequest;
+  fastify.log.info({ seq_id, game_id }, 'Vote requested');
   return { status: 'ok', message: 'Vote recorded' };
 });
 
 // Leaderboard/Board endpoint
-fastify.get('/board', async (request, reply) => {
+fastify.get('/board', async (request, reply): Promise<BoardResponse> => {
   fastify.log.info('Board data requested');
   return { 
-    status: 'ok', 
-    data: [
-      { id: 1, name: 'Player1', score: 100 },
-      { id: 2, name: 'Player2', score: 80 }
+    ranks: [
+      { seq_id: 1, score: 100, filtered_email: 'pl***@gmail.com', vote: 10 },
+      { seq_id: 2, score: 80, filtered_email: 'te***@naver.com', vote: 5 }
     ] 
   };
 });

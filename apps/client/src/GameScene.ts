@@ -757,22 +757,16 @@ export class GameScene extends Phaser.Scene {
 
 
 
-    private handleInput(pointer: Phaser.Input.Pointer) {
-        const activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
-        if (activeArmsCount >= this.gameStats.maxArms) return;
-
-        const arm = this.arms.find(a => a.state === 'idle');
-        if (!arm) return;
-
+    private findBestArmTarget(originX: number, originY: number, searchRadius: number): Collectible | null {
         let bestTarget: Collectible | null = null;
         let bestPriority = -1; // 2: Special, 1: HighDim, 0: Normal
-        let minDistance = 300; // 200 * 1.5
+        let minDistance = searchRadius;
 
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as Collectible;
             if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
             
-            const dist = Utils.getDistance(pointer.worldX, pointer.worldY, res.x, res.y);
+            const dist = Utils.getDistance(originX, originY, res.x, res.y);
             if (dist > minDistance) return;
 
             let priority = 0;
@@ -789,6 +783,16 @@ export class GameScene extends Phaser.Scene {
             }
         });
 
+        return bestTarget;
+    }
+
+    private handleInput(pointer: Phaser.Input.Pointer) {
+        if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) return;
+
+        const arm = this.arms.find(a => a.state === 'idle');
+        if (!arm) return;
+
+        const bestTarget = this.findBestArmTarget(pointer.worldX, pointer.worldY, 300);
         if (bestTarget) arm.fire(bestTarget, this.time.now);
     }
 
@@ -808,14 +812,11 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.update(cappedDelta);
         this.timerText.setText(this.gameStats.getFormattedRemainingTime());
         
+        const remainingTime = this.gameStats.getRemainingTime();
         if (this.gameStats.isBoosterTime) {
-            // 부스터 시간 중에는 타이머를 노란색으로 표시하고 깜빡임 효과 유지
-            this.timerText.setColor('#ffff00');
-            this.timerText.setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
-        } else if (this.gameStats.getRemainingTime() < 30) {
-            // 정규 시간이 얼마 안 남았을 때 빨간색으로 변경
-            this.timerText.setColor('#ff0000');
-            this.timerText.setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
+            this.timerText.setColor('#ffff00').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
+        } else if (remainingTime < 30) {
+            this.timerText.setColor('#ff0000').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
         } else {
             this.timerText.setColor('#ffffff').setAlpha(1);
         }
@@ -828,7 +829,6 @@ export class GameScene extends Phaser.Scene {
             if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
             if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
             
-            // 화면 경계 제한
             this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
             this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
             
@@ -838,9 +838,8 @@ export class GameScene extends Phaser.Scene {
         // 자동 그물 로직
         if (this.gameStats.isNetEnabled) {
             this.netTimerAccumulator += cappedDelta;
-            
-            // 기모으기 표시: 발사 3초 전부터 (DURATIONS.NET_COOLDOWN - 3000ms)
             const chargeStartTime = Math.max(0, DURATIONS.NET_COOLDOWN - 3000);
+            
             if (this.netTimerAccumulator >= chargeStartTime) {
                 const chargeProgress = (this.netTimerAccumulator - chargeStartTime) / 3000;
                 this.gameRenderer.drawNetCharge(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance, chargeProgress);
@@ -858,7 +857,6 @@ export class GameScene extends Phaser.Scene {
             this.netTimerAccumulator = 0;
         }
 
-        // 화이트 홀 로직 위임
         this.resourceManager.updateWhiteHoles(time);
 
         // 로봇팔 업데이트
@@ -867,50 +865,15 @@ export class GameScene extends Phaser.Scene {
 
         // 자동 로봇팔 로직
         if (this.gameStats.isAutoArmEnabled) {
-            let activeArmsCount = this.arms.filter(a => a.state !== 'idle').length;
-            if (activeArmsCount < this.gameStats.maxArms) {
-                for (const arm of this.arms) {
-                    if (activeArmsCount >= this.gameStats.maxArms) break;
-
-                    if (arm.state === 'idle' && time > arm.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN) {
-                        let bestTarget: Collectible | null = null;
-                        let bestPriority = -1;
-                        let minDistance = 600; // 400 * 1.5
-
-                        this.resourceManager.getGroup().getChildren().forEach((child) => {
-                            const collectible = child as Collectible;
-                            if (!collectible.active || this.arms.some(a => a.grabbedResource === collectible)) return;
-
-                            const distance = Utils.getDistance(this.spiralCenter.x, this.spiralCenter.y, collectible.x, collectible.y);
-                            if (distance > minDistance) return;
-
-                            let priority = 0;
-                            if (collectible.itemType === 'special') priority = 2;
-                            else if (collectible.isHighDim) priority = 1;
-
-                            if (priority > bestPriority) {
-                                bestPriority = priority;
-                                minDistance = distance;
-                                bestTarget = collectible;
-                            } else if (priority === bestPriority && distance < minDistance) {
-                                minDistance = distance;
-                                bestTarget = collectible;
-                            }
-                        });
-
-                        if (bestTarget) {
-                            arm.fire(bestTarget, time);
-                            activeArmsCount++;
-                        }
-                    }
-                }
+            const idleArms = this.arms.filter(a => a.state === 'idle' && time > a.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN);
+            for (const arm of idleArms) {
+                if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) break;
+                const bestTarget = this.findBestArmTarget(this.spiralCenter.x, this.spiralCenter.y, 600);
+                if (bestTarget) arm.fire(bestTarget, time);
             }
         }
 
-        // 시각 요소 업데이트
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
-
-        // 물리 및 수집 로직
         this.processResources();
     }
 
@@ -920,89 +883,95 @@ export class GameScene extends Phaser.Scene {
 
     private processResources() {
         const effectiveRadius = this.getCurrentRadius();
+        const centerX = this.spiralCenter.x;
+        const centerY = this.spiralCenter.y;
+        const screenLimit = Math.max(1200, this.scale.width, this.scale.height);
 
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as any;
             if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
 
+            const dist = Utils.getDistance(res.x, res.y, centerX, centerY);
+
             if (res.itemType === 'special') {
-                const limit = Math.max(1200, this.scale.width, this.scale.height);
-                if (Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y) > limit) res.destroy();
+                if (dist > screenLimit) res.destroy();
                 return;
             }
 
-            const dist = Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y);
+            // 중심 블랙홀 중력 및 수집
             if (dist < effectiveRadius) {
-                this.applyGravity(res, dist, effectiveRadius);
+                this.applyGravityToPoint(res, dist, effectiveRadius, centerX, centerY);
             }
-
-            // 작은 블랙홀 중력 적용
-            this.resourceManager.getSmallBlackHoles().forEach(sbh => {
-                if (!res.active) return;
-                const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
-                const sbhRadius = this.gameStats.smallBlackHoleRadius * sbh.scale; // 축소 중일 때 반지름도 줄어듦
-                if (sbhDist < sbhRadius) {
-                    this.applyGravityToPoint(res, sbhDist, sbhRadius, sbh.x, sbh.y);
-                }
-            });
 
             const collectionRadius = res.isHighDim ? RESOURCE_CONFIG.COLLECTION_RADIUS.HIGH_DIM : RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL;
             if (dist < collectionRadius) {
                 this.collectResource(res);
-            } else {
-                // 작은 블랙홀 수집 체크
-                let collectedBySBH = false;
-                this.resourceManager.getSmallBlackHoles().forEach(sbh => {
-                    if (!res.active || collectedBySBH) return;
-                    const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
-                    // 작은 블랙홀의 수집 반경 (기본 30)
-                    if (sbhDist < 30 * sbh.scale) {
-                        this.collectResource(res, false, false, sbh.x, sbh.y);
-                        collectedBySBH = true;
-                    }
-                });
+                return;
+            }
 
-                if (!collectedBySBH) {
-                    const limit = Math.max(1200, this.scale.width, this.scale.height);
-                    if (dist > limit) {
-                        res.destroy();
-                    } else {
-                        this.limitSpeed(res, dist);
-                    }
+            // 작은 블랙홀 중력 및 수집
+            let collectedBySBH = false;
+            this.resourceManager.getSmallBlackHoles().forEach(sbh => {
+                if (!res.active || collectedBySBH) return;
+                const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
+                const sbhRadius = this.gameStats.smallBlackHoleRadius * sbh.scale;
+                
+                if (sbhDist < sbhRadius) {
+                    this.applyGravityToPoint(res, sbhDist, sbhRadius, sbh.x, sbh.y);
+                }
+                
+                if (sbhDist < 30 * sbh.scale) {
+                    this.collectResource(res, false, false, sbh.x, sbh.y);
+                    collectedBySBH = true;
+                }
+            });
+
+            if (!collectedBySBH) {
+                if (dist > screenLimit) {
+                    res.destroy();
+                } else {
+                    this.limitSpeed(res, dist);
                 }
             }
         });
     }
 
-    private applyGravity(res: any, dist: number, radius: number) {
-        this.applyGravityToPoint(res, dist, radius, this.spiralCenter.x, this.spiralCenter.y);
-    }
-
     private applyGravityToPoint(res: any, dist: number, radius: number, targetX: number, targetY: number) {
-        const dir = new Phaser.Math.Vector2(targetX - res.x, targetY - res.y).normalize();
-        const tangent = new Phaser.Math.Vector2(-dir.y, dir.x);
+        const dx = targetX - res.x;
+        const dy = targetY - res.y;
+        const mag = Math.sqrt(dx * dx + dy * dy) || 1;
+        const dirX = dx / mag;
+        const dirY = dy / mag;
+        
+        const tangentX = -dirY;
+        const tangentY = dirX;
+        
         const force = (1 - (dist / radius)) * this.gameStats.force * PHYSICS_CONFIG.ACCEL_BASE;
         const boost = dist < 150 ? Math.pow((150 - dist) / 150, 2) * 5 : 0;
         const accel = force * (1 + boost);
         const spiral = 0.2 * Math.pow(dist / radius, 2);
 
-        res.body.velocity.x += (dir.x * accel + tangent.x * accel * spiral);
-        res.body.velocity.y += (dir.y * accel + tangent.y * accel * spiral);
+        res.body.velocity.x += (dirX * accel + tangentX * accel * spiral);
+        res.body.velocity.y += (dirY * accel + tangentY * accel * spiral);
 
-        if (dist < 150) res.body.setDrag(PHYSICS_CONFIG.DRAG_BASE * res.body.mass);
-        else res.body.setDrag(0);
+        res.body.setDrag(dist < 150 ? PHYSICS_CONFIG.DRAG_BASE * res.body.mass : 0);
     }
 
     private limitSpeed(res: any, dist: number) {
         const min = dist < 100 ? PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER : PHYSICS_CONFIG.MIN_SPEED_NORMAL;
         const max = PHYSICS_CONFIG.MAX_SPEED;
         const vel = res.body.velocity;
-        const speedSq = vel.lengthSq();
+        const speed = vel.length();
 
-        if (speedSq > max * max) vel.normalize().scale(max);
-        else if (speedSq < min * min) {
-            if (speedSq === 0) vel.setToPolar(Math.random() * Math.PI * 2, min);
-            else vel.normalize().scale(min);
+        if (speed > max) {
+            vel.normalize().scale(max);
+        } else if (speed < min) {
+            if (speed === 0) {
+                const angle = Math.random() * Math.PI * 2;
+                vel.setTo(Math.cos(angle) * min, Math.sin(angle) * min);
+            } else {
+                vel.normalize().scale(min);
+            }
         }
     }
 

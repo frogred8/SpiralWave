@@ -597,7 +597,11 @@ export class GameScene extends Phaser.Scene {
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            this.showInputForm();
+            if (this.gameStats.totalAll > 1000) {
+                this.showInputForm();
+            } else {
+                this.showGameOverScreen();
+            }
         }, this);
 
         this.gameStats.on(GameStats.EVENTS.CALCULATE_BOOSTER, () => {

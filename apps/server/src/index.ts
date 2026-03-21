@@ -1,7 +1,5 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { WishModel } from './models/wish.model';
-import { WishController } from './controllers/wish.controller';
 import { GameController } from './controllers/game.controller';
 
 const fastify = Fastify({
@@ -32,7 +30,6 @@ fastify.get('/', async (request, reply) => {
 });
 
 // Routes
-fastify.post('/wish', WishController.handlePostWish);
 fastify.post('/start', GameController.handleStart);
 fastify.post('/end', GameController.handleEnd);
 fastify.put('/vote', GameController.handleVote);
@@ -43,9 +40,6 @@ fastify.get('/board', GameController.handleGetBoard);
  */
 const start = async () => {
   try {
-    // Initialize DB tables
-    await WishModel.initTable();
-    
     const port = Number(process.env.PORT) || 3000;
     const host = process.env.HOST || '0.0.0.0';
     

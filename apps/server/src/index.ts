@@ -60,6 +60,36 @@ fastify.post('/wish', async (request, reply) => {
   }
 });
 
+// Game Session Start endpoint
+fastify.post('/start', async (request, reply) => {
+  fastify.log.info('Game session start requested');
+  return { status: 'ok', message: 'Game session started' };
+});
+
+// Game Session End endpoint
+fastify.post('/end', async (request, reply) => {
+  fastify.log.info('Game session end requested');
+  return { status: 'ok', message: 'Game session ended' };
+});
+
+// Vote endpoint
+fastify.put('/vote', async (request, reply) => {
+  fastify.log.info('Vote requested');
+  return { status: 'ok', message: 'Vote recorded' };
+});
+
+// Leaderboard/Board endpoint
+fastify.get('/board', async (request, reply) => {
+  fastify.log.info('Board data requested');
+  return { 
+    status: 'ok', 
+    data: [
+      { id: 1, name: 'Player1', score: 100 },
+      { id: 2, name: 'Player2', score: 80 }
+    ] 
+  };
+});
+
 /**
  * Run the server!
  */

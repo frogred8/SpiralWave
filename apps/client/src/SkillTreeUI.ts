@@ -254,6 +254,11 @@ export class SkillTreeUI {
             
             const lv = this.gameStats.skillLevels[skill.id];
             const isUnlocked = this.isSkillUnlocked(skill);
+            // 현재 레벨로만 해금되었는지 여부 (연구 대기 제외)
+            const isActuallyUnlocked = !skill.prerequisites || skill.prerequisites.length === 0 || 
+                                       skill.prerequisites.every(pre => this.gameStats.skillLevels[pre.id] >= pre.level);
+            const isUnlockedByResearch = !isActuallyUnlocked && isUnlocked;
+
             const currentCosts = lv < skill.maxLevel ? skill.costs[lv] : {};
             const canAfford = this.gameStats.canAfford(currentCosts);
             const isMaxLevel = lv >= skill.maxLevel;
@@ -264,8 +269,6 @@ export class SkillTreeUI {
 
             if (isActiveResearch) {
                 const research = this.gameStats.activeResearches[researchIndex];
-                // const progress = 1 - (research.remainingTime / research.totalTime);
-                // data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s (${Math.floor(progress * 100)}%)`);
                 data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s`);
                 data.lvTxt.setColor('#ffff00');
             } else if (isResearching) {
@@ -290,7 +293,6 @@ export class SkillTreeUI {
                 bg.setFillStyle(0x006600); 
                 bg.setStrokeStyle(3, 0x00ff00); 
                 nameTxt.setColor('#ffffff');
-                // 인터랙션은 유지하되(툴팁용), 클릭 손가락 커서는 비활성화
                 btn.setInteractive({ useHandCursor: false }); 
             } else if (!isUnlocked) {
                 btn.setAlpha(0.5);
@@ -298,7 +300,15 @@ export class SkillTreeUI {
                 bg.setStrokeStyle(3, UI_CONFIG.BUTTON.STROKE_COLOR);
                 nameTxt.setColor('#aaaaaa');
                 lvTxt.setColor(UI_CONFIG.BUTTON.DISABLED_TEXT_COLOR);
-                btn.setInteractive({ useHandCursor: true }); // Enable interaction for tooltip
+                btn.setInteractive({ useHandCursor: true }); 
+            } else if (isUnlockedByResearch) {
+                // 연구 중인 스킬로 인해 배울 수 있는 상태 (노란색 강조)
+                btn.setAlpha(0.8);
+                bg.setFillStyle(UI_CONFIG.BUTTON.BG_COLOR);
+                bg.setStrokeStyle(3, 0xffff00);
+                nameTxt.setColor('#ffffff');
+                lvTxt.setColor('#ffff00');
+                btn.setInteractive({ useHandCursor: true });
             } else if (!canAfford) {
                 btn.setAlpha(0.7);
                 bg.setFillStyle(UI_CONFIG.BUTTON.BG_COLOR);
@@ -318,18 +328,27 @@ export class SkillTreeUI {
             if (skill.prerequisites) {
                 skill.prerequisites.forEach(pre => {
                     const parentBtn = this.skillButtons[pre.id];
-                    // Only draw line if parent skill is also in the current randomized tree
                     if (parentBtn && this.skillButtons[skill.id]) {
-                        const parentSkill = this.skillTreeData.find(s => s.id === pre.id);
-                        const parentLevel = parentSkill ? this.gameStats.skillLevels[parentSkill.id] : 0;
+                        const parentLevel = this.gameStats.skillLevels[pre.id] || 0;
                         const isSatisfied = parentLevel >= pre.level;
+                        const isParentBeingResearched = this.gameStats.activeResearches.some(r => r.skillId === pre.id);
+                        const isSatisfiedByResearch = !isSatisfied && isParentBeingResearched && (parentLevel + 1 >= pre.level);
                         
-                        // Calculate start and end points at the edges of buttons
                         const start = this.getEdgePoint(parentBtn, btn);
                         const end = this.getEdgePoint(btn, parentBtn);
 
-                        // Brighten colors for dark background: Active (Green), Inactive (Lighter Grey)
-                        this.lineGraphics.lineStyle(2, isSatisfied ? 0x00ff00 : 0x555555, isSatisfied ? 1.0 : 0.4);
+                        let color = 0x555555;
+                        let alpha = 0.4;
+
+                        if (isSatisfied) {
+                            color = 0x00ff00; // Green
+                            alpha = 1.0;
+                        } else if (isSatisfiedByResearch) {
+                            color = 0xffff00; // Yellow
+                            alpha = 0.8;
+                        }
+
+                        this.lineGraphics.lineStyle(2, color, alpha);
                         this.lineGraphics.lineBetween(start.x, start.y, end.x, end.y);
                     }
                 });

@@ -365,37 +365,74 @@ export class GameScene extends Phaser.Scene {
             .setOrigin(0).setInteractive().setDepth(4000);
         this.uiContainer.add(overlay);
 
-        const html = `
-            <div style="color: white; font-family: sans-serif; text-align: center; width: 300px; padding: 20px; background: #222; border: 2px solid #444; border-radius: 10px;">
-                <h2 style="margin-top: 0;">Submit Your Score</h2>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-size: 14px;">Email</label>
-                    <input type="email" id="playerEmail" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 5px; font-size: 14px;">Message</label>
-                    <textarea id="playerMsg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 60px; resize: none;"></textarea>
-                </div>
-                <button id="submitBtn" style="width: 100%; padding: 10px; border-radius: 4px; border: none; background: #00ff00; color: #000; font-weight: bold; cursor: pointer;">SUBMIT</button>
-            </div>
-        `;
+        const formContainer = this.add.container(width / 2, height / 2).setDepth(4001);
+        this.uiContainer.add(formContainer);
 
-        const form = this.add.dom(width / 2, height / 2).createFromHTML(html).setDepth(4001);
-        this.uiContainer.add(form);
+        // 폼 배경
+        const bg = this.add.rectangle(0, 0, 340, 420, 0x222222, 0.95)
+            .setStrokeStyle(2, 0x444444);
+        
+        const title = this.add.text(0, -170, 'Submit Your Score', {
+            fontSize: '28px',
+            color: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
 
-        const submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) {
-            submitBtn.addEventListener('click', async () => {
-                const email = (document.getElementById('playerEmail') as HTMLInputElement).value;
-                const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
-                
-                await this.sendEndGameSignal(email, msg);
-                
-                form.destroy();
-                overlay.destroy();
-                this.showGameOverScreen();
-            });
-        }
+        // Email 라벨 및 입력창
+        const emailLabel = this.add.text(-145, -120, 'Email', {
+            fontSize: '16px',
+            color: '#aaaaaa'
+        }).setOrigin(0, 0.5);
+
+        const emailInput = this.add.dom(0, -85).createFromHTML(
+            '<input type="email" id="playerEmail" style="width: 290px; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px;">'
+        );
+
+        // Message 라벨 및 입력창
+        const msgLabel = this.add.text(-145, -30, 'Message', {
+            fontSize: '16px',
+            color: '#aaaaaa'
+        }).setOrigin(0, 0.5);
+
+        const msgInput = this.add.dom(0, 35).createFromHTML(
+            '<textarea id="playerMsg" style="width: 290px; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 80px; resize: none; font-size: 16px; font-family: sans-serif;"></textarea>'
+        );
+
+        // 제출 버튼
+        const submitBtn = this.add.container(0, 150);
+        const btnBg = this.add.rectangle(0, 0, 290, 50, 0x00ff00, 1)
+            .setInteractive({ useHandCursor: true });
+        const btnText = this.add.text(0, 0, 'SUBMIT', {
+            fontSize: '20px',
+            color: '#000000',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        submitBtn.add([btnBg, btnText]);
+
+        formContainer.add([bg, title, emailLabel, emailInput, msgLabel, msgInput, submitBtn]);
+
+        btnBg.on('pointerover', () => btnBg.setFillStyle(0x00dd00));
+        btnBg.on('pointerout', () => btnBg.setFillStyle(0x00ff00));
+        btnBg.on('pointerdown', async () => {
+            const email = (document.getElementById('playerEmail') as HTMLInputElement).value;
+            const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
+            
+            await this.sendEndGameSignal(email, msg);
+            
+            formContainer.destroy();
+            overlay.destroy();
+            this.showGameOverScreen();
+        });
+
+        // 등장 애니메이션
+        formContainer.setScale(0);
+        this.tweens.add({
+            targets: formContainer,
+            scale: 1,
+            duration: 400,
+            ease: 'Back.easeOut'
+        });
     }
 
     private async sendEndGameSignal(email: string, msg: string) {

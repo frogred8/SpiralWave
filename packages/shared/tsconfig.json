@@ -8,13 +8,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "lib": ["ESNext", "DOM"],
-    "types": ["vite/client", "node"],
-    "outDir": "./dist",
-    "paths": {
-      "@shared/*": ["../../packages/shared/src/*"]
-    }
+    "declaration": true,
+    "outDir": "./dist"
   },
-  "include": ["src/**/*.ts", "../../packages/shared/src/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

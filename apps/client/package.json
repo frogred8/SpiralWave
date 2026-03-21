@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@repo/shared": "*",
     "howler": "^2.2.4",
     "phaser": "^3.60.0"
   },

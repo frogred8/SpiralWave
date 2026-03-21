@@ -3,7 +3,8 @@ import { StartRequest, EndRequest, VoteRequest, BoardResponse } from '@repo/shar
 export const GameService = {
   async startGame(data: StartRequest) {
     // Business logic for starting game
-    return { status: 'ok', message: 'Game session started' };
+    const gameId = Math.floor(Math.random() * 1000000);
+    return { status: 'ok', message: 'Game session started', game_id: gameId };
   },
 
   async endGame(data: EndRequest) {

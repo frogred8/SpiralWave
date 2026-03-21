@@ -7,7 +7,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
-import { Resource, SpecialItem, Collectible, StartRequest } from '@repo/shared';
+import { Resource, SpecialItem, Collectible, StartRequest, EndRequest } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 
@@ -38,6 +38,7 @@ export class GameScene extends Phaser.Scene {
     private canReroll: boolean = false;
     private timerText!: Phaser.GameObjects.Text;
     private specialItemTimer?: Phaser.Time.TimerEvent;
+    private currentGameId: number = 0;
 
     constructor() {
         super('GameScene');
@@ -342,13 +343,81 @@ export class GameScene extends Phaser.Scene {
 
         try {
             const body: StartRequest = { select_skill_id: skillId };
-            await fetch(`${serverUrl}/start`, {
+            const response = await fetch(`${serverUrl}/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await response.json();
+            if (data.game_id) {
+                this.currentGameId = data.game_id;
+            }
+        } catch (err) {
+            console.error('Failed to send start signal:', err);
+        }
+    }
+
+    private showInputForm() {
+        const { width, height } = this.scale;
+        
+        // 딤드 배경
+        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85)
+            .setOrigin(0).setInteractive().setDepth(4000);
+        this.uiContainer.add(overlay);
+
+        const html = `
+            <div style="color: white; font-family: sans-serif; text-align: center; width: 300px; padding: 20px; background: #222; border: 2px solid #444; border-radius: 10px;">
+                <h2 style="margin-top: 0;">Submit Your Score</h2>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 14px;">Email</label>
+                    <input type="email" id="playerEmail" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 14px;">Message</label>
+                    <textarea id="playerMsg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 60px; resize: none;"></textarea>
+                </div>
+                <button id="submitBtn" style="width: 100%; padding: 10px; border-radius: 4px; border: none; background: #00ff00; color: #000; font-weight: bold; cursor: pointer;">SUBMIT</button>
+            </div>
+        `;
+
+        const form = this.add.dom(width / 2, height / 2).createFromHTML(html).setDepth(4001);
+        this.uiContainer.add(form);
+
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', async () => {
+                const email = (document.getElementById('playerEmail') as HTMLInputElement).value;
+                const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
+                
+                await this.sendEndGameSignal(email, msg);
+                
+                form.destroy();
+                overlay.destroy();
+                this.showGameOverScreen();
+            });
+        }
+    }
+
+    private async sendEndGameSignal(email: string, msg: string) {
+        const serverUrl = import.meta.env.VITE_SERVER_URL;
+        if (!serverUrl) return;
+
+        try {
+            const body: EndRequest = {
+                game_id: this.currentGameId,
+                hash: "dummy_hash", // 나중에 검증 로직 추가 가능
+                email: email,
+                score: this.gameStats.totalAll,
+                msg: msg
+            };
+
+            await fetch(`${serverUrl}/end`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
         } catch (err) {
-            console.error('Failed to send start signal:', err);
+            console.error('Failed to send end signal:', err);
         }
     }
 
@@ -528,7 +597,7 @@ export class GameScene extends Phaser.Scene {
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            this.showGameOverScreen();
+            this.showInputForm();
         }, this);
 
         this.gameStats.on(GameStats.EVENTS.CALCULATE_BOOSTER, () => {

@@ -1,5 +1,5 @@
 # 프로젝트 구조
-이 프로젝트는 모노레포 구조로 관리됩니다.
+이 프로젝트는 turborepo를 이용한 모노레포 구조로 관리됩니다.
 - **client/**: 프론트엔드 (Phaser, TypeScript, Vite)
 - **server/**: 백엔드 (Node.js, Fastify, Postgresql)
 

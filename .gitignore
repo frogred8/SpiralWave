@@ -27,3 +27,4 @@ out
 *.sln
 *.sw?
 *.js
+*.d.ts

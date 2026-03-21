@@ -7,7 +7,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
-import { Resource, SpecialItem, Collectible } from '@shared/Types';
+import { Resource, SpecialItem, Collectible, StartRequest } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 
@@ -296,6 +296,11 @@ export class GameScene extends Phaser.Scene {
             bg.on('pointerdown', () => {
                 this.gameStats.grantSkill(skill);
                 SoundManager.getInstance().play('skillupgrade');
+                
+                // 서버에 시작 신호 전송 (스킬 데이터 상의 인덱스를 ID로 사용)
+                const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
+                this.sendStartGameSignal(skillIndex);
+
                 this.startGame();
                 
                 // 선택 UI 제거 애니메이션
@@ -329,6 +334,22 @@ export class GameScene extends Phaser.Scene {
         this.isGameStarted = true;
         this.timerText.setVisible(true);
         SoundManager.getInstance().play('gamestart');
+    }
+
+    private async sendStartGameSignal(skillId: number) {
+        const serverUrl = import.meta.env.VITE_SERVER_URL;
+        if (!serverUrl) return;
+
+        try {
+            const body: StartRequest = { select_skill_id: skillId };
+            await fetch(`${serverUrl}/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        } catch (err) {
+            console.error('Failed to send start signal:', err);
+        }
     }
 
     private showGameOverScreen() {

@@ -284,7 +284,24 @@ export class GameStats extends Phaser.Events.EventEmitter {
     }
 
     /**
-     * 대기 중인 연구 취소 및 자원 환불
+     * 스킬 해금 여부 확인 (연구 중인 스킬도 해금 조건 만족으로 간주)
+     */
+    public isSkillUnlocked(skill: SkillData): boolean {
+        if (!skill.prerequisites || skill.prerequisites.length === 0) return true;
+        return skill.prerequisites.every(pre => {
+            const currentLevel = this.skillLevels[pre.id] || 0;
+            if (currentLevel >= pre.level) return true;
+            
+            // 현재 연구 중인 스킬도 조건 만족으로 간주 (연구 완료 시 레벨업 예정이므로)
+            const isResearching = this.activeResearches.some(r => r.skillId === pre.id);
+            if (isResearching && currentLevel + 1 >= pre.level) return true;
+            
+            return false;
+        });
+    }
+
+    /**
+     * 대기 중인 연구 취소 및 자원 환불 (의존성 체크 포함)
      */
     cancelResearch(skill: SkillData): boolean {
         const index = this.activeResearches.findIndex(r => r.skillId === skill.id);
@@ -298,6 +315,17 @@ export class GameStats extends Phaser.Events.EventEmitter {
         if (costs.wood) this.collected.wood += costs.wood;
 
         this.activeResearches.splice(index, 1);
+
+        // 취소된 스킬에 의존하는 후속 연구들도 취소 (재귀 호출)
+        for (let i = index; i < this.activeResearches.length; i++) {
+            const nextResearch = this.activeResearches[i];
+            const nextSkill = this.skillTreeData.find(s => s.id === nextResearch.skillId);
+            if (nextSkill && !this.isSkillUnlocked(nextSkill)) {
+                this.cancelResearch(nextSkill);
+                break; // 재귀 호출이 배열을 수정하므로 루프 중단
+            }
+        }
+
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
         return true;
     }

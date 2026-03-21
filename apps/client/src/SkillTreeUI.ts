@@ -208,9 +208,7 @@ export class SkillTreeUI {
     }
 
     private isSkillUnlocked(skill: SkillData): boolean {
-        if (!skill.prerequisites || skill.prerequisites.length === 0) return true;
-        // 모든 선행 조건을 만족해야 함
-        return skill.prerequisites.every(pre => this.gameStats.skillLevels[pre.id] >= pre.level);
+        return this.gameStats.isSkillUnlocked(skill);
     }
 
     private handleSkillUpgrade(skill: SkillData) {

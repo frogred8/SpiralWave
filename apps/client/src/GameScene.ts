@@ -7,7 +7,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
-import { Resource, SpecialItem, Collectible, StartRequest, EndRequest } from '@repo/shared';
+import { Resource, SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, BoardResponse } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 
@@ -457,7 +457,24 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private showGameOverScreen() {
+    private async fetchBoardData(): Promise<RankEntry[]> {
+        const serverUrl = import.meta.env.VITE_SERVER_URL;
+        if (!serverUrl) return [];
+
+        try {
+            const response = await fetch(`${serverUrl}/board`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data: BoardResponse = await response.json();
+            return data.ranks || [];
+        } catch (err) {
+            console.error('Failed to fetch board:', err);
+            return [];
+        }
+    }
+
+    private async showGameOverScreen() {
         const { width, height } = this.scale;
         
         SoundManager.getInstance().play('winning');
@@ -470,8 +487,8 @@ export class GameScene extends Phaser.Scene {
             .setOrigin(0).setInteractive().setDepth(3000);
         this.uiContainer.add(overlay);
 
-        const title = this.add.text(width / 2, height / 2 - 120, I18n.t('ui.game_over'), {
-            fontSize: '64px',
+        const title = this.add.text(width / 2, 80, I18n.t('ui.game_over'), {
+            fontSize: '56px',
             color: '#ff0000',
             fontStyle: 'bold',
             stroke: '#000000',
@@ -479,16 +496,64 @@ export class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(3001);
         this.uiContainer.add(title);
 
-        const resourceInfo = this.add.text(width / 2, height / 2, `${I18n.t('ui.total_resources')}\n${this.gameStats.totalAll}`, {
-            fontSize: '32px',
+        const resourceInfo = this.add.text(width / 2, 160, `${I18n.t('ui.total_resources')}: ${this.gameStats.totalAll}`, {
+            fontSize: '28px',
             color: '#ffffff',
             align: 'center',
-            lineSpacing: 15
+            fontStyle: 'bold'
         }).setOrigin(0.5).setDepth(3001);
         this.uiContainer.add(resourceInfo);
 
+        // 리더보드 컨테이너
+        const boardContainer = this.add.container(width / 2, height / 2).setDepth(3001);
+        this.uiContainer.add(boardContainer);
+
+        const boardBg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9)
+            .setStrokeStyle(2, 0x444444);
+        
+        const boardTitle = this.add.text(0, -170, 'Top Survivors', {
+            fontSize: '24px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        boardContainer.add([boardBg, boardTitle]);
+
+        // 리더보드 데이터 가져오기
+        const ranks = await this.fetchBoardData();
+        const displayRanks = ranks.slice(0, 10);
+
+        if (displayRanks.length === 0) {
+            const emptyText = this.add.text(0, 0, 'No rankings yet.', {
+                fontSize: '18px',
+                color: '#888888'
+            }).setOrigin(0.5);
+            boardContainer.add(emptyText);
+        } else {
+            displayRanks.forEach((rank, index) => {
+                const yPos = -130 + (index * 30);
+                const rankNum = this.add.text(-260, yPos, `${index + 1}.`, {
+                    fontSize: '18px',
+                    color: '#aaaaaa'
+                }).setOrigin(0, 0.5);
+                
+                const email = this.add.text(-220, yPos, rank.filtered_email, {
+                    fontSize: '18px',
+                    color: '#ffffff'
+                }).setOrigin(0, 0.5);
+                
+                const score = this.add.text(260, yPos, rank.score.toLocaleString(), {
+                    fontSize: '18px',
+                    color: '#00ff00',
+                    fontStyle: 'bold'
+                }).setOrigin(1, 0.5);
+
+                boardContainer.add([rankNum, email, score]);
+            });
+        }
+
         // 다시하기 버튼
-        const restartBtn = this.add.container(width / 2, height / 2 + 150).setDepth(3001);
+        const restartBtn = this.add.container(width / 2, height - 100).setDepth(3001);
         const btnBg = this.add.rectangle(0, 0, 250, 60, 0x222222, 0.9)
             .setStrokeStyle(3, 0x444444)
             .setInteractive({ useHandCursor: true });
@@ -510,17 +575,19 @@ export class GameScene extends Phaser.Scene {
             overlay.destroy();
             title.destroy();
             resourceInfo.destroy();
+            boardContainer.destroy();
             restartBtn.destroy();
         });
 
-        // 결과창 등장 애니메이션
+        // 애니메이션
+        boardContainer.setScale(0);
         restartBtn.setScale(0);
         this.tweens.add({
-            targets: restartBtn,
+            targets: [boardContainer, restartBtn],
             scale: 1,
             duration: 500,
             ease: 'Back.easeOut',
-            delay: 1000
+            delay: 500
         });
     }
 

@@ -32,7 +32,6 @@ fastify.get('/', async (request, reply) => {
 // Routes
 fastify.post('/start', GameController.handleStart);
 fastify.post('/end', GameController.handleEnd);
-fastify.put('/vote', GameController.handleVote);
 fastify.get('/board', GameController.handleGetBoard);
 
 /**

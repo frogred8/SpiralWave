@@ -511,7 +511,7 @@ export class GameScene extends Phaser.Scene {
         const boardBg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9)
             .setStrokeStyle(2, 0x444444);
         
-        const boardTitle = this.add.text(0, -170, 'Top Survivors', {
+        const boardTitle = this.add.text(0, -170, 'Leaderboard', {
             fontSize: '24px',
             color: '#00ff00',
             fontStyle: 'bold'
@@ -532,23 +532,19 @@ export class GameScene extends Phaser.Scene {
         } else {
             displayRanks.forEach((rank, index) => {
                 const yPos = -130 + (index * 30);
-                const rankNum = this.add.text(-260, yPos, `${index + 1}.`, {
+                const score = this.add.text(-260, yPos, rank.score.toLocaleString(), {
                     fontSize: '18px',
-                    color: '#aaaaaa'
-                }).setOrigin(0, 0.5);
+                    color: '#00ff00',
+                    fontStyle: 'bold'
+                }).setOrigin(1, 0.5);
                 
                 const email = this.add.text(-220, yPos, rank.filtered_email, {
                     fontSize: '18px',
                     color: '#ffffff'
                 }).setOrigin(0, 0.5);
                 
-                const score = this.add.text(260, yPos, rank.score.toLocaleString(), {
-                    fontSize: '18px',
-                    color: '#00ff00',
-                    fontStyle: 'bold'
-                }).setOrigin(1, 0.5);
 
-                boardContainer.add([rankNum, email, score]);
+                boardContainer.add([score, email]);
             });
         }
 

@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { GameService } from '../services/game.service';
-import { StartRequest, EndRequest, VoteRequest } from '@repo/shared';
+import { StartRequest, EndRequest } from '@repo/shared';
 
 export const GameController = {
   async handleStart(request: FastifyRequest, reply: FastifyReply) {
@@ -13,12 +13,6 @@ export const GameController = {
     const body = request.body as EndRequest;
     request.log.info({ game_id: body.game_id, email: body.email, score: body.score }, 'Game session end requested');
     return await GameService.endGame(body);
-  },
-
-  async handleVote(request: FastifyRequest, reply: FastifyReply) {
-    const body = request.body as VoteRequest;
-    request.log.info({ seq_id: body.seq_id, game_id: body.game_id }, 'Vote requested');
-    return await GameService.vote(body);
   },
 
   async handleGetBoard(request: FastifyRequest, reply: FastifyReply) {

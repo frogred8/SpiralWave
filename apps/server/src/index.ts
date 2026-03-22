@@ -33,7 +33,7 @@ fastify.get('/', async (request, reply) => {
 fastify.post('/start', GameController.handleStart);
 fastify.post('/end', GameController.handleEnd);
 fastify.put('/vote', GameController.handleVote);
-fastify.post('/board', GameController.handleGetBoard);
+fastify.get('/board', GameController.handleGetBoard);
 
 /**
  * Run the server!

@@ -463,7 +463,7 @@ export class GameScene extends Phaser.Scene {
 
         try {
             const response = await fetch(`${serverUrl}/board`, {
-                method: 'POST',
+                method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
             const data: BoardResponse = await response.json();

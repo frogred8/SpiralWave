@@ -382,8 +382,8 @@ export class GameScene extends Phaser.Scene {
         const html = `
             <div style="width: 290px; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; pointer-events: auto;">
                 <div>
-                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">Email</label>
-                    <input type="email" id="playerEmail" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
+                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">Name</label>
+                    <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
                 </div>
                 <div style="margin-top: 10px;">
                     <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">Message</label>
@@ -433,10 +433,10 @@ export class GameScene extends Phaser.Scene {
         submitBg.on('pointerover', () => submitBg.setFillStyle(0x00dd00));
         submitBg.on('pointerout', () => submitBg.setFillStyle(0x00ff00));
         submitBg.on('pointerdown', async () => {
-            const email = (document.getElementById('playerEmail') as HTMLInputElement).value;
+            const name = (document.getElementById('playerName') as HTMLInputElement).value;
             const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
             
-            await this.sendEndGameSignal(email, msg);
+            await this.sendEndGameSignal(name, msg);
             
             closeForm();
             this.showGameOverScreen();
@@ -461,7 +461,7 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private async sendEndGameSignal(email: string, msg: string) {
+    private async sendEndGameSignal(name: string, msg: string) {
         const serverUrl = import.meta.env.VITE_SERVER_URL;
         if (!serverUrl) return;
 
@@ -469,7 +469,7 @@ export class GameScene extends Phaser.Scene {
             const body: EndRequest = {
                 game_id: this.currentGameId,
                 hash: "dummy_hash", // 나중에 검증 로직 추가 가능
-                email: email,
+                name: name,
                 score: this.gameStats.totalAll,
                 msg: msg
             };

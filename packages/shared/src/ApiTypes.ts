@@ -11,7 +11,7 @@ export interface StartRequest {
 export interface EndRequest {
     game_id: number;
     hash: string;
-    email: string;
+    name: string;
     score: number;
     msg: string;
 }

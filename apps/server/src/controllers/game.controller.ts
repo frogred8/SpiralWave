@@ -11,7 +11,7 @@ export const GameController = {
 
   async handleEnd(request: FastifyRequest, reply: FastifyReply) {
     const body = request.body as EndRequest;
-    request.log.info({ game_id: body.game_id, email: body.email, score: body.score }, 'Game session end requested');
+    request.log.info({ game_id: body.game_id, name: body.name, score: body.score }, 'Game session end requested');
     return await GameService.endGame(body);
   },
 

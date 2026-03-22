@@ -395,31 +395,58 @@ export class GameScene extends Phaser.Scene {
         const domForm = this.add.dom(width / 2, height / 2 - 20).createFromHTML(html)
             .setOrigin(0.5).setDepth(4002);
 
+        // 버튼 영역 컨테이너
+        const buttonGroup = this.add.container(0, 155);
+        
         // 제출 버튼
-        const submitBtn = this.add.container(0, 150);
-        const btnBg = this.add.rectangle(0, 0, 290, 50, 0x00ff00, 1)
+        const submitBtn = this.add.container(-75, 0);
+        const submitBg = this.add.rectangle(0, 0, 140, 50, 0x00ff00, 1)
             .setInteractive({ useHandCursor: true });
-        const btnText = this.add.text(0, 0, 'SUBMIT', {
-            fontSize: '20px',
+        const submitText = this.add.text(0, 0, 'SUBMIT', {
+            fontSize: '18px',
             color: '#000000',
             fontStyle: 'bold'
         }).setOrigin(0.5);
+        submitBtn.add([submitBg, submitText]);
 
-        submitBtn.add([btnBg, btnText]);
+        // 건너뛰기 버튼
+        const skipBtn = this.add.container(75, 0);
+        const skipBg = this.add.rectangle(0, 0, 140, 50, 0x444444, 1)
+            .setInteractive({ useHandCursor: true });
+        const skipText = this.add.text(0, 0, 'SKIP', {
+            fontSize: '18px',
+            color: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        skipBtn.add([skipBg, skipText]);
 
-        formContainer.add([bg, title, submitBtn]);
+        buttonGroup.add([submitBtn, skipBtn]);
+        formContainer.add([bg, title, buttonGroup]);
 
-        btnBg.on('pointerover', () => btnBg.setFillStyle(0x00dd00));
-        btnBg.on('pointerout', () => btnBg.setFillStyle(0x00ff00));
-        btnBg.on('pointerdown', async () => {
+        const closeForm = () => {
+            domForm.destroy();
+            formContainer.destroy();
+            overlay.destroy();
+        };
+
+        // SUBMIT 이벤트
+        submitBg.on('pointerover', () => submitBg.setFillStyle(0x00dd00));
+        submitBg.on('pointerout', () => submitBg.setFillStyle(0x00ff00));
+        submitBg.on('pointerdown', async () => {
             const email = (document.getElementById('playerEmail') as HTMLInputElement).value;
             const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
             
             await this.sendEndGameSignal(email, msg);
             
-            domForm.destroy();
-            formContainer.destroy();
-            overlay.destroy();
+            closeForm();
+            this.showGameOverScreen();
+        });
+
+        // SKIP 이벤트
+        skipBg.on('pointerover', () => skipBg.setFillStyle(0x555555));
+        skipBg.on('pointerout', () => skipBg.setFillStyle(0x444444));
+        skipBg.on('pointerdown', () => {
+            closeForm();
             this.showGameOverScreen();
         });
 

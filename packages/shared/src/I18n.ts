@@ -337,7 +337,21 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
 };
 
 export class I18n {
-    private static currentLanguage: Language = 'ko'; // 기본값 한국어
+    private static currentLanguage: Language = I18n.getInitialLanguage();
+
+    private static getInitialLanguage(): Language {
+        // window-info-language 값을 읽어서 초기 언어 설정
+        const win = typeof window !== 'undefined' ? (window as any) : null;
+        const infoLang = win ? win['window-info-language'] : null;
+
+        if (infoLang) {
+            if (infoLang.includes('ko')) return 'ko';
+            if (infoLang.includes('zh')) return 'zh';
+            if (infoLang.includes('ja')) return 'ja';
+        }
+        
+        return 'en'; // 기본값 영어
+    }
 
     public static setLanguage(lang: Language) {
         this.currentLanguage = lang;

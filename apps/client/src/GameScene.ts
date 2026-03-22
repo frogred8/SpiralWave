@@ -15,6 +15,7 @@ export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
     private worldContainer!: Phaser.GameObjects.Container;
     private uiContainer!: Phaser.GameObjects.Container;
+    private topUiContainer!: Phaser.GameObjects.Container;
     private gameStats!: GameStats;
     private skillTreeUI!: SkillTreeUI;
     private gameRenderer!: GameRenderer;
@@ -63,6 +64,7 @@ export class GameScene extends Phaser.Scene {
 
         this.worldContainer = this.add.container(0, 0);
         this.uiContainer = this.add.container(0, 0);
+        this.topUiContainer = this.add.container(0, 0).setDepth(10000);
 
         // Renderer 초기화
         this.gameRenderer = new GameRenderer(this, this.worldContainer, this.uiContainer, this.gameStats, this.spiralCenter);
@@ -74,8 +76,9 @@ export class GameScene extends Phaser.Scene {
         this.arms = [];
         this.syncArmsCount();
 
-        this.cameras.add(0, 0, width, height).setName('UI').ignore(this.worldContainer);
-        this.cameras.main.ignore(this.uiContainer);
+        const uiCamera = this.cameras.add(0, 0, width, height).setName('UI')
+            .ignore([this.worldContainer]);
+        this.cameras.main.ignore([this.uiContainer, this.topUiContainer]);
 
         this.setupPhysics();
         this.setupUI(skillData);
@@ -880,13 +883,13 @@ export class GameScene extends Phaser.Scene {
         
         this.langSelectorContainer.add([mainBg, mainText, arrow]);
         this.langSelectorContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
-        this.uiContainer.add(this.langSelectorContainer);
+        this.topUiContainer.add(this.langSelectorContainer);
 
         // 드롭다운 메뉴용 컨테이너
         this.langMenuContainer = this.add.container(startX, startY + btnHeight + 2)
             .setVisible(this.isLanguageMenuOpen)
             .setDepth(100); // 사운드 버튼 등 다른 UI보다 위에 오도록 설정
-        this.uiContainer.add(this.langMenuContainer);
+        this.topUiContainer.add(this.langMenuContainer);
 
         languages.forEach((lang, index) => {
             const itemY = index * (btnHeight + 1);
@@ -948,7 +951,7 @@ export class GameScene extends Phaser.Scene {
         
         this.soundBtnContainer.add([soundBg, soundText]);
         this.soundBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
-        this.uiContainer.add(this.soundBtnContainer);
+        this.topUiContainer.add(this.soundBtnContainer);
 
         this.soundBtnContainer.on('pointerdown', () => {
             const isMuted = SoundManager.getInstance().toggleMute();
@@ -968,6 +971,7 @@ export class GameScene extends Phaser.Scene {
         
         // UI 컨테이너 초기화
         this.uiContainer.removeAll(true);
+        this.topUiContainer.removeAll(true);
         this.languageButtons = [];
         
         // UI 재생성 (현재 셔플된 상태 유지)

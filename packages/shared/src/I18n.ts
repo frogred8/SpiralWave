@@ -341,9 +341,8 @@ export class I18n {
 
     private static getInitialLanguage(): Language {
         // window-info-language 값을 읽어서 초기 언어 설정
-        const win = typeof window !== 'undefined' ? (window as any) : null;
-        const infoLang = win ? win['window-info-language'] : null;
-
+        let infoLang = window.navigator.language || (window.navigator as any).userLanguage;
+        infoLang = infoLang.toLowerCase();
         if (infoLang) {
             if (infoLang.includes('ko')) return 'ko';
             if (infoLang.includes('zh')) return 'zh';
@@ -351,6 +350,27 @@ export class I18n {
         }
         
         return 'en'; // 기본값 영어
+    }
+
+    public static getUserCountryEmoji = async (): Promise<string> => {
+        try {
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            const countryCode = data.country_code;
+            const emoji = this.getEmojiByCountryCode(countryCode);
+            return emoji;
+        } catch (e) {
+            return '🌐';
+        }
+    }
+
+    public static getEmojiByCountryCode(countryCode: string): string {
+        const cleanCode = countryCode.toUpperCase().trim();
+        if (!/^[A-Z]{2}$/.test(cleanCode)) return '🌐';
+        const codePoints: number[] = cleanCode
+            .split('')
+            .map((char: string) => 127397 + char.charCodeAt(0));
+        return String.fromCodePoint(...codePoints);
     }
 
     public static setLanguage(lang: Language) {

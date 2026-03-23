@@ -62,7 +62,11 @@ export class SkillTreeUI {
                 .setPadding({ top: 2, bottom: 2 });
             this.adjustFontSize(nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
 
-            const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { fontSize: '14px', color: '#00ff00' })
+            const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { 
+                fontSize: '14px', 
+                color: '#00ff00',
+                align: 'center'
+            })
                 .setOrigin(0.5)
                 .setPadding({ top: 2, bottom: 2 });
             
@@ -276,9 +280,9 @@ export class SkillTreeUI {
             } else if (isQueued) {
                 const isWaitingForPrereq = !this.gameStats.isSkillUnlocked(skill, true);
                 if (isWaitingForPrereq) {
-                    data.lvTxt.setText(I18n.t('skill.waiting'));
+                    data.lvTxt.setText(`${I18n.t('skill.queued')}(${queueIndex + 1})\n${I18n.t('skill.waiting')}`);
                 } else {
-                    data.lvTxt.setText(`${I18n.t('skill.queued')} (${queueIndex + 1})`);
+                    data.lvTxt.setText(`${I18n.t('skill.queued')}(${queueIndex + 1})`);
                 }
                 data.lvTxt.setColor('#00ffff');
             } else {

@@ -20,9 +20,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.research_time': 'Research Time:',
         'skill.max_level': 'MAX LEVEL REACHED',
         'skill.queued': 'Queued',
-        'skill.waiting': 'Waiting',
-        
+        'skill.waiting': '(Prereq)',
+
         // Properties
+
         'prop.radius': 'Radius',
         'prop.force': 'Force',
         'prop.highDimProb': 'Big Resource Prob',
@@ -116,9 +117,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.research_time': '연구 시간:',
         'skill.max_level': '최대 레벨 도달',
         'skill.queued': '대기 중',
-        'skill.waiting': '선행 대기',
-        
+        'skill.waiting': '(선행)',
+
         // Properties
+
+
         'prop.radius': '반지름',
         'prop.force': '인력',
         'prop.highDimProb': '대형 자원 확률',
@@ -211,10 +214,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.prerequisites': '前提条件:',
         'skill.research_time': '研究时间:',
         'skill.max_level': '已达最高等级',
-        'skill.queued': '等待中',
-        'skill.waiting': '等候前提',
-        
+        'skill.queued': '等候',
+        'skill.waiting': '(前提)',
+
         // Properties
+
         'prop.radius': '半径',
         'prop.force': '引力',
         'prop.highDimProb': '大资源概率',
@@ -308,9 +312,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.research_time': '研究時間:',
         'skill.max_level': '最大レベル到達',
         'skill.queued': '待機中',
-        'skill.waiting': '前提待ち',
-        
+        'skill.waiting': '(前提)',
+
         // Properties
+
         'prop.radius': '半径',
         'prop.force': '引力',
         'prop.highDimProb': '大型資源確率',

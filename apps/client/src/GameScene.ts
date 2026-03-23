@@ -15,6 +15,8 @@ interface UIState {
     overlay: 'initialSkill' | 'inputForm' | 'gameOver' | null;
     initialSkillData?: any[];
     excludeSkillIds?: string[];
+    selectedInitialSkills?: any[];
+    boardRanks?: RankEntry[];
 }
 
 export class GameScene extends Phaser.Scene {
@@ -207,8 +209,13 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = []) {
-        this.currentUIState = { overlay: 'initialSkill', initialSkillData: skillData, excludeSkillIds };
+    private showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = [], preservedSkills: any[] | null = null) {
+        this.currentUIState = { 
+            overlay: 'initialSkill', 
+            initialSkillData: skillData, 
+            excludeSkillIds,
+            selectedInitialSkills: preservedSkills || undefined
+        };
         const { width, height } = this.scale;
 
         // 딤드 배경
@@ -225,9 +232,14 @@ export class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
 
-        // 첫 번째 또는 두 번째 row의 스킬들 중에서 2개 랜덤 선택 (제외 목록 반영)
-        const candidateSkills = skillData.filter(s => s.row <= 1 && !excludeSkillIds.includes(s.id));
-        const selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
+        // 스킬 선택 로직: 보존된 데이터가 있으면 그것을 사용, 없으면 새로 생성
+        let selectedSkills = preservedSkills;
+        if (!selectedSkills) {
+            const candidateSkills = skillData.filter(s => s.row <= 1 && !excludeSkillIds.includes(s.id));
+            selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
+            this.currentUIState.selectedInitialSkills = selectedSkills;
+        }
+        
         const currentSelectionIds = selectedSkills.map(s => s.id);
 
         // 다시 시작한 경우 1회에 한해 다시 뽑기 버튼 제공
@@ -254,8 +266,8 @@ export class GameScene extends Phaser.Scene {
                 this.uiContainer.iterate((child: any) => {
                     if (child && child.depth >= 2000) child.destroy();
                 });
-                // 현재 선택된 스킬들을 제외하고 다시 생성
-                this.showInitialSkillSelection(skillData, currentSelectionIds);
+                // 현재 선택된 스킬들을 제외하고 다시 생성 (null을 넘겨 새 랜덤 추출 유도)
+                this.showInitialSkillSelection(skillData, currentSelectionIds, null);
             });
         }
 
@@ -567,8 +579,13 @@ export class GameScene extends Phaser.Scene {
 
         boardContainer.add([boardBg, boardTitle]);
 
-        // 리더보드 데이터 가져오기
-        const ranks = await this.fetchBoardData();
+        // 리더보드 데이터 가져오기 (이미 있으면 그것을 사용)
+        let ranks = this.currentUIState.boardRanks;
+        if (!ranks) {
+            ranks = await this.fetchBoardData();
+            this.currentUIState.boardRanks = ranks;
+        }
+        
         const displayRanks = ranks.slice(0, 10);
 
         if (displayRanks.length === 0) {
@@ -887,7 +904,7 @@ export class GameScene extends Phaser.Scene {
 
         switch (state.overlay) {
             case 'initialSkill':
-                this.showInitialSkillSelection(state.initialSkillData || [], state.excludeSkillIds);
+                this.showInitialSkillSelection(state.initialSkillData || [], state.excludeSkillIds, state.selectedInitialSkills);
                 break;
             case 'inputForm':
                 this.showInputForm();

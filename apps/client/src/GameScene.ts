@@ -210,12 +210,14 @@ export class GameScene extends Phaser.Scene {
     }
 
     private showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = [], preservedSkills: any[] | null = null) {
-        this.currentUIState = { 
-            overlay: 'initialSkill', 
-            initialSkillData: skillData, 
-            excludeSkillIds,
-            selectedInitialSkills: preservedSkills || undefined
-        };
+        this.currentUIState.overlay = 'initialSkill';
+        this.currentUIState.initialSkillData = skillData;
+        this.currentUIState.excludeSkillIds = excludeSkillIds;
+        
+        if (preservedSkills) {
+            this.currentUIState.selectedInitialSkills = preservedSkills;
+        }
+        
         const { width, height } = this.scale;
 
         // 딤드 배경
@@ -384,7 +386,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private showInputForm() {
-        this.currentUIState = { overlay: 'inputForm' };
+        this.currentUIState.overlay = 'inputForm';
         const { width, height } = this.scale;
         
         // 딤드 배경
@@ -534,7 +536,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private async showGameOverScreen() {
-        this.currentUIState = { overlay: 'gameOver' };
+        this.currentUIState.overlay = 'gameOver';
         const { width, height } = this.scale;
         
         SoundManager.getInstance().play('winning');

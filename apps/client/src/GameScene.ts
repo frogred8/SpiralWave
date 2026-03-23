@@ -291,7 +291,7 @@ export class GameScene extends Phaser.Scene {
                 fontStyle: 'bold',
                 align: 'center',
                 wordWrap: { width: 240 }
-            }).setOrigin(0.5);
+            }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
 
             // 효과 설명
             const desc = I18n.t(`skill.${skill.id}.desc`) || '';
@@ -301,7 +301,7 @@ export class GameScene extends Phaser.Scene {
                 align: 'center',
                 lineSpacing: 8,
                 wordWrap: { width: 240 }
-            }).setOrigin(0.5);
+            }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
 
             // 클릭 유도 텍스트
             const hintText = this.add.text(0, 110, 'CLICK TO SELECT', {
@@ -828,12 +828,12 @@ export class GameScene extends Phaser.Scene {
         const rockValue = this.add.text(135, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
         
         // 총 수집 및 시간
-        const totalText = this.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle);
-        const rateText = this.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle);
-        const timeText = this.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle);
+        const totalText = this.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
+        const rateText = this.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
+        const timeText = this.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle).setPadding({ top: 2, bottom: 2 });
 
         // 기타 스탯 (반지름, 팔 개수 등)
-        const gameStatsText = this.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 });
+        const gameStatsText = this.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
 
         this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
         this.uiContainer.add(this.statsContainer);

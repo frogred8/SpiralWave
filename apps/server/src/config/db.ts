@@ -15,7 +15,7 @@ const initDb = async () => {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS game (
-        game_id VARCHAR(8) PRIMARY KEY,
+        game_id VARCHAR(20) PRIMARY KEY,
         ip VARCHAR(45) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

@@ -1,11 +1,26 @@
 import { StartRequest, EndRequest, BoardResponse } from '@repo/shared';
 import pool from '../config/db';
-import crypto from 'crypto';
+
+/**
+ * @param {number} prefix_n - 타임스탬프 기반 접두사 길이
+ * @param {number} postfix_n - 랜덤 기반 접미사 길이 (최대 13자리까지 정밀도 유지)
+ * @returns {string} 생성된 UUID
+ */
+function generateUUID(prefix_n = 8, postfix_n = 4) {
+  // 1. 타임스탬프 기반 접두사
+  const prefix = Date.now().toString(16).slice(-prefix_n);
+
+  // 2. Math.random()의 부동소수점을 16진수로 변환하여 루프 없이 추출
+  // Math.random().toString(16)은 "0.abc123..." 형태이므로 2번 인덱스부터 자름
+  const postfix = Math.random().toString(16).slice(2, 2 + postfix_n).padEnd(postfix_n, '0');
+
+  return prefix + postfix;
+}
 
 export const GameService = {
   async startGame(data: StartRequest, ip: string) {
-    // Generate 8-character UUID (hex of 4 bytes is 8 chars)
-    const gameId = crypto.randomBytes(4).toString('hex');
+    // Generate UUID using custom function
+    const gameId = generateUUID();
 
     try {
       await pool.query(

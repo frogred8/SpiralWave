@@ -11,6 +11,12 @@ import { Resource, SpecialItem, Collectible, StartRequest, EndRequest, RankEntry
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 
+interface UIState {
+    overlay: 'initialSkill' | 'inputForm' | 'gameOver' | null;
+    initialSkillData?: any[];
+    excludeSkillIds?: string[];
+}
+
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
     private worldContainer!: Phaser.GameObjects.Container;
@@ -40,6 +46,8 @@ export class GameScene extends Phaser.Scene {
     private timerText!: Phaser.GameObjects.Text;
     private specialItemTimer?: Phaser.Time.TimerEvent;
     private currentGameId: number = 0;
+
+    private currentUIState: UIState = { overlay: null };
 
     constructor() {
         super('GameScene');
@@ -199,6 +207,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = []) {
+        this.currentUIState = { overlay: 'initialSkill', initialSkillData: skillData, excludeSkillIds };
         const { width, height } = this.scale;
 
         // 딤드 배경
@@ -333,6 +342,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private startGame() {
+        this.currentUIState.overlay = null;
         this.gameStats.startGame();
         this.setupTimers();
         this.isGameStarted = true;
@@ -361,6 +371,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private showInputForm() {
+        this.currentUIState = { overlay: 'inputForm' };
         const { width, height } = this.scale;
         
         // 딤드 배경
@@ -505,6 +516,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private async showGameOverScreen() {
+        this.currentUIState = { overlay: 'gameOver' };
         const { width, height } = this.scale;
         
         SoundManager.getInstance().play('winning');
@@ -618,6 +630,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private restartGame() {
+        this.currentUIState.overlay = null;
         const { width, height } = this.scale;
 
         // 모든 리소스 및 화이트홀 제거
@@ -853,10 +866,30 @@ export class GameScene extends Phaser.Scene {
             loop: true
         });
 
-        // 시작 시 번쩍이는 효과
+        // 시작 시 번쩍이는 효과 (언어 변경 시에는 제외하고 싶을 수도 있지만, 일단 유지)
         this.cameras.main.flash(1000, 255, 255, 255);
 
         this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
+
+        // UI 상태 복구
+        this.restoreUIState();
+    }
+
+    private restoreUIState() {
+        const state = this.currentUIState;
+        if (!state.overlay) return;
+
+        switch (state.overlay) {
+            case 'initialSkill':
+                this.showInitialSkillSelection(state.initialSkillData || [], state.excludeSkillIds);
+                break;
+            case 'inputForm':
+                this.showInputForm();
+                break;
+            case 'gameOver':
+                this.showGameOverScreen();
+                break;
+        }
     }
 
     private setupLanguageSelector() {

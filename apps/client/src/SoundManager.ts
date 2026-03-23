@@ -53,7 +53,7 @@ export class SoundManager {
      * @param loop Whether the sound should loop.
      * @param volume Initial volume for this specific sound.
      */
-    public loadSound(key: string, url: string, loop: boolean = false, volume: number = this.volume) {
+    private loadSound(key: string, url: string, loop: boolean = false, volume: number = this.volume) {
         if (this.sounds.has(key)) {
             this.sounds.get(key)?.unload();
         }
@@ -96,16 +96,5 @@ export class SoundManager {
         } else {
             console.warn(`Sound with key "${key}" not found.`);
         }
-    }
-
-    /**
-     * Sets the global volume for all sounds managed by this manager.
-     * @param volume Value between 0.0 and 1.0.
-     */
-    public setVolume(volume: number) {
-        this.volume = Phaser.Math.Clamp(volume, 0, 1);
-        this.sounds.forEach(sound => {
-            sound.volume(this.volume);
-        });
     }
 }

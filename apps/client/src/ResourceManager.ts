@@ -35,10 +35,6 @@ export class ResourceManager {
         return this.resources;
     }
 
-    public getWhiteHoles(): Phaser.GameObjects.Container[] {
-        return this.whiteHoles;
-    }
-
     public getSmallBlackHoles(): Phaser.GameObjects.Container[] {
         return this.smallBlackHoles;
     }

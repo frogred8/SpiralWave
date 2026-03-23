@@ -7,7 +7,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
-import { Resource, SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, BoardResponse } from '@repo/shared';
+import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, BoardResponse } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 
@@ -29,7 +29,6 @@ export class GameScene extends Phaser.Scene {
     private gameRenderer!: GameRenderer;
     private resourceManager!: ResourceManager;
     private arms: RoboticArm[] = [];
-    private languageButtons: Phaser.GameObjects.Container[] = [];
     private isLanguageMenuOpen: boolean = false;
     private langSelectorContainer!: Phaser.GameObjects.Container;
     private langMenuContainer!: Phaser.GameObjects.Container;
@@ -701,7 +700,6 @@ export class GameScene extends Phaser.Scene {
         // refreshUIAfterLanguageChange는 내부적으로 skillTreeUI.skillTreeData를 쓰므로, 
         // 여기서 직접 setupUI를 호출하거나, skillTreeUI를 먼저 갱신해야 함
         this.uiContainer.removeAll(true);
-        this.languageButtons = [];
         this.setupUI(skillData);
         
         // 초기 스킬 선택 다시 표시
@@ -1034,7 +1032,6 @@ export class GameScene extends Phaser.Scene {
             this.activeDOMElement.destroy();
             this.activeDOMElement = null;
         }
-        this.languageButtons = [];
         
         // UI 재생성 (현재 셔플된 상태 유지)
         this.setupUI(currentSkillData);

@@ -81,7 +81,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.small_black_hole_range.desc': 'Small Black Hole Range +10',
         'skill.net_length.name': 'Net Length',
         'skill.net_length.desc': 'Net Length +100',
-        'skill.special_item_booster.name': 'Item Booster',
+        'skill.special_item_booster.name': 'Special Item Booster',
         'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s'
     },
     ko: {
@@ -231,7 +231,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.r1.desc': '大资源概率 +5%',
         'skill.arm_speed.name': '机械臂速度',
         'skill.arm_speed.desc': '机械臂速度 +0.4x',
-        'skill.r2.name': '연구 속도',
+        'skill.r2.name': '研究速度',
         'skill.r2.desc': '使用机械臂时，研究时间缩短 1 秒',
         'skill.r3.name': '资源提升',
         'skill.r3.desc': '资源生成速度 +0.3x',
@@ -317,7 +317,6 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.r2.name': '研究速度',
         'skill.r2.desc': 'アーム使用時に研究時間を 1 秒短縮',
         'skill.r3.name': '資源生成',
-
         'skill.r3.desc': '資源生成速度 +0.3x',
         'skill.auto_arm.name': '自動アーム',
         'skill.auto_arm.desc': '自動アーム活性化',
@@ -331,7 +330,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.small_black_hole_range.desc': '小型ブラックホール範囲 +10',
         'skill.net_length.name': 'ネットの長さ',
         'skill.net_length.desc': 'ネットの長さ +100',
-        'skill.special_item_booster.name': 'アイテムブースター',
+        'skill.special_item_booster.name': '特殊アイテムブースター',
         'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒'
     }
 };

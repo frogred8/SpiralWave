@@ -1,10 +1,22 @@
 import { StartRequest, EndRequest, BoardResponse } from '@repo/shared';
+import pool from '../config/db';
+import crypto from 'crypto';
 
 export const GameService = {
-  async startGame(data: StartRequest) {
-    // Business logic for starting game
-    const gameId = Math.floor(Math.random() * 1000000);
-    return { status: 'ok', message: 'Game session started', game_id: gameId };
+  async startGame(data: StartRequest, ip: string) {
+    // Generate 8-character UUID (hex of 4 bytes is 8 chars)
+    const gameId = crypto.randomBytes(4).toString('hex');
+
+    try {
+      await pool.query(
+        'INSERT INTO game (game_id, ip) VALUES ($1, $2)',
+        [gameId, ip]
+      );
+      return { status: 'ok', message: 'Game session started', game_id: gameId };
+    } catch (err) {
+      console.error('Failed to record game session', err);
+      throw new Error('Database error');
+    }
   },
 
   async endGame(data: EndRequest) {

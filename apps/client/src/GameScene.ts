@@ -46,7 +46,7 @@ export class GameScene extends Phaser.Scene {
     private canReroll: boolean = false;
     private timerText!: Phaser.GameObjects.Text;
     private specialItemTimer?: Phaser.Time.TimerEvent;
-    private currentGameId: number = 0;
+    private currentGameId: string = '';
 
     private currentUIState: UIState = { overlay: null };
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;

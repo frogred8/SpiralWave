@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { GameController } from './controllers/game.controller';
+import './config/db'; // Initialize database
 
 const fastify = Fastify({
   logger: {

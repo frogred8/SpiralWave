@@ -9,7 +9,7 @@ export interface StartRequest {
 
 // POST /end
 export interface EndRequest {
-    game_id: number;
+    game_id: string;
     hash: string;
     name: string;
     score: number;

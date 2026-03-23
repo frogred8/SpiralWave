@@ -48,6 +48,7 @@ export class GameScene extends Phaser.Scene {
     private currentGameId: number = 0;
 
     private currentUIState: UIState = { overlay: null };
+    private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
 
     constructor() {
         super('GameScene');
@@ -406,7 +407,7 @@ export class GameScene extends Phaser.Scene {
             </div>
         `;
 
-        const domForm = this.add.dom(width / 2, height / 2 - 20).createFromHTML(html)
+        this.activeDOMElement = this.add.dom(width / 2, height / 2 - 20).createFromHTML(html)
             .setOrigin(0.5).setDepth(4002);
 
         // 버튼 영역 컨테이너
@@ -438,7 +439,10 @@ export class GameScene extends Phaser.Scene {
         formContainer.add([bg, title, buttonGroup]);
 
         const closeForm = () => {
-            domForm.destroy();
+            if (this.activeDOMElement) {
+                this.activeDOMElement.destroy();
+                this.activeDOMElement = null;
+            }
             formContainer.destroy();
             overlay.destroy();
         };
@@ -466,13 +470,15 @@ export class GameScene extends Phaser.Scene {
 
         // 등장 애니메이션
         formContainer.setScale(0);
-        domForm.setScale(0);
-        this.tweens.add({
-            targets: [formContainer, domForm],
-            scale: 1,
-            duration: 400,
-            ease: 'Back.easeOut'
-        });
+        if (this.activeDOMElement) {
+            this.activeDOMElement.setScale(0);
+            this.tweens.add({
+                targets: [formContainer, this.activeDOMElement],
+                scale: 1,
+                duration: 400,
+                ease: 'Back.easeOut'
+            });
+        }
     }
 
     private async sendEndGameSignal(name: string, msg: string) {
@@ -1005,6 +1011,10 @@ export class GameScene extends Phaser.Scene {
         // UI 컨테이너 초기화
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
+        if (this.activeDOMElement) {
+            this.activeDOMElement.destroy();
+            this.activeDOMElement = null;
+        }
         this.languageButtons = [];
         
         // UI 재생성 (현재 셔플된 상태 유지)

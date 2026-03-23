@@ -303,7 +303,7 @@ export class GameScene extends Phaser.Scene {
             }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
 
             // 클릭 유도 텍스트
-            const hintText = this.add.text(0, 110, 'CLICK TO SELECT', {
+            const hintText = this.add.text(0, 110, I18n.t('ui.click_to_select'), {
                 fontSize: '14px',
                 color: '#aaaaaa',
                 fontStyle: 'italic'
@@ -400,7 +400,7 @@ export class GameScene extends Phaser.Scene {
         const bg = this.add.rectangle(0, 0, 340, 420, 0x222222, 0.95)
             .setStrokeStyle(2, 0x444444);
         
-        const title = this.add.text(0, -170, 'Submit Your Score', {
+        const title = this.add.text(0, -170, I18n.t('ui.submit_score'), {
             fontSize: '28px',
             color: '#ffffff',
             fontStyle: 'bold'
@@ -410,11 +410,11 @@ export class GameScene extends Phaser.Scene {
         const html = `
             <div style="width: 290px; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; pointer-events: auto;">
                 <div>
-                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">Name</label>
+                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.name')}</label>
                     <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
                 </div>
                 <div style="margin-top: 10px;">
-                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">Message</label>
+                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.message')}</label>
                     <textarea id="playerMsg" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
                 </div>
             </div>
@@ -430,7 +430,7 @@ export class GameScene extends Phaser.Scene {
         const submitBtn = this.add.container(-75, 0);
         const submitBg = this.add.rectangle(0, 0, 140, 50, 0x00ff00, 1)
             .setInteractive({ useHandCursor: true });
-        const submitText = this.add.text(0, 0, 'SUBMIT', {
+        const submitText = this.add.text(0, 0, I18n.t('ui.submit'), {
             fontSize: '18px',
             color: '#000000',
             fontStyle: 'bold'
@@ -441,7 +441,7 @@ export class GameScene extends Phaser.Scene {
         const skipBtn = this.add.container(75, 0);
         const skipBg = this.add.rectangle(0, 0, 140, 50, 0x444444, 1)
             .setInteractive({ useHandCursor: true });
-        const skipText = this.add.text(0, 0, 'SKIP', {
+        const skipText = this.add.text(0, 0, I18n.t('ui.skip'), {
             fontSize: '18px',
             color: '#ffffff',
             fontStyle: 'bold'
@@ -572,7 +572,7 @@ export class GameScene extends Phaser.Scene {
         const boardBg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9)
             .setStrokeStyle(2, 0x444444);
         
-        const boardTitle = this.add.text(0, -170, 'Leaderboard', {
+        const boardTitle = this.add.text(0, -170, I18n.t('ui.leaderboard'), {
             fontSize: '24px',
             color: '#00ff00',
             fontStyle: 'bold'
@@ -590,7 +590,7 @@ export class GameScene extends Phaser.Scene {
         const displayRanks = ranks.slice(0, 10);
 
         if (displayRanks.length === 0) {
-            const emptyText = this.add.text(0, 0, 'No rankings yet.', {
+            const emptyText = this.add.text(0, 0, I18n.t('ui.no_rankings'), {
                 fontSize: '18px',
                 color: '#888888'
             }).setOrigin(0.5);
@@ -775,7 +775,7 @@ export class GameScene extends Phaser.Scene {
             if (this.spawnTimer) this.spawnTimer.paused = true;
             
             // 중앙 텍스트 안내 추가 가능 (예: "부스터 시간 계산 중...")
-            this.timerText.setText('BONUS TIME!').setColor('#ffff00').setAlpha(1);
+            this.timerText.setText(I18n.t('ui.bonus_time')).setColor('#ffff00').setAlpha(1);
 
             this.skillTreeUI.playBoosterAnimation((addedTime) => {
                 this.gameStats.addBoosterTime(addedTime);

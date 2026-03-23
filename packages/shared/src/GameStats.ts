@@ -39,6 +39,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public researchReduction!: number; // 기존 researchBonus 명칭 변경 (의미 명확화)
     public maxResearchSlots!: number;
     public activeResearches: ActiveResearch[] = [];
+    public researchQueue: ActiveResearch[] = [];
     
     public playtime: number = 0;
     private lastUpdateTime: number = 0;
@@ -100,6 +101,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
             this.skillLevels[skill.id] = 0;
         });
         this.activeResearches = [];
+        this.researchQueue = [];
         this.playtime = 0;
         this.gameStarted = false;
         this.isGameOver = false;
@@ -162,54 +164,71 @@ export class GameStats extends Phaser.Events.EventEmitter {
             return;
         }
 
+        // 1. 큐에서 연구 가능한 스킬을 활성 슬롯으로 이동
+        this.promoteFromQueue();
+
         if (this.activeResearches.length === 0) return;
 
         let updated = false;
         
         while (elapsedSeconds > 0 && this.activeResearches.length > 0) {
-            // 현재 진행 가능한 연구들 필터링 (선행 조건이 완료된 것만)
-            const researchableIndices: number[] = [];
-            for (let i = 0; i < this.activeResearches.length; i++) {
-                const skill = this.skillTreeData.find(s => s.id === this.activeResearches[i].skillId);
-                if (skill && this.isSkillUnlocked(skill, true)) { // true: strict mode (연구 중인 것 제외)
-                    researchableIndices.push(i);
-                    if (researchableIndices.length >= this.maxResearchSlots) break;
-                }
-            }
-
-            if (researchableIndices.length === 0) break;
-
+            let activeCount = this.activeResearches.length;
             let minTimeNeeded = Infinity;
-            for (const idx of researchableIndices) {
-                minTimeNeeded = Math.min(minTimeNeeded, this.activeResearches[idx].remainingTime);
+            
+            for (let i = 0; i < activeCount; i++) {
+                minTimeNeeded = Math.min(minTimeNeeded, this.activeResearches[i].remainingTime);
             }
             
             let timeToAdvance = Math.min(elapsedSeconds, minTimeNeeded);
             if (timeToAdvance <= 0) timeToAdvance = 0.001;
             
-            for (const idx of researchableIndices) {
-                this.activeResearches[idx].remainingTime -= timeToAdvance;
+            for (let i = 0; i < activeCount; i++) {
+                this.activeResearches[i].remainingTime -= timeToAdvance;
             }
             
             elapsedSeconds -= timeToAdvance;
             updated = true;
             
             let finishedAny = false;
-            // 역순으로 순회하여 splice 영향 방지
-            for (let i = researchableIndices.length - 1; i >= 0; i--) {
-                const idx = researchableIndices[i];
-                if (this.activeResearches[idx].remainingTime <= 0) {
-                    const skillId = this.activeResearches[idx].skillId;
+            for (let i = 0; i < activeCount; i++) {
+                if (this.activeResearches[i].remainingTime <= 0) {
+                    const skillId = this.activeResearches[i].skillId;
                     const skill = this.skillTreeData.find(s => s.id === skillId);
-                    this.activeResearches.splice(idx, 1);
+                    this.activeResearches.splice(i, 1);
+                    i--;
+                    activeCount--;
                     finishedAny = true;
                     if (skill) this.applySkillUpgrade(skill);
+                    
+                    // 하나라도 완료되면 즉시 큐에서 다음 연구 가능한 것을 채움
+                    this.promoteFromQueue();
                 }
             }
             if (!finishedAny && elapsedSeconds <= 0) break;
         }
         
         if (updated) this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    /**
+     * 큐에 대기 중인 스킬 중 선행 조건이 만족된 것을 빈 슬롯으로 이동
+     */
+    private promoteFromQueue() {
+        while (this.activeResearches.length < this.maxResearchSlots && this.researchQueue.length > 0) {
+            // 큐에서 순차적으로 확인하여 연구 가능한 첫 번째 스킬을 찾음
+            const index = this.researchQueue.findIndex(r => {
+                const skill = this.skillTreeData.find(s => s.id === r.skillId);
+                return skill && this.isSkillUnlocked(skill, true); // Strict check
+            });
+
+            if (index !== -1) {
+                const promoted = this.researchQueue.splice(index, 1)[0];
+                this.activeResearches.push(promoted);
+            } else {
+                // 더 이상 연구 가능한 스킬이 큐에 없음
+                break;
+            }
+        }
     }
 
     /**
@@ -266,12 +285,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
     reduceResearchTime(seconds: number) {
         if (this.activeResearches.length === 0) return;
 
-        // 현재 실제로 진행 중인(선행 조건이 완료된) 첫 번째 연구를 찾음
-        const researchable = this.activeResearches.find(r => {
-            const skill = this.skillTreeData.find(s => s.id === r.skillId);
-            return skill && this.isSkillUnlocked(skill, true);
-        });
-
+        // 현재 실제로 진행 중인 첫 번째 연구에 보너스 적용
+        const researchable = this.activeResearches[0];
         if (researchable) {
             researchable.remainingTime = Math.max(0, researchable.remainingTime - seconds);
             this.emit(GameStats.EVENTS.RESEARCH_REDUCED, researchable.skillId);
@@ -280,29 +295,38 @@ export class GameStats extends Phaser.Events.EventEmitter {
     }
 
     /**
-     * 연구 시작 요청
+     * 연구 시작 요청 (Queue에 추가)
      */
     startResearch(skill: SkillData): boolean {
         const currentLevel = this.skillLevels[skill.id];
         if (currentLevel >= skill.maxLevel) return false;
+        
+        // 이미 활성 연구 중이거나 큐에 있는지 확인
         if (this.activeResearches.some(r => r.skillId === skill.id)) return false;
+        if (this.researchQueue.some(r => r.skillId === skill.id)) return false;
 
         const costs = skill.costs[currentLevel];
         if (!this.canAfford(costs)) return false;
 
         this.consumeResources(costs);
-        this.activeResearches.push({
+        
+        // 일단 무조건 큐에 추가
+        this.researchQueue.push({
             skillId: skill.id,
             remainingTime: skill.researchTimes[currentLevel],
             totalTime: skill.researchTimes[currentLevel]
         });
+
+        // 추가 직후 바로 활성 슬롯으로 이동 시도
+        this.promoteFromQueue();
+        
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
         return true;
     }
 
     /**
      * 스킬 해금 여부 확인 (연구 중인 스킬도 해금 조건 만족으로 간주 가능)
-     * @param strict true면 연구가 완료된 스킬만 체크, false면 연구 중인 스킬도 포함
+     * @param strict true면 연구가 완료된 스킬만 체크, false면 연구 중이거나 큐에 있는 스킬도 포함
      */
     public isSkillUnlocked(skill: SkillData, strict: boolean = false): boolean {
         if (!skill.prerequisites || skill.prerequisites.length === 0) return true;
@@ -311,9 +335,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
             if (currentLevel >= pre.level) return true;
             
             if (!strict) {
-                // 현재 연구 중인 스킬도 조건 만족으로 간주 (연구 완료 시 레벨업 예정이므로)
+                // 현재 연구 중이거나 큐에 있는 스킬도 조건 만족으로 간주 (언젠가 완료될 것이므로)
                 const isResearching = this.activeResearches.some(r => r.skillId === pre.id);
-                if (isResearching && currentLevel + 1 >= pre.level) return true;
+                const isQueued = this.researchQueue.some(r => r.skillId === pre.id);
+                if ((isResearching || isQueued) && currentLevel + 1 >= pre.level) return true;
             }
             
             return false;
@@ -324,7 +349,15 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 대기 중인 연구 취소 및 자원 환불 (의존성 체크 포함)
      */
     cancelResearch(skill: SkillData): boolean {
-        const index = this.activeResearches.findIndex(r => r.skillId === skill.id);
+        // 활성 연구 또는 큐에서 찾기
+        let index = this.activeResearches.findIndex(r => r.skillId === skill.id);
+        let list = this.activeResearches;
+        
+        if (index === -1) {
+            index = this.researchQueue.findIndex(r => r.skillId === skill.id);
+            list = this.researchQueue;
+        }
+
         if (index === -1) return false;
 
         const currentLevel = this.skillLevels[skill.id];
@@ -334,17 +367,30 @@ export class GameStats extends Phaser.Events.EventEmitter {
         if (costs.rock) this.collected.rock += costs.rock;
         if (costs.wood) this.collected.wood += costs.wood;
 
-        this.activeResearches.splice(index, 1);
+        list.splice(index, 1);
 
         // 취소된 스킬에 의존하는 후속 연구들도 취소 (재귀 호출)
-        for (let i = index; i < this.activeResearches.length; i++) {
+        // 활성 연구 목록 체크
+        for (let i = 0; i < this.activeResearches.length; i++) {
             const nextResearch = this.activeResearches[i];
             const nextSkill = this.skillTreeData.find(s => s.id === nextResearch.skillId);
             if (nextSkill && !this.isSkillUnlocked(nextSkill)) {
                 this.cancelResearch(nextSkill);
-                break; // 재귀 호출이 배열을 수정하므로 루프 중단
+                i--; // 배열이 수정되었으므로 인덱스 조정
             }
         }
+        // 큐 목록 체크
+        for (let i = 0; i < this.researchQueue.length; i++) {
+            const nextResearch = this.researchQueue[i];
+            const nextSkill = this.skillTreeData.find(s => s.id === nextResearch.skillId);
+            if (nextSkill && !this.isSkillUnlocked(nextSkill)) {
+                this.cancelResearch(nextSkill);
+                i--; // 배열이 수정되었으므로 인덱스 조정
+            }
+        }
+
+        // 취소로 빈 슬롯이 생겼을 수 있으므로 큐에서 활성화 시도
+        this.promoteFromQueue();
 
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
         return true;

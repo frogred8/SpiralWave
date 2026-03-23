@@ -20,6 +20,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.research_time': 'Research Time:',
         'skill.max_level': 'MAX LEVEL REACHED',
         'skill.queued': 'Queued',
+        'skill.waiting': 'Waiting',
         
         // Properties
         'prop.radius': 'Radius',
@@ -51,6 +52,18 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.total_resources': 'Total Resources Collected',
         'ui.restart': 'RESTART GAME',
         'ui.reroll': 'REROLL',
+        'ui.click_to_select': 'CLICK TO SELECT',
+        'ui.submit_score': 'Submit Your Score',
+        'ui.name': 'Name',
+        'ui.message': 'Message',
+        'ui.submit': 'SUBMIT',
+        'ui.skip': 'SKIP',
+        'ui.leaderboard': 'Leaderboard',
+        'ui.no_rankings': 'No rankings yet.',
+        'ui.bonus_time': 'BONUS TIME!',
+        
+        // Units
+        'unit.second': 's',
         
         // Skill Data (Keys matching SKILLTREE.json IDs or specific keys)
         'skill.q1.name': 'Radius Boost',
@@ -103,6 +116,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.research_time': '연구 시간:',
         'skill.max_level': '최대 레벨 도달',
         'skill.queued': '대기 중',
+        'skill.waiting': '선행 대기',
         
         // Properties
         'prop.radius': '반지름',
@@ -134,6 +148,18 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.total_resources': '총 수집 자원',
         'ui.restart': '다시 시작',
         'ui.reroll': '다시 선택',
+        'ui.click_to_select': '클릭하여 선택',
+        'ui.submit_score': '점수 제출',
+        'ui.name': '이름',
+        'ui.message': '메시지',
+        'ui.submit': '제출',
+        'ui.skip': '건너뛰기',
+        'ui.leaderboard': '리더보드',
+        'ui.no_rankings': '순위가 없습니다.',
+        'ui.bonus_time': '보너스 시간!',
+        
+        // Units
+        'unit.second': '초',
         
         // Skill Data
         'skill.q1.name': '반지름 확장',
@@ -186,6 +212,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.research_time': '研究时间:',
         'skill.max_level': '已达最高等级',
         'skill.queued': '等待中',
+        'skill.waiting': '等候前提',
         
         // Properties
         'prop.radius': '半径',
@@ -217,6 +244,18 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.total_resources': '总共收集的资源',
         'ui.restart': '重新开始',
         'ui.reroll': '重新选择',
+        'ui.click_to_select': '点击选择',
+        'ui.submit_score': '提交分数',
+        'ui.name': '姓名',
+        'ui.message': '留言',
+        'ui.submit': '提交',
+        'ui.skip': '跳过',
+        'ui.leaderboard': '排行榜',
+        'ui.no_rankings': '暂无排名。',
+        'ui.bonus_time': '奖励时间！',
+        
+        // Units
+        'unit.second': '秒',
         
         // Skill Data
         'skill.q1.name': '半径提升',
@@ -269,6 +308,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.research_time': '研究時間:',
         'skill.max_level': '最大レベル到達',
         'skill.queued': '待機中',
+        'skill.waiting': '前提待ち',
         
         // Properties
         'prop.radius': '半径',
@@ -300,6 +340,18 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.total_resources': '合計獲得資源',
         'ui.restart': '最初からやり直す',
         'ui.reroll': '再選択',
+        'ui.click_to_select': 'クリックして選択',
+        'ui.submit_score': 'スコア送信',
+        'ui.name': '名前',
+        'ui.message': 'メッセージ',
+        'ui.submit': '送信',
+        'ui.skip': 'スキップ',
+        'ui.leaderboard': 'リーダーボード',
+        'ui.no_rankings': 'ランキングがまだありません。',
+        'ui.bonus_time': 'ボーナスタイム！',
+
+        // Units
+        'unit.second': '秒',
         
         // Skill Data
         'skill.q1.name': '半径拡張',

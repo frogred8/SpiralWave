@@ -141,7 +141,7 @@ export class SkillTreeUI {
                     const timeLine = this.costLines[lineIdx++];
                     if (timeLine) {
                         const seconds = (skill.researchTimes && skill.researchTimes[currentLevel]) || 0;
-                        timeLine.setText(`${I18n.t('skill.research_time')} ${seconds}s`)
+                        timeLine.setText(`${I18n.t('skill.research_time')} ${seconds}${I18n.t('unit.second')}`)
                             .setColor('#ffff00')
                             .setPosition(10, currentY)
                             .setVisible(true);
@@ -222,12 +222,11 @@ export class SkillTreeUI {
             return;
         }
 
-        // Check if already in queue
-        const researchIndex = this.gameStats.activeResearches.findIndex(r => r.skillId === skill.id);
-        if (researchIndex !== -1) {
-            const { isActiveResearch } = this.getResearchState(researchIndex);
-            // Cancel research if already in queue
-            if (!isActiveResearch &&this.gameStats.cancelResearch(skill)) {
+        // Check if already in queue or active
+        const { isResearching, isActiveResearch } = this.getResearchState(skill);
+        if (isResearching) {
+            // Cancel research if already in queue (not active yet)
+            if (!isActiveResearch && this.gameStats.cancelResearch(skill)) {
                 this.scene.cameras.main.flash(200, 255, 165, 0, true); // Orange flash for cancel
             }
             return;
@@ -267,17 +266,20 @@ export class SkillTreeUI {
             const canAfford = this.gameStats.canAfford(currentCosts);
             const isMaxLevel = lv >= skill.maxLevel;
             
-            const researchIndex = this.gameStats.activeResearches.findIndex(r => r.skillId === skill.id);
-            const { isActiveResearch, isResearching } = this.getResearchState(researchIndex);
+            const { isActiveResearch, isResearching, isQueued, activeIndex, queueIndex } = this.getResearchState(skill);
 
 
             if (isActiveResearch) {
-                const research = this.gameStats.activeResearches[researchIndex];
-                data.lvTxt.setText(`${Math.ceil(research.remainingTime)}s`);
+                const research = this.gameStats.activeResearches[activeIndex];
+                data.lvTxt.setText(`${Math.ceil(research.remainingTime)}${I18n.t('unit.second')}`);
                 data.lvTxt.setColor('#ffff00');
-            } else if (isResearching) {
-                queueIndex++;
-                data.lvTxt.setText(`${I18n.t('skill.queued')} (${researchIndex - this.gameStats.maxResearchSlots + 1})`);
+            } else if (isQueued) {
+                const isWaitingForPrereq = !this.gameStats.isSkillUnlocked(skill, true);
+                if (isWaitingForPrereq) {
+                    data.lvTxt.setText(I18n.t('skill.waiting'));
+                } else {
+                    data.lvTxt.setText(`${I18n.t('skill.queued')} (${queueIndex + 1})`);
+                }
                 data.lvTxt.setColor('#00ffff');
             } else {
                 data.lvTxt.setText(`${I18n.t('skill.level')} ${lv}/${skill.maxLevel}`);
@@ -291,7 +293,7 @@ export class SkillTreeUI {
                 bg.setFillStyle(isActiveResearch ? 0x444400 : 0x004444); 
                 bg.setStrokeStyle(3, isActiveResearch ? 0xffff00 : 0x00ffff);
                 nameTxt.setColor('#ffffff');
-                btn.setInteractive({ useHandCursor: false });
+                btn.setInteractive({ useHandCursor: !isActiveResearch }); // Only queued items can be canceled
             } else if (isMaxLevel) {
                 btn.setAlpha(1);
                 bg.setFillStyle(0x006600); 
@@ -335,7 +337,8 @@ export class SkillTreeUI {
                     if (parentBtn && this.skillButtons[skill.id]) {
                         const parentLevel = this.gameStats.skillLevels[pre.id] || 0;
                         const isSatisfied = parentLevel >= pre.level;
-                        const isParentBeingResearched = this.gameStats.activeResearches.some(r => r.skillId === pre.id);
+                        const isParentBeingResearched = this.gameStats.activeResearches.some(r => r.skillId === pre.id) || 
+                                                       this.gameStats.researchQueue.some(r => r.skillId === pre.id);
                         const isSatisfiedByResearch = !isSatisfied && isParentBeingResearched && (parentLevel + 1 >= pre.level);
                         
                         const start = this.getEdgePoint(parentBtn, btn);
@@ -360,10 +363,15 @@ export class SkillTreeUI {
         });
     }
 
-    private getResearchState(researchIndex: number) {
-        const isResearching = researchIndex !== -1;
-        const isActiveResearch = isResearching && researchIndex < this.gameStats.maxResearchSlots;
-        return { isActiveResearch, isResearching };
+    private getResearchState(skill: SkillData) {
+        const activeIndex = this.gameStats.activeResearches.findIndex(r => r.skillId === skill.id);
+        const queueIndex = this.gameStats.researchQueue.findIndex(r => r.skillId === skill.id);
+        
+        const isResearching = activeIndex !== -1 || queueIndex !== -1;
+        const isActiveResearch = activeIndex !== -1;
+        const isQueued = queueIndex !== -1;
+
+        return { isActiveResearch, isResearching, isQueued, activeIndex, queueIndex };
     }
 
     private getEdgePoint(from: Phaser.GameObjects.Container, to: Phaser.GameObjects.Container) {
@@ -528,7 +536,7 @@ export class SkillTreeUI {
                     });
 
                     // "+2s" 플로팅 텍스트 생성
-                    const ft = this.scene.add.text(btn.x, btn.y - 20, '+2s', {
+                    const ft = this.scene.add.text(btn.x, btn.y - 20, '+2' + I18n.t('unit.second'), {
                         fontSize: '24px',
                         color: '#ffff00',
                         fontStyle: 'bold',

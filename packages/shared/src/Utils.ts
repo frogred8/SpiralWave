@@ -152,7 +152,7 @@ export const Utils = {
             case 'net': return level > 0 ? I18n.t('ui.activated') : I18n.t('ui.locked');
             case 'armSpeed': 
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;
-            case 'researchBonus': return `${bonus}s`;
+            case 'researchBonus': return `${bonus}${I18n.t('unit.second')}`;
             case 'netAngle': return `${sign}${bonus}°`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }

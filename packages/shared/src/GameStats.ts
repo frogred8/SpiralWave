@@ -266,10 +266,17 @@ export class GameStats extends Phaser.Events.EventEmitter {
     reduceResearchTime(seconds: number) {
         if (this.activeResearches.length === 0) return;
 
-        const research = this.activeResearches[0];
-        research.remainingTime = Math.max(0, research.remainingTime - seconds);
-        this.emit(GameStats.EVENTS.RESEARCH_REDUCED, research.skillId);
-        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+        // 현재 실제로 진행 중인(선행 조건이 완료된) 첫 번째 연구를 찾음
+        const researchable = this.activeResearches.find(r => {
+            const skill = this.skillTreeData.find(s => s.id === r.skillId);
+            return skill && this.isSkillUnlocked(skill, true);
+        });
+
+        if (researchable) {
+            researchable.remainingTime = Math.max(0, researchable.remainingTime - seconds);
+            this.emit(GameStats.EVENTS.RESEARCH_REDUCED, researchable.skillId);
+            this.emit(GameStats.EVENTS.UPDATE_SCORE);
+        }
     }
 
     /**

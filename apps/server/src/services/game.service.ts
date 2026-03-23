@@ -1,4 +1,4 @@
-import { StartRequest, EndRequest, BoardResponse } from '@repo/shared';
+import { BoardResponse } from '@repo/shared';
 import pool from '../config/db';
 
 /**
@@ -18,14 +18,14 @@ function generateUUID(prefix_n = 8, postfix_n = 4) {
 }
 
 export const GameService = {
-  async startGame(data: StartRequest, ip: string) {
+  async startGame(selectSkillId: number, ip: string) {
     // Generate UUID using custom function
     const gameId = generateUUID();
 
     try {
       await pool.query(
-        'INSERT INTO game (game_id, ip) VALUES ($1, $2)',
-        [gameId, ip]
+        'INSERT INTO game (game_id, ip, select_skill_id) VALUES ($1, $2, $3)',
+        [gameId, ip, selectSkillId]
       );
       return { status: 'ok', message: 'Game session started', game_id: gameId };
     } catch (err) {
@@ -34,7 +34,7 @@ export const GameService = {
     }
   },
 
-  async endGame(data: EndRequest) {
+  async endGame(gameId: string, name: string, score: number, msg: string, hash: string) {
     // Business logic for ending game
     return { status: 'ok', message: 'Game session ended' };
   },

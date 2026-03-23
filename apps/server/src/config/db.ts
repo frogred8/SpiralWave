@@ -17,6 +17,7 @@ const initDb = async () => {
       CREATE TABLE IF NOT EXISTS game (
         game_id VARCHAR(20) PRIMARY KEY,
         ip VARCHAR(45) NOT NULL,
+        select_skill_id INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);

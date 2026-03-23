@@ -167,31 +167,41 @@ export class GameStats extends Phaser.Events.EventEmitter {
         let updated = false;
         
         while (elapsedSeconds > 0 && this.activeResearches.length > 0) {
-            let activeCount = Math.min(this.activeResearches.length, this.maxResearchSlots);
+            // 현재 진행 가능한 연구들 필터링 (선행 조건이 완료된 것만)
+            const researchableIndices: number[] = [];
+            for (let i = 0; i < this.activeResearches.length; i++) {
+                const skill = this.skillTreeData.find(s => s.id === this.activeResearches[i].skillId);
+                if (skill && this.isSkillUnlocked(skill, true)) { // true: strict mode (연구 중인 것 제외)
+                    researchableIndices.push(i);
+                    if (researchableIndices.length >= this.maxResearchSlots) break;
+                }
+            }
+
+            if (researchableIndices.length === 0) break;
+
             let minTimeNeeded = Infinity;
-            
-            for (let i = 0; i < activeCount; i++) {
-                minTimeNeeded = Math.min(minTimeNeeded, this.activeResearches[i].remainingTime);
+            for (const idx of researchableIndices) {
+                minTimeNeeded = Math.min(minTimeNeeded, this.activeResearches[idx].remainingTime);
             }
             
             let timeToAdvance = Math.min(elapsedSeconds, minTimeNeeded);
             if (timeToAdvance <= 0) timeToAdvance = 0.001;
             
-            for (let i = 0; i < activeCount; i++) {
-                this.activeResearches[i].remainingTime -= timeToAdvance;
+            for (const idx of researchableIndices) {
+                this.activeResearches[idx].remainingTime -= timeToAdvance;
             }
             
             elapsedSeconds -= timeToAdvance;
             updated = true;
             
             let finishedAny = false;
-            for (let i = 0; i < activeCount; i++) {
-                if (this.activeResearches[i].remainingTime <= 0) {
-                    const skillId = this.activeResearches[i].skillId;
+            // 역순으로 순회하여 splice 영향 방지
+            for (let i = researchableIndices.length - 1; i >= 0; i--) {
+                const idx = researchableIndices[i];
+                if (this.activeResearches[idx].remainingTime <= 0) {
+                    const skillId = this.activeResearches[idx].skillId;
                     const skill = this.skillTreeData.find(s => s.id === skillId);
-                    this.activeResearches.splice(i, 1);
-                    i--;
-                    activeCount--;
+                    this.activeResearches.splice(idx, 1);
                     finishedAny = true;
                     if (skill) this.applySkillUpgrade(skill);
                 }
@@ -284,17 +294,20 @@ export class GameStats extends Phaser.Events.EventEmitter {
     }
 
     /**
-     * 스킬 해금 여부 확인 (연구 중인 스킬도 해금 조건 만족으로 간주)
+     * 스킬 해금 여부 확인 (연구 중인 스킬도 해금 조건 만족으로 간주 가능)
+     * @param strict true면 연구가 완료된 스킬만 체크, false면 연구 중인 스킬도 포함
      */
-    public isSkillUnlocked(skill: SkillData): boolean {
+    public isSkillUnlocked(skill: SkillData, strict: boolean = false): boolean {
         if (!skill.prerequisites || skill.prerequisites.length === 0) return true;
         return skill.prerequisites.every(pre => {
             const currentLevel = this.skillLevels[pre.id] || 0;
             if (currentLevel >= pre.level) return true;
             
-            // 현재 연구 중인 스킬도 조건 만족으로 간주 (연구 완료 시 레벨업 예정이므로)
-            const isResearching = this.activeResearches.some(r => r.skillId === pre.id);
-            if (isResearching && currentLevel + 1 >= pre.level) return true;
+            if (!strict) {
+                // 현재 연구 중인 스킬도 조건 만족으로 간주 (연구 완료 시 레벨업 예정이므로)
+                const isResearching = this.activeResearches.some(r => r.skillId === pre.id);
+                if (isResearching && currentLevel + 1 >= pre.level) return true;
+            }
             
             return false;
         });

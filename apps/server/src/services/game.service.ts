@@ -34,7 +34,7 @@ export const GameService = {
     }
   },
 
-  async endGame(gameId: string, name: string, score: number, msg: string, hash: string) {
+  async endGame(gameId: string, name: string, score: number, msg: string) {
     // Business logic for ending game
     return { status: 'ok', message: 'Game session ended' };
   },

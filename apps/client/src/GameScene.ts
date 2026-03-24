@@ -501,7 +501,6 @@ export class GameScene extends Phaser.Scene {
         try {
             const body: EndRequest = {
                 game_id: this.currentGameId,
-                hash: "dummy_hash", // 나중에 검증 로직 추가 가능
                 name: name,
                 score: this.gameStats.totalAll,
                 msg: msg

@@ -16,13 +16,14 @@ export interface EndRequest {
     msg: string;
 }
 
-// GET /board
+// GET /leaderboard
 export interface RankEntry {
     seq_id: number;
     score: number;
-    filtered_email: string;
+    name: string;
+    msg: string;
 }
 
-export interface BoardResponse {
+export interface LeaderBoardResponse {
     ranks: RankEntry[];
 }

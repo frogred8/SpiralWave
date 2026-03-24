@@ -7,7 +7,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
-import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, BoardResponse } from '@repo/shared';
+import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, LeaderBoardResponse } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 
@@ -16,7 +16,7 @@ interface UIState {
     initialSkillData?: any[];
     excludeSkillIds?: string[];
     selectedInitialSkills?: any[];
-    boardRanks?: RankEntry[];
+    leaderBoardRanks?: RankEntry[];
 }
 
 export class GameScene extends Phaser.Scene {
@@ -519,19 +519,19 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private async fetchBoardData(): Promise<RankEntry[]> {
+    private async fetchLeaderBoardData(): Promise<RankEntry[]> {
         const serverUrl = import.meta.env.VITE_SERVER_URL;
         if (!serverUrl) return [];
 
         try {
-            const response = await fetch(`${serverUrl}/board`, {
+            const response = await fetch(`${serverUrl}/leaderboard`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
-            const data: BoardResponse = await response.json();
+            const data: LeaderBoardResponse = await response.json();
             return data.ranks || [];
         } catch (err) {
-            console.error('Failed to fetch board:', err);
+            console.error('Failed to fetch leaderboard:', err);
             return [];
         }
     }
@@ -568,25 +568,25 @@ export class GameScene extends Phaser.Scene {
         this.uiContainer.add(resourceInfo);
 
         // 리더보드 컨테이너
-        const boardContainer = this.add.container(width / 2, height / 2).setDepth(3001);
-        this.uiContainer.add(boardContainer);
+        const leaderBoardContainer = this.add.container(width / 2, height / 2).setDepth(3001);
+        this.uiContainer.add(leaderBoardContainer);
 
-        const boardBg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9)
+        const leaderBoardBg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9)
             .setStrokeStyle(2, 0x444444);
         
-        const boardTitle = this.add.text(0, -170, I18n.t('ui.leaderboard'), {
+        const leaderBoardTitle = this.add.text(0, -170, I18n.t('ui.leaderboard'), {
             fontSize: '24px',
             color: '#00ff00',
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        boardContainer.add([boardBg, boardTitle]);
+        leaderBoardContainer.add([leaderBoardBg, leaderBoardTitle]);
 
         // 리더보드 데이터 가져오기 (이미 있으면 그것을 사용)
-        let ranks = this.currentUIState.boardRanks;
+        let ranks = this.currentUIState.leaderBoardRanks;
         if (!ranks) {
-            ranks = await this.fetchBoardData();
-            this.currentUIState.boardRanks = ranks;
+            ranks = await this.fetchLeaderBoardData();
+            this.currentUIState.leaderBoardRanks = ranks;
         }
         
         const displayRanks = ranks.slice(0, 10);
@@ -596,7 +596,7 @@ export class GameScene extends Phaser.Scene {
                 fontSize: '18px',
                 color: '#888888'
             }).setOrigin(0.5);
-            boardContainer.add(emptyText);
+            leaderBoardContainer.add(emptyText);
         } else {
             displayRanks.forEach((rank, index) => {
                 const yPos = -130 + (index * 30);
@@ -606,13 +606,19 @@ export class GameScene extends Phaser.Scene {
                     fontStyle: 'bold'
                 }).setOrigin(1, 0.5);
                 
-                const email = this.add.text(-220, yPos, rank.filtered_email, {
+                const nameText = this.add.text(-220, yPos, rank.name, {
                     fontSize: '18px',
-                    color: '#ffffff'
+                    color: '#ffffff',
+                    fontStyle: 'bold'
+                }).setOrigin(0, 0.5);
+
+                const msgText = this.add.text(-50, yPos, rank.msg, {
+                    fontSize: '16px',
+                    color: '#aaaaaa'
                 }).setOrigin(0, 0.5);
                 
 
-                boardContainer.add([score, email]);
+                leaderBoardContainer.add([score, nameText, msgText]);
             });
         }
 
@@ -639,15 +645,15 @@ export class GameScene extends Phaser.Scene {
             overlay.destroy();
             title.destroy();
             resourceInfo.destroy();
-            boardContainer.destroy();
+            leaderBoardContainer.destroy();
             restartBtn.destroy();
         });
 
         // 애니메이션
-        boardContainer.setScale(0);
+        leaderBoardContainer.setScale(0);
         restartBtn.setScale(0);
         this.tweens.add({
-            targets: [boardContainer, restartBtn],
+            targets: [leaderBoardContainer, restartBtn],
             scale: 1,
             duration: 500,
             ease: 'Back.easeOut',

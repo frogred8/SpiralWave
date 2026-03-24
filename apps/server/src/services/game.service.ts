@@ -1,4 +1,4 @@
-import { BoardResponse } from '@repo/shared';
+import { LeaderBoardResponse } from '@repo/shared';
 import pool from '../config/db';
 
 /**
@@ -82,20 +82,20 @@ export const GameService = {
     }
   },
 
-  async getBoard(): Promise<BoardResponse> {
-    // Business logic for board
+  async getLeaderBoard(): Promise<LeaderBoardResponse> {
+    // Business logic for leaderboard
     return { 
       ranks: [
-        { seq_id: 1, score: 100, filtered_email: 'pl***@gmail.com' },
-        { seq_id: 2, score: 89, filtered_email: 'te***@gmail.com' },
-        { seq_id: 4, score: 87, filtered_email: '32***@apple.com' },
-        { seq_id: 3, score: 85, filtered_email: 'dd***@naver.com' },
-        { seq_id: 8, score: 67, filtered_email: 'as***@sec.com' },
-        { seq_id: 12, score: 60, filtered_email: 'dd***@eke.com' },
-        { seq_id: 22, score: 53, filtered_email: 'vc***@sk.com' },
-        { seq_id: 233, score: 23, filtered_email: 'nf***@gmail.com' },
-        { seq_id: 62, score: 12, filtered_email: 'jh***@nate.com' },
-        { seq_id: 100, score: 11, filtered_email: 'fg***@microsoft.com' }
+        { seq_id: 1, score: 100, name: 'Alice', msg: 'Great game!' },
+        { seq_id: 2, score: 89, name: 'Bob', msg: 'I will be back' },
+        { seq_id: 4, score: 87, name: 'Charlie', msg: 'Nice center' },
+        { seq_id: 3, score: 85, name: 'Dave', msg: 'Spiral!!' },
+        { seq_id: 8, score: 67, name: 'Eve', msg: 'Hard one' },
+        { seq_id: 12, score: 60, name: 'Frank', msg: 'Love it' },
+        { seq_id: 22, score: 53, name: 'Grace', msg: 'Good luck' },
+        { seq_id: 233, score: 23, name: 'Heidi', msg: 'Wait' },
+        { seq_id: 62, score: 12, name: 'Ivan', msg: 'Hello' },
+        { seq_id: 100, score: 11, name: 'Judy', msg: 'Bye' }
       ] 
     };
   }

@@ -10,6 +10,7 @@ export interface StartRequest {
 // POST /end
 export interface EndRequest {
     game_id: string;
+    select_skill_id: number;
     name: string;
     score: number;
     msg: string;

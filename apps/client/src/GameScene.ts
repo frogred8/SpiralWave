@@ -47,6 +47,7 @@ export class GameScene extends Phaser.Scene {
     private timerText!: Phaser.GameObjects.Text;
     private specialItemTimer?: Phaser.Time.TimerEvent;
     private currentGameId: string = '';
+    private currentSelectSkillId: number = 0;
 
     private currentUIState: UIState = { overlay: null };
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
@@ -365,6 +366,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private async sendStartGameSignal(skillId: number) {
+        this.currentSelectSkillId = skillId;
         const serverUrl = import.meta.env.VITE_SERVER_URL;
         if (!serverUrl) return;
 
@@ -501,6 +503,7 @@ export class GameScene extends Phaser.Scene {
         try {
             const body: EndRequest = {
                 game_id: this.currentGameId,
+                select_skill_id: this.currentSelectSkillId,
                 name: name,
                 score: this.gameStats.totalAll,
                 msg: msg

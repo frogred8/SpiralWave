@@ -20,13 +20,17 @@ function generateUUID(prefix_n = 8, postfix_n = 4) {
 /**
  * 게임 세션 유효성 검증
  */
-async function validateGameSession(gameId: string, ip: string, endAt: Date): Promise<any | null> {
-  const res = await pool.query('SELECT created_at, ip FROM game WHERE game_id = $1', [gameId]);
+async function validateGameSession(gameId: string, selectSkillId: number, ip: string, endAt: Date): Promise<any | null> {
+  const res = await pool.query('SELECT created_at, ip, select_skill_id FROM game WHERE game_id = $1', [gameId]);
   
   // 1. db에서 gameId로 검색하여 레코드가 나오지 않을 때
   if (res.rows.length === 0) return null;
 
   const gameRecord = res.rows[0];
+
+  // 4. 전달받은 selectSkillId와 레코드의 select_skill_id를 비교하여 다를 때
+  if (gameRecord.select_skill_id !== selectSkillId) return null;
+
   const createdAt = new Date(gameRecord.created_at);
   const limitTime = new Date(createdAt.getTime() + 5 * 60 * 1000);
 
@@ -56,9 +60,9 @@ export const GameService = {
     }
   },
 
-  async endGame(gameId: string, name: string, score: number, msg: string, ip: string, endAt: Date) {
+  async endGame(gameId: string, selectSkillId: number, name: string, score: number, msg: string, ip: string, endAt: Date) {
     try {
-      const gameRecord = await validateGameSession(gameId, ip, endAt);
+      const gameRecord = await validateGameSession(gameId, selectSkillId, ip, endAt);
       
       if (gameRecord) {
         // 모든 검증이 통과하면 game 테이블에서 해당 레코드를 삭제

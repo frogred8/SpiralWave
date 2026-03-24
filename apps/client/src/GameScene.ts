@@ -111,8 +111,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     private initCameras(width: number, height: number) {
-        this.cameras.add(0, 0, width, height).setName('UI')
-            .ignore([this.worldContainer]);
+        let uiCam = this.cameras.getCamera('UI');
+        if (!uiCam) {
+            uiCam = this.cameras.add(0, 0, width, height).setName('UI');
+        }
+        uiCam.ignore([this.worldContainer]);
         this.cameras.main.ignore([this.uiContainer, this.topUiContainer]);
     }
 

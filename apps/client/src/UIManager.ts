@@ -14,6 +14,8 @@ export interface UIState {
     excludeSkillIds?: string[];
     selectedInitialSkills?: any[];
     leaderBoardRanks?: RankEntry[];
+    isRestarted?: boolean;
+    canReroll?: boolean;
 }
 
 export interface UICallbacks {
@@ -39,6 +41,8 @@ export class UIManager {
     private soundBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private skillTreeUI: SkillTreeUI | null = null;
+    
+    private statsUpdateListener: (() => void) | null = null;
     
     private isLanguageMenuOpen: boolean = false;
     public currentUIState: UIState = { overlay: null };
@@ -118,7 +122,13 @@ export class UIManager {
         this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
         this.uiContainer.add(this.statsContainer);
 
-        this.stats.on(GameStats.EVENTS.UPDATE_SCORE, () => {
+        // 이전 리스너가 있다면 제거
+        if (this.statsUpdateListener) {
+            this.stats.off(GameStats.EVENTS.UPDATE_SCORE, this.statsUpdateListener);
+        }
+
+        // 새로운 리스너 생성 및 등록
+        this.statsUpdateListener = () => {
             if (!this.statsContainer.active) return;
             woodValue.setText(this.stats.collected.wood.toString());
             rockValue.setText(this.stats.collected.rock.toString());
@@ -126,7 +136,9 @@ export class UIManager {
             rateText.setText(`${I18n.t('stats.rate')}: ${this.stats.getRecentCollectionAmount()}`);
             timeText.setText(`${I18n.t('stats.time')}: ${this.stats.getFormattedPlaytime()}`);
             gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('stats.arms')}: ${this.stats.maxArms}\n${I18n.t('stats.speed')}: ${this.stats.armSpeedFactor.toFixed(1)}x`);
-        });
+        };
+
+        this.stats.on(GameStats.EVENTS.UPDATE_SCORE, this.statsUpdateListener);
     }
 
     public showFloatingText(x: number, y: number, text: string, color: string, isInWorld: boolean = false, fontSize: string = '14px', worldContainer: Phaser.GameObjects.Container) {
@@ -153,6 +165,8 @@ export class UIManager {
         this.currentUIState.overlay = 'initialSkill';
         this.currentUIState.initialSkillData = skillData;
         this.currentUIState.excludeSkillIds = excludeSkillIds;
+        this.currentUIState.isRestarted = isRestarted;
+        this.currentUIState.canReroll = canReroll;
         
         if (preservedSkills) {
             this.currentUIState.selectedInitialSkills = preservedSkills;
@@ -442,7 +456,7 @@ export class UIManager {
 
         switch (state.overlay) {
             case 'initialSkill':
-                this.showInitialSkillSelection(state.initialSkillData || [], state.excludeSkillIds, state.selectedInitialSkills, true, true);
+                this.showInitialSkillSelection(state.initialSkillData || [], state.excludeSkillIds, state.selectedInitialSkills, state.isRestarted || false, state.canReroll || false);
                 break;
             case 'inputForm':
                 this.showInputForm();
@@ -554,6 +568,9 @@ export class UIManager {
         // UI 컴포넌트 재구성
         this.setupMainUI();
         this.setupSkillTree(currentSkillData);
+        
+        // 오버레이 상태 복구 (다국어 변경 시에도 오버레이 유지)
+        this.restoreUIState();
         
         // Scene에 리프레시 알림 (리사이즈나 카메라 설정 등)
         this.callbacks.onRefreshUI();

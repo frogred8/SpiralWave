@@ -21,6 +21,19 @@ const initDb = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS wish (
+        seq_id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        game_id VARCHAR(20) NOT NULL,
+        ip VARCHAR(45) NOT NULL,
+        score INT NOT NULL,
+        msg TEXT,
+        created_at TIMESTAMP NOT NULL,
+        end_at TIMESTAMP NOT NULL
+      )
+    `);
     console.log('Database initialized');
   } catch (err) {
     console.error('Database initialization failed', err);

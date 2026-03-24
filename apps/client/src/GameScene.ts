@@ -60,36 +60,12 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = this.scale;
         this.spiralCenter = new Phaser.Math.Vector2(width / 2, height / 2);
 
-        // 배경음악 재생 (루프 설정은 SoundManager에서 이미 되어 있음)
         SoundManager.getInstance().play('background');
 
-        // 스킬 트리 데이터 복제 (원본 데이터 수정을 방지하기 위해 딥 카피)
-        let skillData = JSON.parse(JSON.stringify(skillTreeData));
-        
-        // 스킬 트리 랜덤 배치 로직
-        if (skillData) {
-            skillData = Utils.generateRandomSkillTree(skillData);
-        }
-
-        this.gameStats = new GameStats(skillData);
-
-        this.worldContainer = this.add.container(0, 0);
-        this.uiContainer = this.add.container(0, 0);
-        this.topUiContainer = this.add.container(0, 0).setDepth(10000);
-
-        // Renderer 초기화
-        this.gameRenderer = new GameRenderer(this, this.worldContainer, this.uiContainer, this.gameStats, this.spiralCenter);
-
-        // ResourceManager 초기화
-        this.resourceManager = new ResourceManager(this, this.gameStats, this.gameRenderer, this.worldContainer, this.spiralCenter);
-
-        // 로봇팔 초기화
-        this.arms = [];
-        this.syncArmsCount();
-
-        const uiCamera = this.cameras.add(0, 0, width, height).setName('UI')
-            .ignore([this.worldContainer]);
-        this.cameras.main.ignore([this.uiContainer, this.topUiContainer]);
+        const skillData = this.initGameStats();
+        this.initContainers();
+        this.initSystems(skillData);
+        this.initCameras(width, height);
 
         this.setupPhysics();
         this.setupUI(skillData);
@@ -100,6 +76,43 @@ export class GameScene extends Phaser.Scene {
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
         }
+    }
+
+    private initGameStats(): any[] {
+        // 스킬 트리 데이터 복제 (원본 데이터 수정을 방지하기 위해 딥 카피)
+        let skillData = JSON.parse(JSON.stringify(skillTreeData));
+        
+        // 스킬 트리 랜덤 배치 로직
+        if (skillData) {
+            skillData = Utils.generateRandomSkillTree(skillData);
+        }
+
+        this.gameStats = new GameStats(skillData);
+        return skillData;
+    }
+
+    private initContainers() {
+        this.worldContainer = this.add.container(0, 0);
+        this.uiContainer = this.add.container(0, 0);
+        this.topUiContainer = this.add.container(0, 0).setDepth(10000);
+    }
+
+    private initSystems(skillData: any[]) {
+        // Renderer 초기화
+        this.gameRenderer = new GameRenderer(this, this.worldContainer, this.uiContainer, this.gameStats, this.spiralCenter);
+
+        // ResourceManager 초기화
+        this.resourceManager = new ResourceManager(this, this.gameStats, this.gameRenderer, this.worldContainer, this.spiralCenter);
+
+        // 로봇팔 초기화
+        this.arms = [];
+        this.syncArmsCount();
+    }
+
+    private initCameras(width: number, height: number) {
+        this.cameras.add(0, 0, width, height).setName('UI')
+            .ignore([this.worldContainer]);
+        this.cameras.main.ignore([this.uiContainer, this.topUiContainer]);
     }
 
     private updateUIPositions() {
@@ -246,113 +259,113 @@ export class GameScene extends Phaser.Scene {
 
         // 다시 시작한 경우 1회에 한해 다시 뽑기 버튼 제공
         if (this.isRestarted && this.canReroll) {
-            const rerollBtn = this.add.container(width / 2, height / 2 + 250).setDepth(2001);
-            const rerollBg = this.add.rectangle(0, 0, 160, 45, 0x333333, 0.9)
-                .setStrokeStyle(2, 0x00ff00)
-                .setInteractive({ useHandCursor: true });
-            const rerollText = this.add.text(0, 0, I18n.t('ui.reroll'), {
-                fontSize: '18px',
-                color: '#00ff00',
-                fontStyle: 'bold'
-            }).setOrigin(0.5);
+            this.createRerollButton(width, height, skillData, currentSelectionIds);
+        }
 
-            rerollBtn.add([rerollBg, rerollText]);
-            this.uiContainer.add(rerollBtn);
+        selectedSkills.forEach((skill, index) => {
+            const x = width / 2 + (index === 0 ? -180 : 180);
+            const y = height / 2 + 20;
+            this.createSkillCard(x, y, skill, overlay, title);
+        });
+    }
 
-            rerollBg.on('pointerover', () => rerollBg.setFillStyle(0x444444));
-            rerollBg.on('pointerout', () => rerollBg.setFillStyle(0x333333));
-            rerollBg.on('pointerdown', () => {
-                this.canReroll = false;
-                SoundManager.getInstance().play('reroll');
-                // 현재 선택 UI 제거
+    private createRerollButton(width: number, height: number, skillData: any[], currentSelectionIds: string[]) {
+        const rerollBtn = this.add.container(width / 2, height / 2 + 250).setDepth(2001);
+        const rerollBg = this.add.rectangle(0, 0, 160, 45, 0x333333, 0.9)
+            .setStrokeStyle(2, 0x00ff00)
+            .setInteractive({ useHandCursor: true });
+        const rerollText = this.add.text(0, 0, I18n.t('ui.reroll'), {
+            fontSize: '18px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        rerollBtn.add([rerollBg, rerollText]);
+        this.uiContainer.add(rerollBtn);
+
+        rerollBg.on('pointerover', () => rerollBg.setFillStyle(0x444444));
+        rerollBg.on('pointerout', () => rerollBg.setFillStyle(0x333333));
+        rerollBg.on('pointerdown', () => {
+            this.canReroll = false;
+            SoundManager.getInstance().play('reroll');
+            // 현재 선택 UI 제거
+            this.uiContainer.iterate((child: any) => {
+                if (child && child.depth >= 2000) child.destroy();
+            });
+            // 현재 선택된 스킬들을 제외하고 다시 생성 (null을 넘겨 새 랜덤 추출 유도)
+            this.showInitialSkillSelection(skillData, currentSelectionIds, null);
+        });
+    }
+
+    private createSkillCard(x: number, y: number, skill: any, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
+        const btn = this.add.container(x, y).setDepth(2001);
+        const bg = this.add.rectangle(0, 0, 280, 320, 0x1a1a1a, 0.95)
+            .setStrokeStyle(3, 0x444444)
+            .setInteractive({ useHandCursor: true });
+        
+        const skillName = I18n.t(`skill.${skill.id}.name`) || skill.id;
+        const nameText = this.add.text(0, -100, skillName, {
+            fontSize: '24px',
+            color: '#00ff00',
+            fontStyle: 'bold',
+            align: 'center',
+            wordWrap: { width: 240 }
+        }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
+
+        const desc = I18n.t(`skill.${skill.id}.desc`) || '';
+        const descText = this.add.text(0, 0, desc, {
+            fontSize: '18px',
+            color: '#ffffff',
+            align: 'center',
+            lineSpacing: 8,
+            wordWrap: { width: 240 }
+        }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
+
+        const hintText = this.add.text(0, 110, I18n.t('ui.click_to_select'), {
+            fontSize: '14px', color: '#aaaaaa', fontStyle: 'italic'
+        }).setOrigin(0.5);
+
+        btn.add([bg, nameText, descText, hintText]);
+        this.uiContainer.add(btn);
+
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(4, 0x00ff00);
+            this.tweens.add({ targets: btn, scale: 1.05, duration: 200, ease: 'Back.easeOut' });
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(3, 0x444444);
+            this.tweens.add({ targets: btn, scale: 1.0, duration: 200, ease: 'Back.easeOut' });
+        });
+        bg.on('pointerdown', () => {
+            this.handleInitialSkillSelection(skill, btn, overlay, title);
+        });
+    }
+
+    private handleInitialSkillSelection(skill: any, btn: Phaser.GameObjects.Container, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
+        this.gameStats.grantSkill(skill);
+        SoundManager.getInstance().play('skillupgrade');
+        
+        const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
+        this.sendStartGameSignal(skillIndex);
+        this.startGame();
+        
+        this.tweens.add({
+            targets: [overlay, title, btn],
+            alpha: 0,
+            duration: 500,
+            onComplete: () => {
+                overlay.destroy();
+                title.destroy();
                 this.uiContainer.iterate((child: any) => {
                     if (child && child.depth >= 2000) child.destroy();
                 });
-                // 현재 선택된 스킬들을 제외하고 다시 생성 (null을 넘겨 새 랜덤 추출 유도)
-                this.showInitialSkillSelection(skillData, currentSelectionIds, null);
-            });
-        }
-
-        selectedSkills.forEach((skill, index) => {            const x = width / 2 + (index === 0 ? -180 : 180);
-            const y = height / 2 + 20;
-            
-            const btn = this.add.container(x, y).setDepth(2001);
-            
-            // 어둡고 거친 금속 느낌의 배경
-            const bg = this.add.rectangle(0, 0, 280, 320, 0x1a1a1a, 0.95)
-                .setStrokeStyle(3, 0x444444)
-                .setInteractive({ useHandCursor: true });
-            
-            // 스킬 이름 (I18n 활용)
-            const skillName = I18n.t(`skill.${skill.id}.name`) || skill.id;
-            const nameText = this.add.text(0, -100, skillName, {
-                fontSize: '24px',
-                color: '#00ff00',
-                fontStyle: 'bold',
-                align: 'center',
-                wordWrap: { width: 240 }
-            }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
-
-            // 효과 설명
-            const desc = I18n.t(`skill.${skill.id}.desc`) || '';
-            const descText = this.add.text(0, 0, desc, {
-                fontSize: '18px',
-                color: '#ffffff',
-                align: 'center',
-                lineSpacing: 8,
-                wordWrap: { width: 240 }
-            }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
-
-            // 클릭 유도 텍스트
-            const hintText = this.add.text(0, 110, I18n.t('ui.click_to_select'), {
-                fontSize: '14px',
-                color: '#aaaaaa',
-                fontStyle: 'italic'
-            }).setOrigin(0.5);
-
-            btn.add([bg, nameText, descText, hintText]);
-            this.uiContainer.add(btn);
-
-            bg.on('pointerover', () => {
-                bg.setStrokeStyle(4, 0x00ff00);
-                this.tweens.add({ targets: btn, scale: 1.05, duration: 200, ease: 'Back.easeOut' });
-            });
-            bg.on('pointerout', () => {
-                bg.setStrokeStyle(3, 0x444444);
-                this.tweens.add({ targets: btn, scale: 1.0, duration: 200, ease: 'Back.easeOut' });
-            });
-            bg.on('pointerdown', () => {
-                this.gameStats.grantSkill(skill);
-                SoundManager.getInstance().play('skillupgrade');
-                
-                // 서버에 시작 신호 전송 (스킬 데이터 상의 인덱스를 ID로 사용)
-                const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
-                this.sendStartGameSignal(skillIndex);
-
-                this.startGame();
-                
-                // 선택 UI 제거 애니메이션
-                this.tweens.add({
-                    targets: [overlay, title, btn],
-                    alpha: 0,
-                    duration: 500,
-                    onComplete: () => {
-                        overlay.destroy();
-                        title.destroy();
-                        // 모든 선택 버튼 제거
-                        this.uiContainer.iterate((child: any) => {
-                            if (child && child.depth >= 2000) child.destroy();
-                        });
-                    }
-                });
-                
-                // 다른 버튼도 페이드 아웃
-                this.uiContainer.iterate((child: any) => {
-                    if (child && child.depth >= 2001 && child !== btn) {
-                        this.tweens.add({ targets: child, alpha: 0, duration: 300 });
-                    }
-                });
-            });
+            }
+        });
+        
+        this.uiContainer.iterate((child: any) => {
+            if (child && child.depth >= 2001 && child !== btn) {
+                this.tweens.add({ targets: child, alpha: 0, duration: 300 });
+            }
         });
     }
 
@@ -390,26 +403,34 @@ export class GameScene extends Phaser.Scene {
         this.currentUIState.overlay = 'inputForm';
         const { width, height } = this.scale;
         
-        // 딤드 배경
-        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85)
-            .setOrigin(0).setInteractive().setDepth(4000);
+        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(4000);
         this.uiContainer.add(overlay);
 
         const formContainer = this.add.container(width / 2, height / 2).setDepth(4001);
         this.uiContainer.add(formContainer);
 
-        // 폼 배경 및 타이틀은 Phaser로 유지 (디자인 통일성)
-        const bg = this.add.rectangle(0, 0, 340, 420, 0x222222, 0.95)
-            .setStrokeStyle(2, 0x444444);
-        
-        const title = this.add.text(0, -170, I18n.t('ui.submit_score'), {
-            fontSize: '28px',
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
+        const bg = this.add.rectangle(0, 0, 340, 420, 0x222222, 0.95).setStrokeStyle(2, 0x444444);
+        const title = this.add.text(0, -170, I18n.t('ui.submit_score'), { fontSize: '28px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
 
-        // 입력 폼만 DOM으로 통합 관리 (Phaser ScaleManager 대응)
-        const html = `
+        this.activeDOMElement = this.add.dom(width / 2, height / 2 - 20).createFromHTML(this.getInputFormHtml()).setOrigin(0.5).setDepth(4002);
+
+        const closeForm = () => {
+            if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
+            formContainer.destroy(); overlay.destroy();
+        };
+
+        const buttonGroup = this.createFormButtons(closeForm);
+        formContainer.add([bg, title, buttonGroup]);
+
+        formContainer.setScale(0);
+        if (this.activeDOMElement) {
+            this.activeDOMElement.setScale(0);
+            this.tweens.add({ targets: [formContainer, this.activeDOMElement], scale: 1, duration: 400, ease: 'Back.easeOut' });
+        }
+    }
+
+    private getInputFormHtml(): string {
+        return `
             <div style="width: 290px; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; pointer-events: auto;">
                 <div>
                     <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.name')}</label>
@@ -421,79 +442,42 @@ export class GameScene extends Phaser.Scene {
                 </div>
             </div>
         `;
+    }
 
-        this.activeDOMElement = this.add.dom(width / 2, height / 2 - 20).createFromHTML(html)
-            .setOrigin(0.5).setDepth(4002);
-
-        // 버튼 영역 컨테이너
-        const buttonGroup = this.add.container(0, 155);
+    private createFormButtons(closeCallback: () => void): Phaser.GameObjects.Container {
+        const group = this.add.container(0, 155);
         
-        // 제출 버튼
+        // Submit
         const submitBtn = this.add.container(-75, 0);
-        const submitBg = this.add.rectangle(0, 0, 140, 50, 0x00ff00, 1)
-            .setInteractive({ useHandCursor: true });
-        const submitText = this.add.text(0, 0, I18n.t('ui.submit'), {
-            fontSize: '18px',
-            color: '#000000',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        submitBtn.add([submitBg, submitText]);
+        const submitBg = this.add.rectangle(0, 0, 140, 50, 0x00ff00, 1).setInteractive({ useHandCursor: true });
+        const submitTxt = this.add.text(0, 0, I18n.t('ui.submit'), { fontSize: '18px', color: '#000000', fontStyle: 'bold' }).setOrigin(0.5);
+        submitBtn.add([submitBg, submitTxt]);
 
-        // 건너뛰기 버튼
-        const skipBtn = this.add.container(75, 0);
-        const skipBg = this.add.rectangle(0, 0, 140, 50, 0x444444, 1)
-            .setInteractive({ useHandCursor: true });
-        const skipText = this.add.text(0, 0, I18n.t('ui.skip'), {
-            fontSize: '18px',
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        skipBtn.add([skipBg, skipText]);
-
-        buttonGroup.add([submitBtn, skipBtn]);
-        formContainer.add([bg, title, buttonGroup]);
-
-        const closeForm = () => {
-            if (this.activeDOMElement) {
-                this.activeDOMElement.destroy();
-                this.activeDOMElement = null;
-            }
-            formContainer.destroy();
-            overlay.destroy();
-        };
-
-        // SUBMIT 이벤트
         submitBg.on('pointerover', () => submitBg.setFillStyle(0x00dd00));
         submitBg.on('pointerout', () => submitBg.setFillStyle(0x00ff00));
         submitBg.on('pointerdown', async () => {
             const name = (document.getElementById('playerName') as HTMLInputElement).value;
             const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
-            
             await this.sendEndGameSignal(name, msg);
-            
-            closeForm();
+            closeCallback();
             this.showGameOverScreen();
         });
 
-        // SKIP 이벤트
+        // Skip
+        const skipBtn = this.add.container(75, 0);
+        const skipBg = this.add.rectangle(0, 0, 140, 50, 0x444444, 1).setInteractive({ useHandCursor: true });
+        const skipTxt = this.add.text(0, 0, I18n.t('ui.skip'), { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        skipBtn.add([skipBg, skipTxt]);
+
         skipBg.on('pointerover', () => skipBg.setFillStyle(0x555555));
         skipBg.on('pointerout', () => skipBg.setFillStyle(0x444444));
         skipBg.on('pointerdown', () => {
-            closeForm();
+            closeCallback();
             this.showGameOverScreen();
         });
 
-        // 등장 애니메이션
-        formContainer.setScale(0);
-        if (this.activeDOMElement) {
-            this.activeDOMElement.setScale(0);
-            this.tweens.add({
-                targets: [formContainer, this.activeDOMElement],
-                scale: 1,
-                duration: 400,
-                ease: 'Back.easeOut'
-            });
-        }
+        group.add([submitBtn, skipBtn]);
+        return group;
     }
 
     private async sendEndGameSignal(name: string, msg: string) {
@@ -541,48 +525,46 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = this.scale;
         
         SoundManager.getInstance().play('winning');
-        
-        // 타이머 정지 효과
         this.timerText.setAlpha(1);
         
-        // 딤드 배경
-        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85)
-            .setOrigin(0).setInteractive().setDepth(3000);
+        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(3000);
         this.uiContainer.add(overlay);
 
+        this.createGameOverText(width);
+        const leaderBoardContainer = await this.createLeaderBoardUI(width, height);
+        const restartBtn = this.createRestartButton(width, height, overlay, leaderBoardContainer);
+
+        // 애니메이션
+        leaderBoardContainer.setScale(0);
+        restartBtn.setScale(0);
+        this.tweens.add({
+            targets: [leaderBoardContainer, restartBtn],
+            scale: 1, duration: 500, ease: 'Back.easeOut', delay: 500
+        });
+    }
+
+    private createGameOverText(width: number) {
         const title = this.add.text(width / 2, 80, I18n.t('ui.game_over'), {
-            fontSize: '56px',
-            color: '#ff0000',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 8
+            fontSize: '56px', color: '#ff0000', fontStyle: 'bold', stroke: '#000000', strokeThickness: 8
         }).setOrigin(0.5).setDepth(3001);
-        this.uiContainer.add(title);
-
-        const resourceInfo = this.add.text(width / 2, 160, `${I18n.t('ui.total_resources')}: ${this.gameStats.totalAll}`, {
-            fontSize: '28px',
-            color: '#ffffff',
-            align: 'center',
-            fontStyle: 'bold'
-        }).setOrigin(0.5).setDepth(3001);
-        this.uiContainer.add(resourceInfo);
-
-        // 리더보드 컨테이너
-        const leaderBoardContainer = this.add.container(width / 2, height / 2).setDepth(3001);
-        this.uiContainer.add(leaderBoardContainer);
-
-        const leaderBoardBg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9)
-            .setStrokeStyle(2, 0x444444);
         
-        const leaderBoardTitle = this.add.text(0, -170, I18n.t('ui.leaderboard'), {
-            fontSize: '24px',
-            color: '#00ff00',
-            fontStyle: 'bold'
+        const resourceInfo = this.add.text(width / 2, 160, `${I18n.t('ui.total_resources')}: ${this.gameStats.totalAll}`, {
+            fontSize: '28px', color: '#ffffff', align: 'center', fontStyle: 'bold'
+        }).setOrigin(0.5).setDepth(3001);
+        
+        this.uiContainer.add([title, resourceInfo]);
+    }
+
+    private async createLeaderBoardUI(width: number, height: number): Promise<Phaser.GameObjects.Container> {
+        const container = this.add.container(width / 2, height / 2).setDepth(3001);
+        this.uiContainer.add(container);
+
+        const bg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9).setStrokeStyle(2, 0x444444);
+        const title = this.add.text(0, -170, I18n.t('ui.leaderboard'), {
+            fontSize: '24px', color: '#00ff00', fontStyle: 'bold'
         }).setOrigin(0.5);
+        container.add([bg, title]);
 
-        leaderBoardContainer.add([leaderBoardBg, leaderBoardTitle]);
-
-        // 리더보드 데이터 가져오기 (이미 있으면 그것을 사용)
         let ranks = this.currentUIState.leaderBoardRanks;
         if (!ranks) {
             ranks = await this.fetchLeaderBoardData();
@@ -590,128 +572,80 @@ export class GameScene extends Phaser.Scene {
         }
         
         const displayRanks = ranks.slice(0, 10);
-
         if (displayRanks.length === 0) {
-            const emptyText = this.add.text(0, 0, I18n.t('ui.no_rankings'), {
-                fontSize: '18px',
-                color: '#888888'
-            }).setOrigin(0.5);
-            leaderBoardContainer.add(emptyText);
+            container.add(this.add.text(0, 0, I18n.t('ui.no_rankings'), { fontSize: '18px', color: '#888888' }).setOrigin(0.5));
         } else {
-            displayRanks.forEach((rank, index) => {
-                const yPos = -130 + (index * 30);
-                const score = this.add.text(-260, yPos, rank.score.toLocaleString(), {
-                    fontSize: '18px',
-                    color: '#00ff00',
-                    fontStyle: 'bold'
-                }).setOrigin(1, 0.5);
-                
-                const nameText = this.add.text(-220, yPos, rank.name, {
-                    fontSize: '18px',
-                    color: '#ffffff',
-                    fontStyle: 'bold'
-                }).setOrigin(0, 0.5);
-
-                const msgText = this.add.text(-50, yPos, rank.msg, {
-                    fontSize: '16px',
-                    color: '#aaaaaa'
-                }).setOrigin(0, 0.5);
-                
-
-                leaderBoardContainer.add([score, nameText, msgText]);
-            });
+            displayRanks.forEach((rank, i) => this.addLeaderBoardEntry(container, rank, i));
         }
+        return container;
+    }
 
-        // 다시하기 버튼
-        const restartBtn = this.add.container(width / 2, height - 100).setDepth(3001);
-        const btnBg = this.add.rectangle(0, 0, 250, 60, 0x222222, 0.9)
-            .setStrokeStyle(3, 0x444444)
-            .setInteractive({ useHandCursor: true });
-        
-        const btnText = this.add.text(0, 0, I18n.t('ui.restart'), {
-            fontSize: '24px',
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
+    private addLeaderBoardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
+        const y = -130 + (index * 30);
+        const score = this.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5);
+        const name = this.add.text(-220, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5);
+        const msg = this.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5);
+        container.add([score, name, msg]);
+    }
 
-        restartBtn.add([btnBg, btnText]);
-        this.uiContainer.add(restartBtn);
+    private createRestartButton(width: number, height: number, overlay: any, board: any): Phaser.GameObjects.Container {
+        const btn = this.add.container(width / 2, height - 100).setDepth(3001);
+        const bg = this.add.rectangle(0, 0, 250, 60, 0x222222, 0.9).setStrokeStyle(3, 0x444444).setInteractive({ useHandCursor: true });
+        const txt = this.add.text(0, 0, I18n.t('ui.restart'), { fontSize: '24px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        btn.add([bg, txt]);
+        this.uiContainer.add(btn);
 
-        btnBg.on('pointerover', () => btnBg.setStrokeStyle(4, 0x00ff00));
-        btnBg.on('pointerout', () => btnBg.setStrokeStyle(3, 0x444444));
-        btnBg.on('pointerdown', () => {
+        bg.on('pointerover', () => bg.setStrokeStyle(4, 0x00ff00));
+        bg.on('pointerout', () => bg.setStrokeStyle(3, 0x444444));
+        bg.on('pointerdown', () => {
             SoundManager.getInstance().play('restart');
             this.restartGame();
             overlay.destroy();
-            title.destroy();
-            resourceInfo.destroy();
-            leaderBoardContainer.destroy();
-            restartBtn.destroy();
+            this.uiContainer.iterate((child: any) => { if(child && child.depth >= 3001) child.destroy(); });
         });
-
-        // 애니메이션
-        leaderBoardContainer.setScale(0);
-        restartBtn.setScale(0);
-        this.tweens.add({
-            targets: [leaderBoardContainer, restartBtn],
-            scale: 1,
-            duration: 500,
-            ease: 'Back.easeOut',
-            delay: 500
-        });
+        return btn;
     }
 
     private restartGame() {
-        this.currentUIState.overlay = null;
         const { width, height } = this.scale;
-
-        // 모든 리소스 및 화이트홀 제거
-        this.resourceManager.clear();
+        this.cleanupForRestart();
         
-        // 모든 타이머 제거
+        const skillData = this.resetGameStats(width, height);
+        
+        this.isGameStarted = false;
+        this.isRestarted = true;
+        this.canReroll = true;
+        
+        this.uiContainer.removeAll(true);
+        this.setupUI(skillData);
+        this.showInitialSkillSelection(skillData);
+    }
+
+    private cleanupForRestart() {
+        this.currentUIState.overlay = null;
+        this.resourceManager.clear();
         this.time.removeAllEvents();
-
-        // 진행 중인 모든 트윈 제거 (운석 등)
         this.tweens.killAll();
-
-        // 블랙홀 좌표 초기화
-        this.spiralCenter.set(width / 2, height / 2);
-        this.gameRenderer.updateSpiralPosition();
-
-        // 로봇팔 상태 초기화
         this.arms.forEach(arm => arm.reset());
-
-        // 기타 게임 상태 초기화
         this.radiusMultiplier = 1.0;
         this.netTimerAccumulator = 0;
         if (this.boostTimerEvent) {
             this.boostTimerEvent.remove();
             this.boostTimerEvent = undefined;
         }
-
-        // 타이머 텍스트 초기화
         this.timerText.setVisible(false).setColor('#ffffff').setAlpha(1);
+    }
 
-        // 스탯 초기화 (새로운 스킬 트리 랜덤 배치 포함)
+    private resetGameStats(width: number, height: number): any[] {
+        this.spiralCenter.set(width / 2, height / 2);
+        this.gameRenderer.updateSpiralPosition();
+
         let skillData = JSON.parse(JSON.stringify(skillTreeData));
         if (skillData) {
             skillData = Utils.generateRandomSkillTree(skillData);
         }
         this.gameStats.reset(skillData);
-        
-        // 게임 상태 초기화
-        this.isGameStarted = false;
-        this.isRestarted = true;
-        this.canReroll = true;
-        
-        // UI 갱신 (리셋된 스탯 반영)
-        // refreshUIAfterLanguageChange는 내부적으로 skillTreeUI.skillTreeData를 쓰므로, 
-        // 여기서 직접 setupUI를 호출하거나, skillTreeUI를 먼저 갱신해야 함
-        this.uiContainer.removeAll(true);
-        this.setupUI(skillData);
-        
-        // 초기 스킬 선택 다시 표시
-        this.showInitialSkillSelection(skillData);
+        return skillData;
     }
 
     private updateSpecialItemTimer() {
@@ -744,9 +678,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupUI(skillData: any) {
-        const { width, height } = this.scale;
+        const { width } = this.scale;
 
-        // 중앙 타이머 텍스트 생성 (setupUI로 이동하여 리셋 시 재생성되도록 함)
+        // 중앙 타이머 텍스트 생성
         this.timerText = this.add.text(width / 2, 40, this.gameStats.getFormattedRemainingTime(), {
             fontSize: '48px',
             color: '#ffffff',
@@ -756,95 +690,9 @@ export class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(this.isGameStarted);
         this.uiContainer.add(this.timerText);
 
-        // 이전 리스너 제거 (중복 방지)
-        this.gameStats.removeAllListeners(GameStats.EVENTS.UPDATE_SCORE);
-        this.gameStats.removeAllListeners('resourceCollected');
-        this.gameStats.removeAllListeners('worldResourceCollected');
-        this.gameStats.removeAllListeners(GameStats.EVENTS.SKILL_UPGRADED);
-        this.gameStats.removeAllListeners(GameStats.EVENTS.GAME_OVER);
-
-        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
-            this.updateSpawnTimer();
-            this.syncArmsCount();
-            SoundManager.getInstance().play('skilllevelup');
-        }, this);
-        
-        this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            if (this.gameStats.totalAll > 1) {
-                this.showInputForm();
-            } else {
-                this.showGameOverScreen();
-            }
-        }, this);
-
-        this.gameStats.on(GameStats.EVENTS.CALCULATE_BOOSTER, () => {
-            // 게임 일시 정지
-            this.physics.pause();
-            if (this.spawnTimer) this.spawnTimer.paused = true;
-            
-            // 중앙 텍스트 안내 추가 가능 (예: "부스터 시간 계산 중...")
-            this.timerText.setText(I18n.t('ui.bonus_time')).setColor('#ffff00').setAlpha(1);
-
-            this.skillTreeUI.playBoosterAnimation((addedTime) => {
-                this.gameStats.addBoosterTime(addedTime);
-                this.physics.resume();
-                if (this.spawnTimer) this.spawnTimer.paused = false;
-                
-                // 만약 추가된 시간이 없으면 바로 게임 오버 처리되도록 update가 돌게 됨
-            });
-        }, this);
-
-        this.gameStats.on(GameStats.EVENTS.SPAWN_RATE_CHANGED, () => {
-            this.updateSpawnTimer();
-        }, this);
-
-        this.gameStats.on(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED, () => {
-            this.updateSpecialItemTimer();
-        }, this);
-
-        // 입력 리스너 (create에서 1회만 등록해도 되지만, setupUI에서 관리 효율을 위해 체크)
-        this.input.off('pointerdown');
-        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
-            if (gameObjects.length > 0) return;
-            this.handleInput(pointer);
-        }, this);
-
-        // 상단 스탯 패널 구성
-        const panelX = 50;
-        const panelY = 15;
-        const panelWidth = 380; // 스킬 트리 영역(World X 430)에 맞춤
-        const panelHeight = 55;
-
-        this.statsContainer = this.add.container(panelX, panelY).setScrollFactor(0);
-        
-        // 배경 (어두운 금속/돌 느낌)
-        const bg = this.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95)
-            .setStrokeStyle(2, 0x444444)
-            .setOrigin(0);
-        
-        // 텍스트 스타일 정의
-        const iconStyle = { fontSize: '20px' };
-        const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
-        const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
-
-        // 리소스 표시 (아이콘 + 수치) - Y축 중앙 정렬 (패널 높이 55 기준)
-        const woodIcon = this.add.text(15, panelHeight / 2, RESOURCE_CONFIG.ICONS.wood, iconStyle).setOrigin(0, 0.5);
-        const woodValue = this.add.text(45, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
-        const rockIcon = this.add.text(105, panelHeight / 2, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
-        const rockValue = this.add.text(135, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
-        
-        // 총 수집 및 시간
-        const totalText = this.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const rateText = this.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const timeText = this.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle).setPadding({ top: 2, bottom: 2 });
-
-        // 기타 스탯 (반지름, 팔 개수 등)
-        const gameStatsText = this.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
-
-        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
-        this.uiContainer.add(this.statsContainer);
-
-        // 언어 선택 UI (우측 상단)
+        this.setupGameStatsListeners();
+        this.setupInputListeners();
+        this.createStatsPanel();
         this.setupLanguageSelector();
 
         // 기존 SkillTreeUI가 있다면 리스너 제거
@@ -853,57 +701,110 @@ export class GameScene extends Phaser.Scene {
         }
         this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);
 
-        const updateInfo = () => {
-            woodValue.setText(this.gameStats.collected.wood.toString());
-            rockValue.setText(this.gameStats.collected.rock.toString());
-            
-            totalText.setText(`${I18n.t('stats.total')}: ${this.gameStats.totalAll}`);
-            rateText.setText(`${I18n.t('stats.rate')}: ${this.gameStats.getRecentCollectionAmount()}`);
-            timeText.setText(`${I18n.t('stats.time')}: ${this.gameStats.getFormattedPlaytime()}`);
-            
-            const stats = `${I18n.t('stats.radius')}: ${Math.floor(this.gameStats.radius)}\n${I18n.t('stats.arms')}: ${this.gameStats.maxArms}\n${I18n.t('stats.speed')}: ${this.gameStats.armSpeedFactor.toFixed(1)}x`;
-            gameStatsText.setText(stats);
-        };
-
-        this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, updateInfo);
-        
-        // 자원 획득 시 플로팅 텍스트 표시 (UI 패널용)
-        this.gameStats.on('resourceCollected', (type: string, amount: number) => {
-            const x = type === 'wood' ? 45 : 135;
-            const fontSize = amount > 1 ? '21px' : '14px';
-            this.showFloatingText(panelX + x, panelY + (panelHeight / 2) - 20, `+${amount}`, '#00ff00', false, fontSize);
-        });
-
-        // 월드 공간 자원 획득 시 플로팅 텍스트 표시 (흡수 지점용)
-        this.gameStats.on('worldResourceCollected', (data: { type: string, amount: number, x: number, y: number }) => {
-            const fontSize = data.amount > 1 ? '21px' : '14px';
-            this.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize);
-        });
-        
-        // 기존 타이머가 있다면 제거 (언어 변경 시 중복 호출 방지)
-        if (this.uiUpdateTimer) {
-            this.uiUpdateTimer.remove();
-        }
-
         // 1초마다 갱신 (최근 10초 획득량 갱신용)
+        if (this.uiUpdateTimer) this.uiUpdateTimer.remove();
         this.uiUpdateTimer = this.time.addEvent({
             delay: 1000,
             callback: () => {
-                // 장면이 활성 상태이고, 게임이 진행 중이며, UI가 파괴되지 않았을 때만 실행
                 if (this.isGameStarted && !this.gameStats.isGameOver && this.statsContainer.active) {
-                    updateInfo();
+                    this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
                 }
             },
             loop: true
         });
 
-        // 시작 시 번쩍이는 효과 (언어 변경 시에는 제외하고 싶을 수도 있지만, 일단 유지)
         this.cameras.main.flash(1000, 255, 255, 255);
-
         this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
-
-        // UI 상태 복구
         this.restoreUIState();
+    }
+
+    private setupGameStatsListeners() {
+        this.gameStats.removeAllListeners(GameStats.EVENTS.SKILL_UPGRADED);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.GAME_OVER);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.CALCULATE_BOOSTER);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.SPAWN_RATE_CHANGED);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
+        this.gameStats.removeAllListeners('resourceCollected');
+        this.gameStats.removeAllListeners('worldResourceCollected');
+
+        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, () => {
+            this.updateSpawnTimer();
+            this.syncArmsCount();
+            SoundManager.getInstance().play('skilllevelup');
+        }, this);
+        
+        this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
+            if (this.gameStats.totalAll > 1) this.showInputForm();
+            else this.showGameOverScreen();
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.CALCULATE_BOOSTER, () => {
+            this.physics.pause();
+            if (this.spawnTimer) this.spawnTimer.paused = true;
+            this.timerText.setText(I18n.t('ui.bonus_time')).setColor('#ffff00').setAlpha(1);
+
+            this.skillTreeUI.playBoosterAnimation((addedTime) => {
+                this.gameStats.addBoosterTime(addedTime);
+                this.physics.resume();
+                if (this.spawnTimer) this.spawnTimer.paused = false;
+            });
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.SPAWN_RATE_CHANGED, () => this.updateSpawnTimer(), this);
+        this.gameStats.on(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED, () => this.updateSpecialItemTimer(), this);
+
+        // 자원 획득 시 플로팅 텍스트 표시
+        this.gameStats.on('resourceCollected', (type: string, amount: number) => {
+            const x = type === 'wood' ? 45 : 135;
+            const fontSize = amount > 1 ? '21px' : '14px';
+            this.showFloatingText(50 + x, 15 + (55 / 2) - 20, `+${amount}`, '#00ff00', false, fontSize);
+        }, this);
+
+        this.gameStats.on('worldResourceCollected', (data: { type: string, amount: number, x: number, y: number }) => {
+            const fontSize = data.amount > 1 ? '21px' : '14px';
+            this.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize);
+        }, this);
+    }
+
+    private setupInputListeners() {
+        this.input.off('pointerdown');
+        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
+            if (gameObjects.length > 0) return;
+            this.handleInput(pointer);
+        }, this);
+    }
+
+    private createStatsPanel() {
+        const panelX = 50, panelY = 15, panelWidth = 380, panelHeight = 55;
+        this.statsContainer = this.add.container(panelX, panelY).setScrollFactor(0);
+        
+        const bg = this.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95).setStrokeStyle(2, 0x444444).setOrigin(0);
+        const iconStyle = { fontSize: '20px' };
+        const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
+        const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
+
+        const woodIcon = this.add.text(15, panelHeight / 2, RESOURCE_CONFIG.ICONS.wood, iconStyle).setOrigin(0, 0.5);
+        const woodValue = this.add.text(45, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
+        const rockIcon = this.add.text(105, panelHeight / 2, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
+        const rockValue = this.add.text(135, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
+        
+        const totalText = this.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
+        const rateText = this.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
+        const timeText = this.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle).setPadding({ top: 2, bottom: 2 });
+        const gameStatsText = this.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
+
+        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
+        this.uiContainer.add(this.statsContainer);
+
+        this.gameStats.removeAllListeners(GameStats.EVENTS.UPDATE_SCORE);
+        this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, () => {
+            woodValue.setText(this.gameStats.collected.wood.toString());
+            rockValue.setText(this.gameStats.collected.rock.toString());
+            totalText.setText(`${I18n.t('stats.total')}: ${this.gameStats.totalAll}`);
+            rateText.setText(`${I18n.t('stats.rate')}: ${this.gameStats.getRecentCollectionAmount()}`);
+            timeText.setText(`${I18n.t('stats.time')}: ${this.gameStats.getFormattedPlaytime()}`);
+            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.gameStats.radius)}\n${I18n.t('stats.arms')}: ${this.gameStats.maxArms}\n${I18n.t('stats.speed')}: ${this.gameStats.armSpeedFactor.toFixed(1)}x`);
+        }, this);
     }
 
     private restoreUIState() {
@@ -924,24 +825,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupLanguageSelector() {
-        const languages: { code: string, label: string }[] = [
+        const languages = [
             { code: 'ko', label: '🇰🇷 KO' },
             { code: 'en', label: '🇺🇸 EN' },
             { code: 'zh', label: '🇨🇳 ZH' },
             { code: 'ja', label: '🇯🇵 JA' }
         ];
 
-        const btnWidth = 70;
-        const btnHeight = 25;
-        const startX = this.scale.width - 20 - btnWidth;
-        const startY = 15;
+        const btnWidth = 70, btnHeight = 25;
+        const startX = this.scale.width - 20 - btnWidth, startY = 15;
 
-        // 현재 선택된 언어 표시용 메인 버튼
+        // 메인 버튼
         const currentLang = languages.find(l => l.code === I18n.getLanguage()) || languages[0];
         this.langSelectorContainer = this.add.container(startX, startY);
-        const mainBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95)
-            .setStrokeStyle(1, 0x444444)
-            .setOrigin(0);
+        const mainBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
         const mainText = this.add.text(btnWidth / 2 - 5, btnHeight / 2, currentLang.label, { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
         const arrow = this.add.text(btnWidth - 15, btnHeight / 2, this.isLanguageMenuOpen ? '▲' : '▼', { fontSize: '10px', color: '#aaaaaa' }).setOrigin(0.5);
         
@@ -949,50 +846,12 @@ export class GameScene extends Phaser.Scene {
         this.langSelectorContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
         this.topUiContainer.add(this.langSelectorContainer);
 
-        // 드롭다운 메뉴용 컨테이너
-        this.langMenuContainer = this.add.container(startX, startY + btnHeight + 2)
-            .setVisible(this.isLanguageMenuOpen)
-            .setDepth(100); // 사운드 버튼 등 다른 UI보다 위에 오도록 설정
+        // 드롭다운 메뉴
+        this.langMenuContainer = this.add.container(startX, startY + btnHeight + 2).setVisible(this.isLanguageMenuOpen).setDepth(100);
         this.topUiContainer.add(this.langMenuContainer);
 
-        languages.forEach((lang, index) => {
-            const itemY = index * (btnHeight + 1);
-            const item = this.add.container(0, itemY);
-            
-            const isCurrent = I18n.getLanguage() === lang.code;
-            const itemBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x222222, 0.95)
-                .setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444)
-                .setOrigin(0);
-            
-            const itemText = this.add.text(btnWidth / 2, btnHeight / 2, lang.label, {
-                fontSize: '12px',
-                color: isCurrent ? '#00ff00' : '#ffffff',
-                fontStyle: isCurrent ? 'bold' : 'normal'
-            }).setOrigin(0.5);
+        languages.forEach((lang, index) => this.createLanguageMenuItem(lang, index, btnWidth, btnHeight, arrow));
 
-            item.add([itemBg, itemText]);
-            item.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
-            
-            item.on('pointerdown', () => {
-                if (I18n.getLanguage() !== lang.code) {
-                    I18n.setLanguage(lang.code as any);
-                    this.isLanguageMenuOpen = false;
-                    this.refreshUIAfterLanguageChange();
-                } else {
-                    this.isLanguageMenuOpen = false;
-                    this.langMenuContainer.setVisible(false);
-                    arrow.setText('▼');
-                    this.updateUIPositions();
-                }
-            });
-
-            item.on('pointerover', () => itemBg.setStrokeStyle(1, 0xaaaaaa));
-            item.on('pointerout', () => itemBg.setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444));
-
-            this.langMenuContainer.add(item);
-        });
-
-        // 메인 버튼 클릭 시 메뉴 토글
         this.langSelectorContainer.on('pointerdown', () => {
             this.isLanguageMenuOpen = !this.isLanguageMenuOpen;
             this.langMenuContainer.setVisible(this.isLanguageMenuOpen);
@@ -1003,18 +862,47 @@ export class GameScene extends Phaser.Scene {
         this.langSelectorContainer.on('pointerover', () => mainBg.setStrokeStyle(1, 0xaaaaaa));
         this.langSelectorContainer.on('pointerout', () => mainBg.setStrokeStyle(1, 0x444444));
 
-        // 사운드 ON/OFF 버튼 추가 (언어 버튼 아래)
-        const soundBtnY = startY + btnHeight + 5;
-        this.soundBtnContainer = this.add.container(startX, soundBtnY);
-        const soundBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95)
-            .setStrokeStyle(1, 0x444444)
-            .setOrigin(0);
+        this.setupSoundButton(startX, startY + btnHeight + 5, btnWidth, btnHeight);
+    }
+
+    private createLanguageMenuItem(lang: any, index: number, width: number, height: number, arrow: Phaser.GameObjects.Text) {
+        const itemY = index * (height + 1);
+        const item = this.add.container(0, itemY);
+        const isCurrent = I18n.getLanguage() === lang.code;
+        const itemBg = this.add.rectangle(0, 0, width, height, 0x222222, 0.95).setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444).setOrigin(0);
+        const itemText = this.add.text(width / 2, height / 2, lang.label, {
+            fontSize: '12px', color: isCurrent ? '#00ff00' : '#ffffff', fontStyle: isCurrent ? 'bold' : 'normal'
+        }).setOrigin(0.5);
+
+        item.add([itemBg, itemText]);
+        item.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
         
+        item.on('pointerdown', () => {
+            if (I18n.getLanguage() !== lang.code) {
+                I18n.setLanguage(lang.code as any);
+                this.isLanguageMenuOpen = false;
+                this.refreshUIAfterLanguageChange();
+            } else {
+                this.isLanguageMenuOpen = false;
+                this.langMenuContainer.setVisible(false);
+                arrow.setText('▼');
+                this.updateUIPositions();
+            }
+        });
+
+        item.on('pointerover', () => itemBg.setStrokeStyle(1, 0xaaaaaa));
+        item.on('pointerout', () => itemBg.setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444));
+        this.langMenuContainer.add(item);
+    }
+
+    private setupSoundButton(x: number, y: number, width: number, height: number) {
+        this.soundBtnContainer = this.add.container(x, y);
+        const soundBg = this.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
         const getSoundLabel = () => SoundManager.getInstance().isMuted() ? "🔇 OFF" : "🔊 ON";
-        const soundText = this.add.text(btnWidth / 2, btnHeight / 2, getSoundLabel(), { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
+        const soundText = this.add.text(width / 2, height / 2, getSoundLabel(), { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
         
         this.soundBtnContainer.add([soundBg, soundText]);
-        this.soundBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
+        this.soundBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
         this.topUiContainer.add(this.soundBtnContainer);
 
         this.soundBtnContainer.on('pointerdown', () => {
@@ -1088,7 +976,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        // 게임 시작 전이거나 부스터 계산 중이거나 게임 오버면 업데이트 중지
         if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
             if (this.gameStats.isGameOver) {
                 this.gameRenderer.clearArmGraphics();
@@ -1097,12 +984,22 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
         const cappedDelta = Math.min(delta, 1000);
-
         this.gameStats.update(cappedDelta);
-        this.timerText.setText(this.gameStats.getFormattedRemainingTime());
         
+        this.updateTimerDisplay(time);
+        this.handleBlackHoleMovement();
+        this.updateAutoNet(cappedDelta);
+        this.resourceManager.updateWhiteHoles(time);
+        this.updateArms(cappedDelta);
+        this.updateAutoArms(time);
+
+        this.gameRenderer.drawBoundaries(this.radiusMultiplier);
+        this.processResources();
+    }
+
+    private updateTimerDisplay(time: number) {
+        this.timerText.setText(this.gameStats.getFormattedRemainingTime());
         const remainingTime = this.gameStats.getRemainingTime();
         if (this.gameStats.isBoosterTime) {
             this.timerText.setColor('#ffff00').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
@@ -1111,71 +1008,67 @@ export class GameScene extends Phaser.Scene {
         } else {
             this.timerText.setColor('#ffffff').setAlpha(1);
         }
-
-        // 화살표 키로 블랙홀 이동
-        if (this.cursors) {
-            const moveSpeed = this.gameStats.moveSpeed;
-            if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
-            if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
-            if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
-            if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
-            
-            this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
-            this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
-            
-            this.gameRenderer.updateSpiralPosition();
-        }
-
-        // 자동 그물 로직
-        if (this.gameStats.isNetEnabled) {
-            this.netTimerAccumulator += cappedDelta;
-            const chargeStartTime = Math.max(0, DURATIONS.NET_COOLDOWN - 3000);
-            
-            if (this.netTimerAccumulator >= chargeStartTime) {
-                const chargeProgress = (this.netTimerAccumulator - chargeStartTime) / 3000;
-                this.gameRenderer.drawNetCharge(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance, chargeProgress);
-            } else {
-                this.gameRenderer.clearNetCharge();
-            }
-
-            if (this.netTimerAccumulator >= DURATIONS.NET_COOLDOWN) {
-                this.gameRenderer.clearNetCharge();
-                this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance);
-                this.netTimerAccumulator = 0;
-            }
-        } else {
-            this.gameRenderer.clearNetCharge();
-            this.netTimerAccumulator = 0;
-        }
-
-        this.resourceManager.updateWhiteHoles(time);
-
-        // 로봇팔 업데이트
-        this.gameRenderer.clearArmGraphics();
-        this.arms.forEach(arm => arm.update(cappedDelta, this.gameRenderer, this.collectResource.bind(this)));
-
-        // 자동 로봇팔 로직
-        if (this.gameStats.isAutoArmEnabled) {
-            const idleArms = this.arms.filter(a => a.state === 'idle' && time > a.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN);
-            for (const arm of idleArms) {
-                if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) break;
-                const bestTarget = this.findBestArmTarget(this.spiralCenter.x, this.spiralCenter.y, 600);
-                if (bestTarget) arm.fire(bestTarget, time);
-            }
-        }
-
-        this.gameRenderer.drawBoundaries(this.radiusMultiplier);
-        this.processResources();
     }
 
-    getCurrentRadius() {
+    private handleBlackHoleMovement() {
+        if (!this.cursors) return;
+        const moveSpeed = this.gameStats.moveSpeed;
+        if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
+        if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
+        if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
+        if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
+        
+        this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
+        this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
+        this.gameRenderer.updateSpiralPosition();
+    }
+
+    private updateAutoNet(delta: number) {
+        if (!this.gameStats.isNetEnabled) {
+            this.gameRenderer.clearNetCharge();
+            this.netTimerAccumulator = 0;
+            return;
+        }
+
+        this.netTimerAccumulator += delta;
+        const chargeStartTime = Math.max(0, DURATIONS.NET_COOLDOWN - 3000);
+        
+        if (this.netTimerAccumulator >= chargeStartTime) {
+            const chargeProgress = (this.netTimerAccumulator - chargeStartTime) / 3000;
+            this.gameRenderer.drawNetCharge(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance, chargeProgress);
+        } else {
+            this.gameRenderer.clearNetCharge();
+        }
+
+        if (this.netTimerAccumulator >= DURATIONS.NET_COOLDOWN) {
+            this.gameRenderer.clearNetCharge();
+            this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance);
+            this.netTimerAccumulator = 0;
+        }
+    }
+
+    private updateArms(delta: number) {
+        this.gameRenderer.clearArmGraphics();
+        this.arms.forEach(arm => arm.update(delta, this.gameRenderer, this.collectResource.bind(this)));
+    }
+
+    private updateAutoArms(time: number) {
+        if (!this.gameStats.isAutoArmEnabled) return;
+        const idleArms = this.arms.filter(a => a.state === 'idle' && time > a.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN);
+        for (const arm of idleArms) {
+            if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) break;
+            const bestTarget = this.findBestArmTarget(this.spiralCenter.x, this.spiralCenter.y, 600);
+            if (bestTarget) arm.fire(bestTarget, time);
+        }
+    }
+
+    private getCurrentRadius() {
         return this.gameStats.radius * this.radiusMultiplier;
     }
 
     private processResources() {
         const effectiveRadius = this.getCurrentRadius();
-        const centerX = this.spiralCenter.x;
-        const centerY = this.spiralCenter.y;
+        const centerX = this.spiralCenter.x, centerY = this.spiralCenter.y;
         const screenLimit = Math.max(1200, this.scale.width, this.scale.height);
 
         this.resourceManager.getGroup().getChildren().forEach(child => {
@@ -1183,15 +1076,13 @@ export class GameScene extends Phaser.Scene {
             if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
 
             const dist = Utils.getDistance(res.x, res.y, centerX, centerY);
-
             if (res.itemType === 'special') {
                 if (dist > screenLimit) res.destroy();
                 return;
             }
 
-            // 중심 블랙홀 중력 및 수집
             if (dist < effectiveRadius) {
-                this.applyGravityToPoint(res, dist, effectiveRadius, centerX, centerY);
+                Utils.applyGravityToPoint(res, dist, effectiveRadius, centerX, centerY, this.gameStats.force, PHYSICS_CONFIG.ACCEL_BASE, PHYSICS_CONFIG.DRAG_BASE);
             }
 
             const collectionRadius = res.isHighDim ? RESOURCE_CONFIG.COLLECTION_RADIUS.HIGH_DIM : RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL;
@@ -1206,11 +1097,9 @@ export class GameScene extends Phaser.Scene {
                 if (!res.active || collectedBySBH) return;
                 const sbhDist = Utils.getDistance(res.x, res.y, sbh.x, sbh.y);
                 const sbhRadius = this.gameStats.smallBlackHoleRadius * sbh.scale;
-                
                 if (sbhDist < sbhRadius) {
-                    this.applyGravityToPoint(res, sbhDist, sbhRadius, sbh.x, sbh.y);
+                    Utils.applyGravityToPoint(res, sbhDist, sbhRadius, sbh.x, sbh.y, this.gameStats.force, PHYSICS_CONFIG.ACCEL_BASE, PHYSICS_CONFIG.DRAG_BASE);
                 }
-                
                 if (sbhDist < 30 * sbh.scale) {
                     this.collectResource(res, false, false, sbh.x, sbh.y);
                     collectedBySBH = true;
@@ -1218,52 +1107,10 @@ export class GameScene extends Phaser.Scene {
             });
 
             if (!collectedBySBH) {
-                if (dist > screenLimit) {
-                    res.destroy();
-                } else {
-                    this.limitSpeed(res, dist);
-                }
+                if (dist > screenLimit) res.destroy();
+                else Utils.limitSpeed(res, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
             }
         });
-    }
-
-    private applyGravityToPoint(res: any, dist: number, radius: number, targetX: number, targetY: number) {
-        const dx = targetX - res.x;
-        const dy = targetY - res.y;
-        const mag = Math.sqrt(dx * dx + dy * dy) || 1;
-        const dirX = dx / mag;
-        const dirY = dy / mag;
-        
-        const tangentX = -dirY;
-        const tangentY = dirX;
-        
-        const force = (1 - (dist / radius)) * this.gameStats.force * PHYSICS_CONFIG.ACCEL_BASE;
-        const boost = dist < 150 ? Math.pow((150 - dist) / 150, 2) * 5 : 0;
-        const accel = force * (1 + boost);
-        const spiral = 0.2 * Math.pow(dist / radius, 2);
-
-        res.body.velocity.x += (dirX * accel + tangentX * accel * spiral);
-        res.body.velocity.y += (dirY * accel + tangentY * accel * spiral);
-
-        res.body.setDrag(dist < 150 ? PHYSICS_CONFIG.DRAG_BASE * res.body.mass : 0);
-    }
-
-    private limitSpeed(res: any, dist: number) {
-        const min = dist < 100 ? PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER : PHYSICS_CONFIG.MIN_SPEED_NORMAL;
-        const max = PHYSICS_CONFIG.MAX_SPEED;
-        const vel = res.body.velocity;
-        const speed = vel.length();
-
-        if (speed > max) {
-            vel.normalize().scale(max);
-        } else if (speed < min) {
-            if (speed === 0) {
-                const angle = Math.random() * Math.PI * 2;
-                vel.setTo(Math.cos(angle) * min, Math.sin(angle) * min);
-            } else {
-                vel.normalize().scale(min);
-            }
-        }
     }
 
     private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number, silent: boolean = false) {

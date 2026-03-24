@@ -156,5 +156,50 @@ export const Utils = {
             case 'netAngle': return `${sign}${bonus}°`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }
+    },
+
+    /**
+     * 중력 및 나선형 이동을 적용합니다.
+     */
+    applyGravityToPoint(res: any, dist: number, radius: number, targetX: number, targetY: number, force: number, accelBase: number, dragBase: number) {
+        const dx = targetX - res.x;
+        const dy = targetY - res.y;
+        const mag = Math.sqrt(dx * dx + dy * dy) || 1;
+        const dirX = dx / mag;
+        const dirY = dy / mag;
+        
+        const tangentX = -dirY;
+        const tangentY = dirX;
+        
+        const gravityForce = (1 - (dist / radius)) * force * accelBase;
+        const boost = dist < 150 ? Math.pow((150 - dist) / 150, 2) * 5 : 0;
+        const accel = gravityForce * (1 + boost);
+        const spiral = 0.2 * Math.pow(dist / radius, 2);
+
+        res.body.velocity.x += (dirX * accel + tangentX * accel * spiral);
+        res.body.velocity.y += (dirY * accel + tangentY * accel * spiral);
+
+        res.body.setDrag(dist < 150 ? dragBase * res.body.mass : 0);
+    },
+
+    /**
+     * 객체의 속도를 제한합니다.
+     */
+    limitSpeed(res: any, dist: number, minNear: number, minNormal: number, maxSpeed: number) {
+        const min = dist < 100 ? minNear : minNormal;
+        const max = maxSpeed;
+        const vel = res.body.velocity;
+        const speed = vel.length();
+
+        if (speed > max) {
+            vel.normalize().scale(max);
+        } else if (speed < min) {
+            if (speed === 0) {
+                const angle = Math.random() * Math.PI * 2;
+                vel.setTo(Math.cos(angle) * min, Math.sin(angle) * min);
+            } else {
+                vel.normalize().scale(min);
+            }
+        }
     }
 };

@@ -260,8 +260,8 @@ export class GameScene extends Phaser.Scene {
         this.isRestarted = true;
         this.canReroll = true;
         
-        this.uiManager.refreshUIAfterLanguageChange();
         this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
+        this.uiManager.refreshUIAfterLanguageChange();
     }
 
     private cleanupForRestart() {

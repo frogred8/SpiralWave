@@ -24,21 +24,32 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
   const res = await pool.query('SELECT created_at, ip, select_skill_id FROM game WHERE game_id = $1', [gameId]);
   
   // 1. db에서 gameId로 검색하여 레코드가 나오지 않을 때
-  if (res.rows.length === 0) return null;
+  if (res.rows.length === 0) { 
+    console.log(`Validation failed (1): Game session not found for ID: ${gameId}`); 
+    return null; 
+  }
 
   const gameRecord = res.rows[0];
 
-  // 4. 전달받은 selectSkillId와 레코드의 select_skill_id를 비교하여 다를 때
-  if (gameRecord.select_skill_id !== selectSkillId) return null;
+  // 2. 전달받은 selectSkillId와 레코드의 select_skill_id를 비교하여 다를 때
+  if (gameRecord.select_skill_id !== selectSkillId) { 
+    console.log(`Validation failed (2): Skill ID mismatch. DB: ${gameRecord.select_skill_id}, Received: ${selectSkillId}`); 
+    return null; 
+  }
 
+  // 3. gameId가 있을 때 해당 레코드의 created_at+5분이 endAt보다 클 때
   const createdAt = new Date(gameRecord.created_at);
-  const limitTime = new Date(createdAt.getTime() + 5 * 60 * 1000);
+  const limitTime = new Date(createdAt.getTime());// + 5 * 60 * 1000);
+  if (limitTime >= endAt) { 
+    console.log(`Validation failed (3): Time validation error. Limit: ${limitTime.toISOString()}, EndAt: ${endAt.toISOString()}`); 
+    return null; 
+  }
 
-  // 2. gameId가 있을 때 해당 레코드의 created_at+5분이 endAt보다 작을 때
-  if (limitTime < endAt) return null;
-
-  // 3. 전달받은 ip와 레코드 ip를 비교하여 다를 때
-  if (gameRecord.ip !== ip) return null;
+  // 4. 전달받은 ip와 레코드 ip를 비교하여 다를 때
+  if (gameRecord.ip !== ip) { 
+    console.log(`Validation failed (4): IP mismatch. DB: ${gameRecord.ip}, Received: ${ip}`); 
+    return null; 
+  }
 
   return gameRecord;
 }
@@ -63,7 +74,7 @@ export const GameService = {
   async endGame(gameId: string, selectSkillId: number, name: string, score: number, msg: string, ip: string, endAt: Date) {
     try {
       const gameRecord = await validateGameSession(gameId, selectSkillId, ip, endAt);
-      
+      console.log(gameRecord);
       if (gameRecord) {
         // 모든 검증이 통과하면 game 테이블에서 해당 레코드를 삭제
         await pool.query('DELETE FROM game WHERE game_id = $1', [gameId]);

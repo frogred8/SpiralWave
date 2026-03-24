@@ -51,7 +51,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public isBoosterCalculating: boolean = false;
     public isBoosterTime: boolean = false;
     public boosterTimeAdded: number = 0;
-    private skillTreeData: SkillData[] = [];
+    public skillTreeData: SkillData[] = [];
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {

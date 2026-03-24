@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from '@shared/GameStats';
-import { SkillTreeUI } from './SkillTreeUI';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
@@ -10,14 +9,7 @@ import { ResourceManager } from './ResourceManager';
 import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, LeaderBoardResponse } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
-
-interface UIState {
-    overlay: 'initialSkill' | 'inputForm' | 'gameOver' | null;
-    initialSkillData?: any[];
-    excludeSkillIds?: string[];
-    selectedInitialSkills?: any[];
-    leaderBoardRanks?: RankEntry[];
-}
+import { UIManager, UIState } from './UIManager';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -25,15 +17,10 @@ export class GameScene extends Phaser.Scene {
     private uiContainer!: Phaser.GameObjects.Container;
     private topUiContainer!: Phaser.GameObjects.Container;
     private gameStats!: GameStats;
-    private skillTreeUI!: SkillTreeUI;
     private gameRenderer!: GameRenderer;
     private resourceManager!: ResourceManager;
+    private uiManager!: UIManager;
     private arms: RoboticArm[] = [];
-    private isLanguageMenuOpen: boolean = false;
-    private langSelectorContainer!: Phaser.GameObjects.Container;
-    private langMenuContainer!: Phaser.GameObjects.Container;
-    private soundBtnContainer!: Phaser.GameObjects.Container;
-    private statsContainer!: Phaser.GameObjects.Container;
     private uiUpdateTimer?: Phaser.Time.TimerEvent;
     
     private radiusMultiplier: number = 1.0;
@@ -44,13 +31,9 @@ export class GameScene extends Phaser.Scene {
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
-    private timerText!: Phaser.GameObjects.Text;
     private specialItemTimer?: Phaser.Time.TimerEvent;
     private currentGameId: string = '';
     private currentSelectSkillId: number = 0;
-
-    private currentUIState: UIState = { overlay: null };
-    private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
 
     constructor() {
         super('GameScene');
@@ -64,18 +47,36 @@ export class GameScene extends Phaser.Scene {
 
         const skillData = this.initGameStats();
         this.initContainers();
+        
+        // UI Manager 초기화
+        this.uiManager = new UIManager(this, this.uiContainer, this.topUiContainer, this.gameStats, {
+            onStartGame: () => this.startGame(),
+            onRestartGame: () => this.restartGame(),
+            onSendStartSignal: (id) => this.sendStartGameSignal(id),
+            onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
+            onFetchLeaderBoard: () => this.fetchLeaderBoardData(),
+            onRefreshUI: () => this.handleRefreshUI()
+        });
+
         this.initSystems(skillData);
         this.initCameras(width, height);
 
         this.setupPhysics();
         this.setupUI(skillData);
-        this.showInitialSkillSelection(skillData);
+        this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
 
         this.scale.on('resize', this.handleResize, this);
 
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
         }
+    }
+
+    private handleRefreshUI() {
+        // 카메라 설정 다시 적용 (ignore 등)
+        const { width, height } = this.scale;
+        this.initCameras(width, height);
+        this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
     private initGameStats(): any[] {
@@ -115,29 +116,6 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.ignore([this.uiContainer, this.topUiContainer]);
     }
 
-    private updateUIPositions() {
-        const { width } = this.scale;
-        const btnWidth = 70;
-        const btnHeight = 25;
-        const startX = width - 20 - btnWidth;
-        const startY = 15;
-
-        if (this.langSelectorContainer) {
-            this.langSelectorContainer.setPosition(startX, startY);
-        }
-
-        if (this.langMenuContainer) {
-            this.langMenuContainer.setPosition(startX, startY + btnHeight + 2);
-        }
-
-        if (this.soundBtnContainer) {
-            // 언어 메뉴가 열려 있으면 메뉴의 높이만큼 사운드 버튼을 아래로 내림
-            // 언어 4개 * (버튼 높이 25 + 간격 1) = 104px
-            const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
-            this.soundBtnContainer.setPosition(startX, startY + btnHeight + 5 + menuOffset);
-        }
-    }
-
     private handleResize(gameSize: Phaser.Structs.Size) {
         const { width, height } = gameSize;
         
@@ -145,14 +123,10 @@ export class GameScene extends Phaser.Scene {
         this.spiralCenter.set(width / 2, height / 2);
         this.gameRenderer.updateSpiralPosition();
 
-        // UI 위치 업데이트
-        if (this.timerText) {
-            this.timerText.setPosition(width / 2, 40);
+        // UI Manager 리사이즈 처리
+        if (this.uiManager) {
+            this.uiManager.handleResize();
         }
-
-        this.updateUIPositions();
-
-        // 스탯 컨테이너는 왼쪽 상단 고정이므로 별도 이동 불필요 (필요시 추가)
     }
 
     private setupPhysics() {
@@ -222,159 +196,10 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = [], preservedSkills: any[] | null = null) {
-        this.currentUIState.overlay = 'initialSkill';
-        this.currentUIState.initialSkillData = skillData;
-        this.currentUIState.excludeSkillIds = excludeSkillIds;
-        
-        if (preservedSkills) {
-            this.currentUIState.selectedInitialSkills = preservedSkills;
-        }
-        
-        const { width, height } = this.scale;
-
-        // 딤드 배경
-        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.8)
-            .setOrigin(0).setInteractive().setDepth(2000);
-        this.uiContainer.add(overlay);
-
-        const title = this.add.text(width / 2, height / 2 - 200, I18n.t('ui.choose_starting_skill'), {
-            fontSize: '32px',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5).setDepth(2001);
-        this.uiContainer.add(title);
-
-        // 스킬 선택 로직: 보존된 데이터가 있으면 그것을 사용, 없으면 새로 생성
-        let selectedSkills = preservedSkills;
-        if (!selectedSkills) {
-            const candidateSkills = skillData.filter(s => s.row <= 1 && !excludeSkillIds.includes(s.id));
-            selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
-            this.currentUIState.selectedInitialSkills = selectedSkills;
-        }
-        
-        const currentSelectionIds = selectedSkills.map(s => s.id);
-
-        // 다시 시작한 경우 1회에 한해 다시 뽑기 버튼 제공
-        if (this.isRestarted && this.canReroll) {
-            this.createRerollButton(width, height, skillData, currentSelectionIds);
-        }
-
-        selectedSkills.forEach((skill, index) => {
-            const x = width / 2 + (index === 0 ? -180 : 180);
-            const y = height / 2 + 20;
-            this.createSkillCard(x, y, skill, overlay, title);
-        });
-    }
-
-    private createRerollButton(width: number, height: number, skillData: any[], currentSelectionIds: string[]) {
-        const rerollBtn = this.add.container(width / 2, height / 2 + 250).setDepth(2001);
-        const rerollBg = this.add.rectangle(0, 0, 160, 45, 0x333333, 0.9)
-            .setStrokeStyle(2, 0x00ff00)
-            .setInteractive({ useHandCursor: true });
-        const rerollText = this.add.text(0, 0, I18n.t('ui.reroll'), {
-            fontSize: '18px',
-            color: '#00ff00',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        rerollBtn.add([rerollBg, rerollText]);
-        this.uiContainer.add(rerollBtn);
-
-        rerollBg.on('pointerover', () => rerollBg.setFillStyle(0x444444));
-        rerollBg.on('pointerout', () => rerollBg.setFillStyle(0x333333));
-        rerollBg.on('pointerdown', () => {
-            this.canReroll = false;
-            SoundManager.getInstance().play('reroll');
-            // 현재 선택 UI 제거
-            this.uiContainer.iterate((child: any) => {
-                if (child && child.depth >= 2000) child.destroy();
-            });
-            // 현재 선택된 스킬들을 제외하고 다시 생성 (null을 넘겨 새 랜덤 추출 유도)
-            this.showInitialSkillSelection(skillData, currentSelectionIds, null);
-        });
-    }
-
-    private createSkillCard(x: number, y: number, skill: any, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
-        const btn = this.add.container(x, y).setDepth(2001);
-        const bg = this.add.rectangle(0, 0, 280, 320, 0x1a1a1a, 0.95)
-            .setStrokeStyle(3, 0x444444)
-            .setInteractive({ useHandCursor: true });
-        
-        const skillName = I18n.t(`skill.${skill.id}.name`) || skill.id;
-        const nameText = this.add.text(0, -100, skillName, {
-            fontSize: '24px',
-            color: '#00ff00',
-            fontStyle: 'bold',
-            align: 'center',
-            wordWrap: { width: 240 }
-        }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
-
-        const desc = I18n.t(`skill.${skill.id}.desc`) || '';
-        const descText = this.add.text(0, 0, desc, {
-            fontSize: '18px',
-            color: '#ffffff',
-            align: 'center',
-            lineSpacing: 8,
-            wordWrap: { width: 240 }
-        }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
-
-        const hintText = this.add.text(0, 110, I18n.t('ui.click_to_select'), {
-            fontSize: '14px', color: '#aaaaaa', fontStyle: 'italic'
-        }).setOrigin(0.5);
-
-        btn.add([bg, nameText, descText, hintText]);
-        this.uiContainer.add(btn);
-
-        bg.on('pointerover', () => {
-            bg.setStrokeStyle(4, 0x00ff00);
-            this.tweens.add({ targets: btn, scale: 1.05, duration: 200, ease: 'Back.easeOut' });
-        });
-        bg.on('pointerout', () => {
-            bg.setStrokeStyle(3, 0x444444);
-            this.tweens.add({ targets: btn, scale: 1.0, duration: 200, ease: 'Back.easeOut' });
-        });
-        bg.on('pointerdown', () => {
-            this.handleInitialSkillSelection(skill, btn, overlay, title);
-        });
-    }
-
-    private handleInitialSkillSelection(skill: any, btn: Phaser.GameObjects.Container, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
-        this.gameStats.grantSkill(skill);
-        SoundManager.getInstance().play('skillupgrade');
-        
-        const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
-        this.sendStartGameSignal(skillIndex);
-        this.startGame();
-        
-        this.tweens.add({
-            targets: [overlay, title, btn],
-            alpha: 0,
-            duration: 500,
-            onComplete: () => {
-                overlay.destroy();
-                title.destroy();
-                this.uiContainer.iterate((child: any) => {
-                    if (child && child.depth >= 2000) child.destroy();
-                });
-            }
-        });
-        
-        this.uiContainer.iterate((child: any) => {
-            if (child && child.depth >= 2001 && child !== btn) {
-                this.tweens.add({ targets: child, alpha: 0, duration: 300 });
-            }
-        });
-    }
-
     private startGame() {
-        this.currentUIState.overlay = null;
         this.gameStats.startGame();
         this.setupTimers();
         this.isGameStarted = true;
-        this.timerText.setVisible(true);
         SoundManager.getInstance().play('gamestart');
     }
 
@@ -397,87 +222,6 @@ export class GameScene extends Phaser.Scene {
         } catch (err) {
             console.error('Failed to send start signal:', err);
         }
-    }
-
-    private showInputForm() {
-        this.currentUIState.overlay = 'inputForm';
-        const { width, height } = this.scale;
-        
-        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(4000);
-        this.uiContainer.add(overlay);
-
-        const formContainer = this.add.container(width / 2, height / 2).setDepth(4001);
-        this.uiContainer.add(formContainer);
-
-        const bg = this.add.rectangle(0, 0, 340, 420, 0x222222, 0.95).setStrokeStyle(2, 0x444444);
-        const title = this.add.text(0, -170, I18n.t('ui.submit_score'), { fontSize: '28px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
-
-        this.activeDOMElement = this.add.dom(width / 2, height / 2 - 20).createFromHTML(this.getInputFormHtml()).setOrigin(0.5).setDepth(4002);
-
-        const closeForm = () => {
-            if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
-            formContainer.destroy(); overlay.destroy();
-        };
-
-        const buttonGroup = this.createFormButtons(closeForm);
-        formContainer.add([bg, title, buttonGroup]);
-
-        formContainer.setScale(0);
-        if (this.activeDOMElement) {
-            this.activeDOMElement.setScale(0);
-            this.tweens.add({ targets: [formContainer, this.activeDOMElement], scale: 1, duration: 400, ease: 'Back.easeOut' });
-        }
-    }
-
-    private getInputFormHtml(): string {
-        return `
-            <div style="width: 290px; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; pointer-events: auto;">
-                <div>
-                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.name')}</label>
-                    <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
-                </div>
-                <div style="margin-top: 10px;">
-                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.message')}</label>
-                    <textarea id="playerMsg" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
-                </div>
-            </div>
-        `;
-    }
-
-    private createFormButtons(closeCallback: () => void): Phaser.GameObjects.Container {
-        const group = this.add.container(0, 155);
-        
-        // Submit
-        const submitBtn = this.add.container(-75, 0);
-        const submitBg = this.add.rectangle(0, 0, 140, 50, 0x00ff00, 1).setInteractive({ useHandCursor: true });
-        const submitTxt = this.add.text(0, 0, I18n.t('ui.submit'), { fontSize: '18px', color: '#000000', fontStyle: 'bold' }).setOrigin(0.5);
-        submitBtn.add([submitBg, submitTxt]);
-
-        submitBg.on('pointerover', () => submitBg.setFillStyle(0x00dd00));
-        submitBg.on('pointerout', () => submitBg.setFillStyle(0x00ff00));
-        submitBg.on('pointerdown', async () => {
-            const name = (document.getElementById('playerName') as HTMLInputElement).value;
-            const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
-            await this.sendEndGameSignal(name, msg);
-            closeCallback();
-            this.showGameOverScreen();
-        });
-
-        // Skip
-        const skipBtn = this.add.container(75, 0);
-        const skipBg = this.add.rectangle(0, 0, 140, 50, 0x444444, 1).setInteractive({ useHandCursor: true });
-        const skipTxt = this.add.text(0, 0, I18n.t('ui.skip'), { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
-        skipBtn.add([skipBg, skipTxt]);
-
-        skipBg.on('pointerover', () => skipBg.setFillStyle(0x555555));
-        skipBg.on('pointerout', () => skipBg.setFillStyle(0x444444));
-        skipBg.on('pointerdown', () => {
-            closeCallback();
-            this.showGameOverScreen();
-        });
-
-        group.add([submitBtn, skipBtn]);
-        return group;
     }
 
     private async sendEndGameSignal(name: string, msg: string) {
@@ -503,109 +247,6 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private async fetchLeaderBoardData(): Promise<RankEntry[]> {
-        const serverUrl = import.meta.env.VITE_SERVER_URL;
-        if (!serverUrl) return [];
-
-        try {
-            const response = await fetch(`${serverUrl}/leaderboard`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data: LeaderBoardResponse = await response.json();
-            return data.ranks || [];
-        } catch (err) {
-            console.error('Failed to fetch leaderboard:', err);
-            return [];
-        }
-    }
-
-    private async showGameOverScreen() {
-        this.currentUIState.overlay = 'gameOver';
-        const { width, height } = this.scale;
-        
-        SoundManager.getInstance().play('winning');
-        this.timerText.setAlpha(1);
-        
-        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(3000);
-        this.uiContainer.add(overlay);
-
-        this.createGameOverText(width);
-        const leaderBoardContainer = await this.createLeaderBoardUI(width, height);
-        const restartBtn = this.createRestartButton(width, height, overlay, leaderBoardContainer);
-
-        // 애니메이션
-        leaderBoardContainer.setScale(0);
-        restartBtn.setScale(0);
-        this.tweens.add({
-            targets: [leaderBoardContainer, restartBtn],
-            scale: 1, duration: 500, ease: 'Back.easeOut', delay: 500
-        });
-    }
-
-    private createGameOverText(width: number) {
-        const title = this.add.text(width / 2, 80, I18n.t('ui.game_over'), {
-            fontSize: '56px', color: '#ff0000', fontStyle: 'bold', stroke: '#000000', strokeThickness: 8
-        }).setOrigin(0.5).setDepth(3001);
-        
-        const resourceInfo = this.add.text(width / 2, 160, `${I18n.t('ui.total_resources')}: ${this.gameStats.totalAll}`, {
-            fontSize: '28px', color: '#ffffff', align: 'center', fontStyle: 'bold'
-        }).setOrigin(0.5).setDepth(3001);
-        
-        this.uiContainer.add([title, resourceInfo]);
-    }
-
-    private async createLeaderBoardUI(width: number, height: number): Promise<Phaser.GameObjects.Container> {
-        const container = this.add.container(width / 2, height / 2).setDepth(3001);
-        this.uiContainer.add(container);
-
-        const bg = this.add.rectangle(0, 0, 600, 400, 0x222222, 0.9).setStrokeStyle(2, 0x444444);
-        const title = this.add.text(0, -170, I18n.t('ui.leaderboard'), {
-            fontSize: '24px', color: '#00ff00', fontStyle: 'bold'
-        }).setOrigin(0.5);
-        container.add([bg, title]);
-
-        let ranks = this.currentUIState.leaderBoardRanks;
-        if (!ranks) {
-            ranks = await this.fetchLeaderBoardData();
-            this.currentUIState.leaderBoardRanks = ranks;
-        }
-        
-        const displayRanks = ranks.slice(0, 10);
-        if (displayRanks.length === 0) {
-            container.add(this.add.text(0, 0, I18n.t('ui.no_rankings'), { fontSize: '18px', color: '#888888' }).setOrigin(0.5));
-        } else {
-            displayRanks.forEach((rank, i) => this.addLeaderBoardEntry(container, rank, i));
-        }
-        return container;
-    }
-
-    private addLeaderBoardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
-        const y = -130 + (index * 30);
-        const score = this.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5);
-        const name = this.add.text(-220, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5);
-        const msg = this.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5);
-        container.add([score, name, msg]);
-    }
-
-    private createRestartButton(width: number, height: number, overlay: any, board: any): Phaser.GameObjects.Container {
-        const btn = this.add.container(width / 2, height - 100).setDepth(3001);
-        const bg = this.add.rectangle(0, 0, 250, 60, 0x222222, 0.9).setStrokeStyle(3, 0x444444).setInteractive({ useHandCursor: true });
-        const txt = this.add.text(0, 0, I18n.t('ui.restart'), { fontSize: '24px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
-        btn.add([bg, txt]);
-        this.uiContainer.add(btn);
-
-        bg.on('pointerover', () => bg.setStrokeStyle(4, 0x00ff00));
-        bg.on('pointerout', () => bg.setStrokeStyle(3, 0x444444));
-        bg.on('pointerdown', () => {
-            SoundManager.getInstance().play('restart');
-            this.restartGame();
-            overlay.destroy();
-            this.uiContainer.iterate((child: any) => { if(child && child.depth >= 3001) child.destroy(); });
-        });
-        return btn;
-    }
-
     private restartGame() {
         const { width, height } = this.scale;
         this.cleanupForRestart();
@@ -616,13 +257,11 @@ export class GameScene extends Phaser.Scene {
         this.isRestarted = true;
         this.canReroll = true;
         
-        this.uiContainer.removeAll(true);
-        this.setupUI(skillData);
-        this.showInitialSkillSelection(skillData);
+        this.uiManager.refreshUIAfterLanguageChange();
+        this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
     }
 
     private cleanupForRestart() {
-        this.currentUIState.overlay = null;
         this.resourceManager.clear();
         this.time.removeAllEvents();
         this.tweens.killAll();
@@ -633,7 +272,6 @@ export class GameScene extends Phaser.Scene {
             this.boostTimerEvent.remove();
             this.boostTimerEvent = undefined;
         }
-        this.timerText.setVisible(false).setColor('#ffffff').setAlpha(1);
     }
 
     private resetGameStats(width: number, height: number): any[] {
@@ -678,35 +316,17 @@ export class GameScene extends Phaser.Scene {
     }
 
     private setupUI(skillData: any) {
-        const { width } = this.scale;
-
-        // 중앙 타이머 텍스트 생성
-        this.timerText = this.add.text(width / 2, 40, this.gameStats.getFormattedRemainingTime(), {
-            fontSize: '48px',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(this.isGameStarted);
-        this.uiContainer.add(this.timerText);
+        this.uiManager.setupMainUI();
+        this.uiManager.setupSkillTree(skillData);
 
         this.setupGameStatsListeners();
         this.setupInputListeners();
-        this.createStatsPanel();
-        this.setupLanguageSelector();
 
-        // 기존 SkillTreeUI가 있다면 리스너 제거
-        if (this.skillTreeUI) {
-            this.skillTreeUI.destroy();
-        }
-        this.skillTreeUI = new SkillTreeUI(this, this.uiContainer, this.gameStats, skillData);
-
-        // 1초마다 갱신 (최근 10초 획득량 갱신용)
         if (this.uiUpdateTimer) this.uiUpdateTimer.remove();
         this.uiUpdateTimer = this.time.addEvent({
             delay: 1000,
             callback: () => {
-                if (this.isGameStarted && !this.gameStats.isGameOver && this.statsContainer.active) {
+                if (this.isGameStarted && !this.gameStats.isGameOver) {
                     this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
                 }
             },
@@ -715,7 +335,7 @@ export class GameScene extends Phaser.Scene {
 
         this.cameras.main.flash(1000, 255, 255, 255);
         this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
-        this.restoreUIState();
+        this.uiManager.restoreUIState();
     }
 
     private setupGameStatsListeners() {
@@ -734,16 +354,16 @@ export class GameScene extends Phaser.Scene {
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            if (this.gameStats.totalAll > 1) this.showInputForm();
-            else this.showGameOverScreen();
+            if (this.gameStats.totalAll > 1) this.uiManager.showInputForm();
+            else this.uiManager.showGameOverScreen();
         }, this);
 
         this.gameStats.on(GameStats.EVENTS.CALCULATE_BOOSTER, () => {
             this.physics.pause();
             if (this.spawnTimer) this.spawnTimer.paused = true;
-            this.timerText.setText(I18n.t('ui.bonus_time')).setColor('#ffff00').setAlpha(1);
+            this.uiManager.updateTimerDisplay(this.time.now, true); // This might need a separate call for bonus time style
 
-            this.skillTreeUI.playBoosterAnimation((addedTime) => {
+            this.uiManager.getSkillTreeUI()?.playBoosterAnimation((addedTime) => {
                 this.gameStats.addBoosterTime(addedTime);
                 this.physics.resume();
                 if (this.spawnTimer) this.spawnTimer.paused = false;
@@ -757,12 +377,12 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.on('resourceCollected', (type: string, amount: number) => {
             const x = type === 'wood' ? 45 : 135;
             const fontSize = amount > 1 ? '21px' : '14px';
-            this.showFloatingText(50 + x, 15 + (55 / 2) - 20, `+${amount}`, '#00ff00', false, fontSize);
+            this.uiManager.showFloatingText(50 + x, 15 + (55 / 2) - 20, `+${amount}`, '#00ff00', false, fontSize, this.worldContainer);
         }, this);
 
         this.gameStats.on('worldResourceCollected', (data: { type: string, amount: number, x: number, y: number }) => {
             const fontSize = data.amount > 1 ? '21px' : '14px';
-            this.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize);
+            this.uiManager.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize, this.worldContainer);
         }, this);
     }
 
@@ -773,168 +393,6 @@ export class GameScene extends Phaser.Scene {
             this.handleInput(pointer);
         }, this);
     }
-
-    private createStatsPanel() {
-        const panelX = 50, panelY = 15, panelWidth = 380, panelHeight = 55;
-        this.statsContainer = this.add.container(panelX, panelY).setScrollFactor(0);
-        
-        const bg = this.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95).setStrokeStyle(2, 0x444444).setOrigin(0);
-        const iconStyle = { fontSize: '20px' };
-        const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
-        const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
-
-        const woodIcon = this.add.text(15, panelHeight / 2, RESOURCE_CONFIG.ICONS.wood, iconStyle).setOrigin(0, 0.5);
-        const woodValue = this.add.text(45, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
-        const rockIcon = this.add.text(105, panelHeight / 2, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
-        const rockValue = this.add.text(135, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
-        
-        const totalText = this.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const rateText = this.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const timeText = this.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const gameStatsText = this.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
-
-        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
-        this.uiContainer.add(this.statsContainer);
-
-        this.gameStats.removeAllListeners(GameStats.EVENTS.UPDATE_SCORE);
-        this.gameStats.on(GameStats.EVENTS.UPDATE_SCORE, () => {
-            woodValue.setText(this.gameStats.collected.wood.toString());
-            rockValue.setText(this.gameStats.collected.rock.toString());
-            totalText.setText(`${I18n.t('stats.total')}: ${this.gameStats.totalAll}`);
-            rateText.setText(`${I18n.t('stats.rate')}: ${this.gameStats.getRecentCollectionAmount()}`);
-            timeText.setText(`${I18n.t('stats.time')}: ${this.gameStats.getFormattedPlaytime()}`);
-            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.gameStats.radius)}\n${I18n.t('stats.arms')}: ${this.gameStats.maxArms}\n${I18n.t('stats.speed')}: ${this.gameStats.armSpeedFactor.toFixed(1)}x`);
-        }, this);
-    }
-
-    private restoreUIState() {
-        const state = this.currentUIState;
-        if (!state.overlay) return;
-
-        switch (state.overlay) {
-            case 'initialSkill':
-                this.showInitialSkillSelection(state.initialSkillData || [], state.excludeSkillIds, state.selectedInitialSkills);
-                break;
-            case 'inputForm':
-                this.showInputForm();
-                break;
-            case 'gameOver':
-                this.showGameOverScreen();
-                break;
-        }
-    }
-
-    private setupLanguageSelector() {
-        const languages = [
-            { code: 'ko', label: '🇰🇷 KO' },
-            { code: 'en', label: '🇺🇸 EN' },
-            { code: 'zh', label: '🇨🇳 ZH' },
-            { code: 'ja', label: '🇯🇵 JA' }
-        ];
-
-        const btnWidth = 70, btnHeight = 25;
-        const startX = this.scale.width - 20 - btnWidth, startY = 15;
-
-        // 메인 버튼
-        const currentLang = languages.find(l => l.code === I18n.getLanguage()) || languages[0];
-        this.langSelectorContainer = this.add.container(startX, startY);
-        const mainBg = this.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
-        const mainText = this.add.text(btnWidth / 2 - 5, btnHeight / 2, currentLang.label, { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
-        const arrow = this.add.text(btnWidth - 15, btnHeight / 2, this.isLanguageMenuOpen ? '▲' : '▼', { fontSize: '10px', color: '#aaaaaa' }).setOrigin(0.5);
-        
-        this.langSelectorContainer.add([mainBg, mainText, arrow]);
-        this.langSelectorContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
-        this.topUiContainer.add(this.langSelectorContainer);
-
-        // 드롭다운 메뉴
-        this.langMenuContainer = this.add.container(startX, startY + btnHeight + 2).setVisible(this.isLanguageMenuOpen).setDepth(100);
-        this.topUiContainer.add(this.langMenuContainer);
-
-        languages.forEach((lang, index) => this.createLanguageMenuItem(lang, index, btnWidth, btnHeight, arrow));
-
-        this.langSelectorContainer.on('pointerdown', () => {
-            this.isLanguageMenuOpen = !this.isLanguageMenuOpen;
-            this.langMenuContainer.setVisible(this.isLanguageMenuOpen);
-            arrow.setText(this.isLanguageMenuOpen ? '▲' : '▼');
-            this.updateUIPositions();
-        });
-
-        this.langSelectorContainer.on('pointerover', () => mainBg.setStrokeStyle(1, 0xaaaaaa));
-        this.langSelectorContainer.on('pointerout', () => mainBg.setStrokeStyle(1, 0x444444));
-
-        this.setupSoundButton(startX, startY + btnHeight + 5, btnWidth, btnHeight);
-    }
-
-    private createLanguageMenuItem(lang: any, index: number, width: number, height: number, arrow: Phaser.GameObjects.Text) {
-        const itemY = index * (height + 1);
-        const item = this.add.container(0, itemY);
-        const isCurrent = I18n.getLanguage() === lang.code;
-        const itemBg = this.add.rectangle(0, 0, width, height, 0x222222, 0.95).setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444).setOrigin(0);
-        const itemText = this.add.text(width / 2, height / 2, lang.label, {
-            fontSize: '12px', color: isCurrent ? '#00ff00' : '#ffffff', fontStyle: isCurrent ? 'bold' : 'normal'
-        }).setOrigin(0.5);
-
-        item.add([itemBg, itemText]);
-        item.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
-        
-        item.on('pointerdown', () => {
-            if (I18n.getLanguage() !== lang.code) {
-                I18n.setLanguage(lang.code as any);
-                this.isLanguageMenuOpen = false;
-                this.refreshUIAfterLanguageChange();
-            } else {
-                this.isLanguageMenuOpen = false;
-                this.langMenuContainer.setVisible(false);
-                arrow.setText('▼');
-                this.updateUIPositions();
-            }
-        });
-
-        item.on('pointerover', () => itemBg.setStrokeStyle(1, 0xaaaaaa));
-        item.on('pointerout', () => itemBg.setStrokeStyle(1, isCurrent ? 0x00ff00 : 0x444444));
-        this.langMenuContainer.add(item);
-    }
-
-    private setupSoundButton(x: number, y: number, width: number, height: number) {
-        this.soundBtnContainer = this.add.container(x, y);
-        const soundBg = this.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
-        const getSoundLabel = () => SoundManager.getInstance().isMuted() ? "🔇 OFF" : "🔊 ON";
-        const soundText = this.add.text(width / 2, height / 2, getSoundLabel(), { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
-        
-        this.soundBtnContainer.add([soundBg, soundText]);
-        this.soundBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
-        this.topUiContainer.add(this.soundBtnContainer);
-
-        this.soundBtnContainer.on('pointerdown', () => {
-            const isMuted = SoundManager.getInstance().toggleMute();
-            soundText.setText(getSoundLabel());
-            soundBg.setStrokeStyle(1, isMuted ? 0xff0000 : 0x00ff00);
-        });
-
-        this.soundBtnContainer.on('pointerover', () => soundBg.setStrokeStyle(1, 0xaaaaaa));
-        this.soundBtnContainer.on('pointerout', () => {
-            const isMuted = SoundManager.getInstance().isMuted();
-            soundBg.setStrokeStyle(1, isMuted ? 0xaa0000 : 0x444444);
-        });
-    }
-
-    private refreshUIAfterLanguageChange() {
-        const currentSkillData = this.skillTreeUI ? this.skillTreeUI.skillTreeData : this.cache.json.get('skillTreeData');
-        
-        // UI 컨테이너 초기화
-        this.uiContainer.removeAll(true);
-        this.topUiContainer.removeAll(true);
-        if (this.activeDOMElement) {
-            this.activeDOMElement.destroy();
-            this.activeDOMElement = null;
-        }
-        
-        // UI 재생성 (현재 셔플된 상태 유지)
-        this.setupUI(currentSkillData);
-    }
-
-
-
 
     private findBestArmTarget(originX: number, originY: number, searchRadius: number): Collectible | null {
         let bestTarget: Collectible | null = null;
@@ -979,7 +437,7 @@ export class GameScene extends Phaser.Scene {
         if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
             if (this.gameStats.isGameOver) {
                 this.gameRenderer.clearArmGraphics();
-                this.timerText.setText('00:00').setColor('#ff0000');
+                this.uiManager.setGameOverTimerStyle();
             }
             return;
         }
@@ -987,7 +445,7 @@ export class GameScene extends Phaser.Scene {
         const cappedDelta = Math.min(delta, 1000);
         this.gameStats.update(cappedDelta);
         
-        this.updateTimerDisplay(time);
+        this.uiManager.updateTimerDisplay(time, this.isGameStarted);
         this.handleBlackHoleMovement();
         this.updateAutoNet(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);
@@ -996,18 +454,6 @@ export class GameScene extends Phaser.Scene {
 
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
         this.processResources();
-    }
-
-    private updateTimerDisplay(time: number) {
-        this.timerText.setText(this.gameStats.getFormattedRemainingTime());
-        const remainingTime = this.gameStats.getRemainingTime();
-        if (this.gameStats.isBoosterTime) {
-            this.timerText.setColor('#ffff00').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
-        } else if (remainingTime < 30) {
-            this.timerText.setColor('#ff0000').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
-        } else {
-            this.timerText.setColor('#ffffff').setAlpha(1);
-        }
     }
 
     private handleBlackHoleMovement() {
@@ -1113,6 +559,20 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
+    private async fetchLeaderBoardData(): Promise<RankEntry[]> {
+        const serverUrl = import.meta.env.VITE_SERVER_URL;
+        if (!serverUrl) return [];
+
+        try {
+            const response = await fetch(`${serverUrl}/leaderboard`);
+            const data: LeaderBoardResponse = await response.json();
+            return data.ranks || [];
+        } catch (err) {
+            console.error('Failed to fetch leaderboard:', err);
+            return [];
+        }
+    }
+
     private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number, silent: boolean = false) {
         if (!collectible.active) return;
 
@@ -1199,26 +659,6 @@ export class GameScene extends Phaser.Scene {
         
         item.destroy();
         this.cameras.main.shake(100, 0.005);
-    }
-
-    private showFloatingText(x: number, y: number, text: string, color: string, isInWorld: boolean = false, fontSize: string = '14px') {
-        const ft = this.add.text(x, y, text, { fontSize, color, fontStyle: 'bold' }).setDepth(100);
-        
-        if (isInWorld) {
-            this.worldContainer.add(ft);
-        } else {
-            ft.setScrollFactor(0);
-            this.uiContainer.add(ft);
-        }
-
-        this.tweens.add({
-            targets: ft,
-            y: y - 30,
-            alpha: 0,
-            duration: 1000,
-            ease: 'Sine.easeOut',
-            onComplete: () => ft.destroy()
-        });
     }
 
     private triggerRadiusBoost() {

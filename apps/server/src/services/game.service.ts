@@ -17,6 +17,28 @@ function generateUUID(prefix_n = 8, postfix_n = 4) {
   return prefix + postfix;
 }
 
+/**
+ * 게임 세션 유효성 검증
+ */
+async function validateGameSession(gameId: string, ip: string, endAt: Date): Promise<boolean> {
+  const res = await pool.query('SELECT created_at, ip FROM game WHERE game_id = $1', [gameId]);
+  
+  // 1. db에서 gameId로 검색하여 레코드가 나오지 않을 때
+  if (res.rows.length === 0) return false;
+
+  const gameRecord = res.rows[0];
+  const createdAt = new Date(gameRecord.created_at);
+  const limitTime = new Date(createdAt.getTime() + 5 * 60 * 1000);
+
+  // 2. gameId가 있을 때 해당 레코드의 created_at+5분이 endAt보다 작을 때
+  if (limitTime < endAt) return false;
+
+  // 3. 전달받은 ip와 레코드 ip를 비교하여 다를 때
+  if (gameRecord.ip !== ip) return false;
+
+  return true;
+}
+
 export const GameService = {
   async startGame(selectSkillId: number, ip: string) {
     // Generate UUID using custom function
@@ -36,29 +58,15 @@ export const GameService = {
 
   async endGame(gameId: string, name: string, score: number, msg: string, ip: string, endAt: Date) {
     try {
-      // Validation check
-      const res = await pool.query('SELECT created_at, ip FROM game WHERE game_id = $1', [gameId]);
+      const isValid = await validateGameSession(gameId, ip, endAt);
       
-      // 1. db에서 gameId로 검색하여 레코드가 나오지 않을 때
-      if (res.rows.length === 0) {
-        return { status: 'ok', message: 'Game session ended' };
+      if (isValid) {
+        // 모든 검증이 통과하면 game 테이블에서 해당 레코드를 삭제
+        await pool.query('DELETE FROM game WHERE game_id = $1', [gameId]);
+        
+        // TODO: Proceed with actual score processing (e.g., saving to a leaderboard table)
       }
 
-      const gameRecord = res.rows[0];
-      const createdAt = new Date(gameRecord.created_at);
-      const limitTime = new Date(createdAt.getTime() + 5 * 60 * 1000);
-
-      // 2. gameId가 있을 때 해당 레코드의 created_at+5분이 endAt보다 작을 때
-      if (limitTime < endAt) {
-        return { status: 'ok', message: 'Game session ended' };
-      }
-
-      // 3. 전달받은 ip와 레코드 ip를 비교하여 다를 때
-      if (gameRecord.ip !== ip) {
-        return { status: 'ok', message: 'Game session ended' };
-      }
-
-      // TODO: Proceed with actual score processing (e.g., saving to a leaderboard table)
       return { status: 'ok', message: 'Game session ended' };
     } catch (err) {
       console.error('Failed to process end game', err);

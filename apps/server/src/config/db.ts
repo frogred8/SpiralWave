@@ -35,7 +35,11 @@ const initDb = async () => {
         table.text('msg');
         table.timestamp('created_at').notNullable();
         table.timestamp('end_at').notNullable();
+        table.index(['score'], 'wish_score_idx');
       });
+    } else {
+      // Ensure index exists for existing tables, optimized for DESC sort
+      await db.raw('CREATE INDEX IF NOT EXISTS wish_score_idx ON wish (score DESC)');
     }
     console.log('Database initialized');
   } catch (err) {

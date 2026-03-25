@@ -301,6 +301,14 @@ export class UIManager {
 
         this.activeDOMElement = this.scene.add.dom(width / 2, height / 2 - 20).createFromHTML(this.getInputFormHtml()).setOrigin(0.5).setDepth(4002);
 
+        // Add event listeners to stop propagation of keyboard events
+        const inputElements = this.activeDOMElement.node.querySelectorAll('input, textarea');
+        inputElements.forEach(el => {
+            el.addEventListener('keydown', (e) => e.stopPropagation());
+            el.addEventListener('keyup', (e) => e.stopPropagation());
+            el.addEventListener('keypress', (e) => e.stopPropagation());
+        });
+
         const closeForm = () => {
             if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
             formContainer.destroy(); overlay.destroy();

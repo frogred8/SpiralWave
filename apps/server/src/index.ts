@@ -13,6 +13,12 @@ const fastify = Fastify({
       },
     },
   },
+  trustProxy: true, // Enable trust proxy for correct client IP logging
+});
+
+// Handle favicon requests to prevent unnecessary errors in logs
+fastify.get('/favicon.ico', (request, reply) => {
+  reply.code(204).send();
 });
 
 // Register CORS

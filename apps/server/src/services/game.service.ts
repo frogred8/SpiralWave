@@ -54,6 +54,29 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
   return gameRecord;
 }
 
+/**
+ * 리더보드 데이터 생성 (wish 테이블에서 score 기준 top 10 추출)
+ */
+async function generateLeaderboard(): Promise<LeaderBoardResponse> {
+  try {
+    const res = await pool.query(
+      'SELECT seq_id, score, name, msg FROM wish ORDER BY score DESC LIMIT 10'
+    );
+    
+    return {
+      ranks: res.rows.map(row => ({
+        seq_id: row.seq_id,
+        score: parseInt(row.score),
+        name: row.name,
+        msg: row.msg
+      }))
+    };
+  } catch (err) {
+    console.error('Failed to generate leaderboard:', err);
+    return { ranks: [] };
+  }
+}
+
 export const GameService = {
   async startGame(selectSkillId: number, ip: string) {
     // Generate UUID using custom function
@@ -94,20 +117,6 @@ export const GameService = {
   },
 
   async getLeaderBoard(): Promise<LeaderBoardResponse> {
-    // Business logic for leaderboard
-    return { 
-      ranks: [
-        { seq_id: 1, score: 100, name: 'Alice', msg: 'Great game!' },
-        { seq_id: 2, score: 89, name: 'Bob', msg: 'I will be back' },
-        { seq_id: 4, score: 87, name: 'Charlie', msg: 'Nice center' },
-        { seq_id: 3, score: 85, name: 'Dave', msg: 'Spiral!!' },
-        { seq_id: 8, score: 67, name: 'Eve', msg: 'Hard one' },
-        { seq_id: 12, score: 60, name: 'Frank', msg: 'Love it' },
-        { seq_id: 22, score: 53, name: 'Grace', msg: 'Good luck' },
-        { seq_id: 233, score: 23, name: 'Heidi', msg: 'Wait' },
-        { seq_id: 62, score: 12, name: 'Ivan', msg: 'Hello' },
-        { seq_id: 100, score: 11, name: 'Judy', msg: 'Bye' }
-      ] 
-    };
+    return await generateLeaderboard();
   }
 };

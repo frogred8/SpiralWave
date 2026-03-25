@@ -46,6 +46,7 @@ export class UIManager {
     
     private isLanguageMenuOpen: boolean = false;
     public currentUIState: UIState = { overlay: null };
+    private tooltipContainer: Phaser.GameObjects.Container | null = null;
 
     constructor(scene: Phaser.Scene, uiContainer: Phaser.GameObjects.Container, topUiContainer: Phaser.GameObjects.Container, stats: GameStats, callbacks: UICallbacks) {
         this.scene = scene;
@@ -437,8 +438,73 @@ export class UIManager {
         const score = this.scene.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
         const emoji = this.scene.add.text(-245, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         const name = this.scene.add.text(-210, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        
+        const maxWidth = 330;
         const msg = this.scene.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        
+        if (msg.width > maxWidth) {
+            const originalMsg = rank.msg;
+            let low = 0, high = originalMsg.length;
+            let best = "";
+            while (low <= high) {
+                let mid = Math.floor((low + high) / 2);
+                let test = originalMsg.substring(0, mid) + "...";
+                msg.setText(test);
+                if (msg.width <= maxWidth) {
+                    best = test;
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+            msg.setText(best);
+            msg.setInteractive({ useHandCursor: true });
+            msg.on('pointerover', (p: Phaser.Input.Pointer) => this.showTooltip(p.x, p.y, originalMsg));
+            msg.on('pointerout', () => this.hideTooltip());
+        }
+
         container.add([score, emoji, name, msg]);
+    }
+
+    private showTooltip(x: number, y: number, text: string) {
+        this.hideTooltip();
+        
+        const tooltipText = this.scene.add.text(0, 0, text, {
+            fontSize: '14px',
+            color: '#ffffff',
+            align: 'left',
+            wordWrap: { width: 300 },
+            padding: { x: 10, y: 10 }
+        }).setOrigin(0.5);
+
+        const bgWidth = tooltipText.width + 4;
+        const bgHeight = tooltipText.height + 4;
+        const bg = this.scene.add.rectangle(0, 0, bgWidth, bgHeight, 0x000000, 0.95)
+            .setStrokeStyle(1, 0x888888).setOrigin(0.5);
+
+        this.tooltipContainer = this.scene.add.container(x, y);
+        this.tooltipContainer.add([bg, tooltipText]);
+        this.tooltipContainer.setDepth(20000);
+        
+        const halfWidth = bgWidth / 2;
+        const halfHeight = bgHeight / 2;
+        
+        if (x - halfWidth < 10) this.tooltipContainer.x = halfWidth + 10;
+        if (x + halfWidth > this.scene.scale.width - 10) this.tooltipContainer.x = this.scene.scale.width - halfWidth - 10;
+        if (y - bgHeight - 20 < 10) {
+            this.tooltipContainer.y = y + halfHeight + 20;
+        } else {
+            this.tooltipContainer.y = y - halfHeight - 20;
+        }
+
+        this.topUiContainer.add(this.tooltipContainer);
+    }
+
+    private hideTooltip() {
+        if (this.tooltipContainer) {
+            this.tooltipContainer.destroy();
+            this.tooltipContainer = null;
+        }
     }
 
     private createRestartButton(width: number, height: number, overlay: any): Phaser.GameObjects.Container {
@@ -569,6 +635,7 @@ export class UIManager {
     }
 
     public refreshUIAfterLanguageChange() {
+        this.hideTooltip();
         const currentSkillData = this.stats.skillTreeData;
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
@@ -611,6 +678,7 @@ export class UIManager {
     }
 
     public destroy() {
+        this.hideTooltip();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);

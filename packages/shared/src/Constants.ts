@@ -117,3 +117,7 @@ export const UI_CONFIG = {
         START_Y: 130
     }
 };
+
+export const LIMITS = {
+    END_MSG_LENGTH: 200
+};

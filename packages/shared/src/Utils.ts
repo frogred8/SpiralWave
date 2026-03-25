@@ -201,5 +201,27 @@ export const Utils = {
                 vel.normalize().scale(min);
             }
         }
+    },
+
+    async getUserInfo(): Promise<{ ip: string; emoji: string }> {
+        try {
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            const ip = data.ip;
+            const countryCode = data.country_code;
+            const emoji = this.getEmojiByCountryCode(countryCode);
+            return { ip, emoji };
+        } catch (e) {
+            return { ip: '127.0.0.1', emoji: '🌐' };
+        }
+    },
+
+    getEmojiByCountryCode(countryCode: string): string {
+        const cleanCode = countryCode.toUpperCase().trim();
+        if (!/^[A-Z]{2}$/.test(cleanCode)) return '🌐';
+        const codePoints: number[] = cleanCode
+            .split('')
+            .map((char: string) => 127397 + char.charCodeAt(0));
+        return String.fromCodePoint(...codePoints);
     }
 };

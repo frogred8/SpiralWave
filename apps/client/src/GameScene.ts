@@ -1,15 +1,14 @@
 import Phaser from 'phaser';
-import { I18n } from '@shared/I18n';
 import { GameStats } from '@shared/GameStats';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm } from './RoboticArm';
-import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
+import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
 import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, LeaderboardResponse } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
-import { UIManager, UIState } from './UIManager';
+import { UIManager } from './UIManager';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -34,6 +33,7 @@ export class GameScene extends Phaser.Scene {
     private specialItemTimer?: Phaser.Time.TimerEvent;
     private currentGameId: string = '';
     private currentSelectSkillId: number = 0;
+    private userInfo: { ip: string; emoji: string }|null = null;
 
     constructor() {
         super('GameScene');
@@ -53,7 +53,7 @@ export class GameScene extends Phaser.Scene {
             onStartGame: () => this.startGame(),
             onRestartGame: () => this.restartGame(),
             onSendStartSignal: (id) => this.sendStartGameSignal(id),
-            onSendEndSignal: (name, msg, emoji) => this.sendEndGameSignal(name, msg, emoji),
+            onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
             onRefreshUI: () => this.handleRefreshUI()
         });
@@ -227,29 +227,24 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private async sendEndGameSignal(name: string, msg: string, emoji: string) {
+    private async sendEndGameSignal(name: string, msg: string) {
         const serverUrl = import.meta.env.VITE_SERVER_URL;
         if (!serverUrl) return;
 
         try {
-            // Get IP from external service
-            let ip = 'unknown';
-            try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipResponse.json();
-                ip = ipData.ip;
-            } catch (ipErr) {
-                console.warn('Failed to fetch IP, using unknown');
+            // Get IP and emoji from external service
+            if (!this.userInfo) {
+                this.userInfo = await Utils.getUserInfo();
             }
-
+            msg = msg.length > LIMITS.END_MSG_LENGTH ? msg.substring(0, LIMITS.END_MSG_LENGTH) : msg;
             const body: EndRequest = {
                 game_id: this.currentGameId,
                 select_skill_id: this.currentSelectSkillId,
                 name: name,
                 score: this.gameStats.totalAll,
                 msg: msg,
-                emoji: emoji,
-                ip: ip
+                emoji: this.userInfo.emoji,
+                ip: this.userInfo.ip
             };
 
             await fetch(`${serverUrl}/end`, {

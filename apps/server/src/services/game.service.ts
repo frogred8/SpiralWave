@@ -2,6 +2,25 @@ import { LeaderBoardResponse } from '@repo/shared';
 import pool from '../config/db';
 
 /**
+ * Leaderboard Cache Interface
+ */
+interface LeaderboardCache {
+  data: LeaderBoardResponse | null;
+  lastUpdated: number;
+  minScore: number;
+  isInvalid: boolean;
+}
+
+const cache: LeaderboardCache = {
+  data: null,
+  lastUpdated: 0,
+  minScore: 0,
+  isInvalid: true,
+};
+
+const CACHE_TTL = 60 * 1000; // 1 minute
+
+/**
  * @param {number} prefix_n - 타임스탬프 기반 접두사 길이
  * @param {number} postfix_n - 랜덤 기반 접미사 길이 (최대 13자리까지 정밀도 유지)
  * @returns {string} 생성된 UUID
@@ -63,14 +82,22 @@ async function generateLeaderboard(): Promise<LeaderBoardResponse> {
       'SELECT seq_id, score, name, msg FROM wish ORDER BY score DESC LIMIT 10'
     );
     
-    return {
-      ranks: res.rows.map(row => ({
-        seq_id: row.seq_id,
-        score: parseInt(row.score),
-        name: row.name,
-        msg: row.msg
-      }))
-    };
+    const ranks = res.rows.map(row => ({
+      seq_id: row.seq_id,
+      score: parseInt(row.score),
+      name: row.name,
+      msg: row.msg
+    }));
+
+    const result = { ranks };
+
+    // Update cache
+    cache.data = result;
+    cache.lastUpdated = Date.now();
+    cache.isInvalid = false;
+    cache.minScore = ranks.length > 0 ? ranks[ranks.length - 1].score : 0;
+
+    return result;
   } catch (err) {
     console.error('Failed to generate leaderboard:', err);
     return { ranks: [] };
@@ -107,6 +134,11 @@ export const GameService = {
           'INSERT INTO wish (name, game_id, ip, score, msg, created_at, end_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
           [name, gameId, ip, score, msg, gameRecord.created_at, endAt]
         );
+
+        // 캐시 만료 정책: 들어오는 스코어가 캐시에 있는 10위값보다 클 때 캐시 만료 플래그를 키고
+        if (score > cache.minScore) {
+          cache.isInvalid = true;
+        }
       }
 
       return { status: 'ok', message: 'Game session ended' };
@@ -117,6 +149,14 @@ export const GameService = {
   },
 
   async getLeaderBoard(): Promise<LeaderBoardResponse> {
+    const now = Date.now();
+    const isExpired = now - cache.lastUpdated > CACHE_TTL;
+
+    if (cache.data && !cache.isInvalid && !isExpired) {
+      return cache.data;
+    }
+
     return await generateLeaderboard();
   }
 };
+

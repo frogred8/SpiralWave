@@ -434,10 +434,10 @@ export class UIManager {
 
     private addLeaderboardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
         const y = -130 + (index * 30);
-        const score = this.scene.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5);
-        const emoji = this.scene.add.text(-245, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5);
-        const name = this.scene.add.text(-210, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5);
-        const msg = this.scene.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5);
+        const score = this.scene.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
+        const emoji = this.scene.add.text(-245, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        const name = this.scene.add.text(-210, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        const msg = this.scene.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         container.add([score, emoji, name, msg]);
     }
 

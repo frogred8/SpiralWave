@@ -79,7 +79,7 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
 async function generateLeaderboard(): Promise<LeaderboardResponse> {
   try {
     const rows = await db('wish')
-      .select('seq_id', 'score', 'name', 'msg')
+      .select('seq_id', 'score', 'name', 'msg', 'emoji')
       .orderBy('score', 'desc')
       .limit(10);
     
@@ -87,7 +87,8 @@ async function generateLeaderboard(): Promise<LeaderboardResponse> {
       seq_id: row.seq_id,
       score: parseInt(row.score),
       name: row.name,
-      msg: row.msg
+      msg: row.msg,
+      emoji: row.emoji || ''
     }));
 
     const result = { ranks };
@@ -129,7 +130,7 @@ export const GameService = {
     }
   },
 
-  async endGame(gameId: string, selectSkillId: number, name: string, score: number, msg: string, ip: string, endAt: Date) {
+  async endGame(gameId: string, selectSkillId: number, name: string, score: number, msg: string, emoji: string, ip: string, endAt: Date) {
     try {
       const gameRecord = await validateGameSession(gameId, selectSkillId, ip, endAt);
       if (gameRecord) {
@@ -143,6 +144,7 @@ export const GameService = {
           name: name,
           game_id: gameId,
           ip: ip,
+          emoji: emoji,
           score: score,
           msg: msg,
           created_at: gameRecord.created_at,

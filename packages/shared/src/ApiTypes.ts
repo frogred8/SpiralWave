@@ -14,6 +14,8 @@ export interface EndRequest {
     name: string;
     score: number;
     msg: string;
+    emoji: string;
+    ip: string;
 }
 
 // GET /leaderboard
@@ -22,6 +24,7 @@ export interface RankEntry {
     score: number;
     name: string;
     msg: string;
+    emoji: string;
 }
 
 export interface LeaderboardResponse {

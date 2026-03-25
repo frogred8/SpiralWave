@@ -22,7 +22,7 @@ export interface UICallbacks {
     onStartGame: () => void;
     onRestartGame: () => void;
     onSendStartSignal: (skillId: number) => void;
-    onSendEndSignal: (name: string, msg: string) => void;
+    onSendEndSignal: (name: string, msg: string, emoji: string) => void;
     onFetchLeaderboard: () => Promise<RankEntry[]>;
     onRefreshUI: () => void;
 }
@@ -319,9 +319,15 @@ export class UIManager {
     private getInputFormHtml(): string {
         return `
             <div style="width: 290px; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; pointer-events: auto;">
-                <div>
-                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.name')}</label>
-                    <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.name')}</label>
+                        <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
+                    </div>
+                    <div style="width: 60px;">
+                        <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.emoji') || 'Icon'}</label>
+                        <input type="text" id="playerEmoji" placeholder="🚀" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box; text-align: center;">
+                    </div>
                 </div>
                 <div style="margin-top: 10px;">
                     <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.message')}</label>
@@ -344,7 +350,8 @@ export class UIManager {
         submitBg.on('pointerdown', async () => {
             const name = (document.getElementById('playerName') as HTMLInputElement).value;
             const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
-            await this.callbacks.onSendEndSignal(name, msg);
+            const emoji = (document.getElementById('playerEmoji') as HTMLInputElement).value || '🚀';
+            await this.callbacks.onSendEndSignal(name, msg, emoji);
             closeCallback();
             this.showGameOverScreen();
         });
@@ -427,9 +434,10 @@ export class UIManager {
     private addLeaderboardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
         const y = -130 + (index * 30);
         const score = this.scene.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5);
-        const name = this.scene.add.text(-220, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5);
+        const emoji = this.scene.add.text(-245, y, rank.emoji || '🚀', { fontSize: '18px' }).setOrigin(0, 0.5);
+        const name = this.scene.add.text(-210, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5);
         const msg = this.scene.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5);
-        container.add([score, name, msg]);
+        container.add([score, emoji, name, msg]);
     }
 
     private createRestartButton(width: number, height: number, overlay: any): Phaser.GameObjects.Container {

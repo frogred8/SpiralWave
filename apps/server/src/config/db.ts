@@ -31,6 +31,7 @@ const initDb = async () => {
         table.string('name', 100).notNullable();
         table.string('game_id', 20).notNullable();
         table.string('ip', 45).notNullable();
+        table.string('emoji', 10);
         table.integer('score').notNullable();
         table.text('msg');
         table.timestamp('created_at').notNullable();
@@ -38,6 +39,13 @@ const initDb = async () => {
         table.index(['score'], 'wish_score_idx');
       });
     } else {
+      // Check if emoji column exists
+      const hasEmoji = await db.schema.hasColumn('wish', 'emoji');
+      if (!hasEmoji) {
+        await db.schema.table('wish', (table) => {
+          table.string('emoji', 10);
+        });
+      }
       // Ensure index exists for existing tables, optimized for DESC sort
       await db.raw('CREATE INDEX IF NOT EXISTS wish_score_idx ON wish (score DESC)');
     }

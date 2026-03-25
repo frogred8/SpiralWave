@@ -53,7 +53,7 @@ export class GameScene extends Phaser.Scene {
             onStartGame: () => this.startGame(),
             onRestartGame: () => this.restartGame(),
             onSendStartSignal: (id) => this.sendStartGameSignal(id),
-            onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
+            onSendEndSignal: (name, msg, emoji) => this.sendEndGameSignal(name, msg, emoji),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
             onRefreshUI: () => this.handleRefreshUI()
         });
@@ -227,17 +227,29 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private async sendEndGameSignal(name: string, msg: string) {
+    private async sendEndGameSignal(name: string, msg: string, emoji: string) {
         const serverUrl = import.meta.env.VITE_SERVER_URL;
         if (!serverUrl) return;
 
         try {
+            // Get IP from external service
+            let ip = 'unknown';
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                ip = ipData.ip;
+            } catch (ipErr) {
+                console.warn('Failed to fetch IP, using unknown');
+            }
+
             const body: EndRequest = {
                 game_id: this.currentGameId,
                 select_skill_id: this.currentSelectSkillId,
                 name: name,
                 score: this.gameStats.totalAll,
-                msg: msg
+                msg: msg,
+                emoji: emoji,
+                ip: ip
             };
 
             await fetch(`${serverUrl}/end`, {

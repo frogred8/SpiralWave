@@ -1,39 +1,42 @@
-import pg from 'pg';
+import knex from 'knex';
 
-const { Pool } = pg;
-
-const pool = new Pool({
-  user: process.env.POSTGRES_USER || 'user',
-  host: process.env.POSTGRES_HOST || 'localhost',
-  database: process.env.POSTGRES_DB || 'spiralwave',
-  password: process.env.POSTGRES_PASSWORD || 'password',
-  port: parseInt(process.env.POSTGRES_PORT || '5432'),
+const db = knex({
+  client: 'pg',
+  connection: {
+    user: process.env.POSTGRES_USER || 'user',
+    host: process.env.POSTGRES_HOST || 'localhost',
+    database: process.env.POSTGRES_DB || 'spiralwave',
+    password: process.env.POSTGRES_PASSWORD || 'password',
+    port: parseInt(process.env.POSTGRES_PORT || '5432'),
+  },
 });
 
 // Initialize database tables
 const initDb = async () => {
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS game (
-        game_id VARCHAR(20) PRIMARY KEY,
-        ip VARCHAR(45) NOT NULL,
-        select_skill_id INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+    const hasGameTable = await db.schema.hasTable('game');
+    if (!hasGameTable) {
+      await db.schema.createTable('game', (table) => {
+        table.string('game_id', 20).primary();
+        table.string('ip', 45).notNullable();
+        table.integer('select_skill_id');
+        table.timestamp('created_at').defaultTo(db.fn.now());
+      });
+    }
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS wish (
-        seq_id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        game_id VARCHAR(20) NOT NULL,
-        ip VARCHAR(45) NOT NULL,
-        score INT NOT NULL,
-        msg TEXT,
-        created_at TIMESTAMP NOT NULL,
-        end_at TIMESTAMP NOT NULL
-      )
-    `);
+    const hasWishTable = await db.schema.hasTable('wish');
+    if (!hasWishTable) {
+      await db.schema.createTable('wish', (table) => {
+        table.increments('seq_id').primary();
+        table.string('name', 100).notNullable();
+        table.string('game_id', 20).notNullable();
+        table.string('ip', 45).notNullable();
+        table.integer('score').notNullable();
+        table.text('msg');
+        table.timestamp('created_at').notNullable();
+        table.timestamp('end_at').notNullable();
+      });
+    }
     console.log('Database initialized');
   } catch (err) {
     console.error('Database initialization failed', err);
@@ -43,4 +46,4 @@ const initDb = async () => {
 // Run initialization
 initDb();
 
-export default pool;
+export default db;

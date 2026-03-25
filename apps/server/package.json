@@ -11,9 +11,10 @@
     "db": "docker-compose up -d"
   },
   "dependencies": {
-    "@repo/shared": "*",
     "@fastify/cors": "^10.0.2",
+    "@repo/shared": "*",
     "fastify": "^5.2.1",
+    "knex": "^3.2.6",
     "pg": "^8.20.0"
   },
   "devDependencies": {

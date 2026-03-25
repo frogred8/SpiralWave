@@ -24,6 +24,6 @@ export interface RankEntry {
     msg: string;
 }
 
-export interface LeaderBoardResponse {
+export interface LeaderboardResponse {
     ranks: RankEntry[];
 }

@@ -33,7 +33,7 @@ fastify.get('/', async (request, reply) => {
 // Routes
 fastify.post('/start', GameController.handleStart);
 fastify.post('/end', GameController.handleEnd);
-fastify.get('/leaderboard', GameController.handleGetLeaderBoard);
+fastify.get('/leaderboard', GameController.handleGetLeaderboard);
 
 /**
  * Run the server!

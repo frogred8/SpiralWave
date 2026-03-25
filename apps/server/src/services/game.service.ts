@@ -1,11 +1,11 @@
-import { LeaderBoardResponse } from '@repo/shared';
+import { LeaderboardResponse as LeaderboardResponse } from '@repo/shared';
 import pool from '../config/db';
 
 /**
  * Leaderboard Cache Interface
  */
 interface LeaderboardCache {
-  data: LeaderBoardResponse | null;
+  data: LeaderboardResponse | null;
   lastUpdated: number;
   minScore: number;
   isInvalid: boolean;
@@ -76,7 +76,7 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
 /**
  * 리더보드 데이터 생성 (wish 테이블에서 score 기준 top 10 추출)
  */
-async function generateLeaderboard(): Promise<LeaderBoardResponse> {
+async function generateLeaderboard(): Promise<LeaderboardResponse> {
   try {
     const res = await pool.query(
       'SELECT seq_id, score, name, msg FROM wish ORDER BY score DESC LIMIT 10'
@@ -90,18 +90,24 @@ async function generateLeaderboard(): Promise<LeaderBoardResponse> {
     }));
 
     const result = { ranks };
-
-    // Update cache
-    cache.data = result;
-    cache.lastUpdated = Date.now();
-    cache.isInvalid = false;
-    cache.minScore = ranks.length > 0 ? ranks[ranks.length - 1].score : 0;
-
     return result;
   } catch (err) {
     console.error('Failed to generate leaderboard:', err);
     return { ranks: [] };
   }
+}
+
+function isExpiredCache() {
+  const now = Date.now();
+  const isExpired = now - cache.lastUpdated > CACHE_TTL;
+  return !cache.data || cache.isInvalid || isExpired;
+}
+
+async function updateCache() {
+  cache.data = await generateLeaderboard();
+  cache.lastUpdated = Date.now();
+  cache.minScore = cache.data.ranks.length > 0 ? cache.data.ranks[cache.data.ranks.length - 1].score : 0;
+  cache.isInvalid = false;
 }
 
 export const GameService = {
@@ -148,15 +154,11 @@ export const GameService = {
     }
   },
 
-  async getLeaderBoard(): Promise<LeaderBoardResponse> {
-    const now = Date.now();
-    const isExpired = now - cache.lastUpdated > CACHE_TTL;
-
-    if (cache.data && !cache.isInvalid && !isExpired) {
-      return cache.data;
+  async getLeaderboard(): Promise<LeaderboardResponse> {
+    if (isExpiredCache()) {
+      await updateCache();
     }
-
-    return await generateLeaderboard();
+    return cache.data || { ranks: [] };
   }
 };
 

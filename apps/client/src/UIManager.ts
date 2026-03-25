@@ -23,7 +23,7 @@ export interface UICallbacks {
     onRestartGame: () => void;
     onSendStartSignal: (skillId: number) => void;
     onSendEndSignal: (name: string, msg: string) => void;
-    onFetchLeaderBoard: () => Promise<RankEntry[]>;
+    onFetchLeaderboard: () => Promise<RankEntry[]>;
     onRefreshUI: () => void;
 }
 
@@ -376,7 +376,7 @@ export class UIManager {
         this.uiContainer.add(overlay);
 
         this.createGameOverText(width);
-        const leaderBoardContainer = await this.createLeaderBoardUI(width, height);
+        const leaderBoardContainer = await this.createLeaderboardUI(width, height);
         const restartBtn = this.createRestartButton(width, height, overlay);
 
         leaderBoardContainer.setScale(0);
@@ -399,7 +399,7 @@ export class UIManager {
         this.uiContainer.add([title, resourceInfo]);
     }
 
-    private async createLeaderBoardUI(width: number, height: number): Promise<Phaser.GameObjects.Container> {
+    private async createLeaderboardUI(width: number, height: number): Promise<Phaser.GameObjects.Container> {
         const container = this.scene.add.container(width / 2, height / 2).setDepth(3001);
         this.uiContainer.add(container);
 
@@ -411,7 +411,7 @@ export class UIManager {
 
         let ranks = this.currentUIState.leaderBoardRanks;
         if (!ranks) {
-            ranks = await this.callbacks.onFetchLeaderBoard();
+            ranks = await this.callbacks.onFetchLeaderboard();
             this.currentUIState.leaderBoardRanks = ranks;
         }
         
@@ -419,12 +419,12 @@ export class UIManager {
         if (displayRanks.length === 0) {
             container.add(this.scene.add.text(0, 0, I18n.t('ui.no_rankings'), { fontSize: '18px', color: '#888888' }).setOrigin(0.5));
         } else {
-            displayRanks.forEach((rank, i) => this.addLeaderBoardEntry(container, rank, i));
+            displayRanks.forEach((rank, i) => this.addLeaderboardEntry(container, rank, i));
         }
         return container;
     }
 
-    private addLeaderBoardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
+    private addLeaderboardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
         const y = -130 + (index * 30);
         const score = this.scene.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5);
         const name = this.scene.add.text(-220, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5);

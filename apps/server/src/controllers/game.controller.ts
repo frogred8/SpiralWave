@@ -15,8 +15,8 @@ export const GameController = {
     return await GameService.endGame(body.game_id, body.select_skill_id, body.name, body.score, body.msg, request.ip, new Date());
   },
 
-  async handleGetLeaderBoard(request: FastifyRequest) {
+  async handleGetLeaderboard(request: FastifyRequest) {
     request.log.info('Leaderboard data requested');
-    return await GameService.getLeaderBoard();
+    return await GameService.getLeaderboard();
   }
 };

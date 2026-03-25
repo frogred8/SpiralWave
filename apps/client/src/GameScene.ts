@@ -6,7 +6,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, INITIAL_STATS } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
-import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, LeaderBoardResponse } from '@repo/shared';
+import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, LeaderboardResponse } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager, UIState } from './UIManager';
@@ -54,7 +54,7 @@ export class GameScene extends Phaser.Scene {
             onRestartGame: () => this.restartGame(),
             onSendStartSignal: (id) => this.sendStartGameSignal(id),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
-            onFetchLeaderBoard: () => this.fetchLeaderBoardData(),
+            onFetchLeaderboard: () => this.fetchLeaderboardData(),
             onRefreshUI: () => this.handleRefreshUI()
         });
 
@@ -562,13 +562,13 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private async fetchLeaderBoardData(): Promise<RankEntry[]> {
+    private async fetchLeaderboardData(): Promise<RankEntry[]> {
         const serverUrl = import.meta.env.VITE_SERVER_URL;
         if (!serverUrl) return [];
 
         try {
             const response = await fetch(`${serverUrl}/leaderboard`);
-            const data: LeaderBoardResponse = await response.json();
+            const data: LeaderboardResponse = await response.json();
             return data.ranks || [];
         } catch (err) {
             console.error('Failed to fetch leaderboard:', err);

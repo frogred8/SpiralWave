@@ -212,7 +212,10 @@ export class GameScene extends Phaser.Scene {
         if (!serverUrl) return;
 
         try {
-            const body: StartRequest = { select_skill_id: skillId };
+            if (!this.userInfo) {
+                this.userInfo = await Utils.getUserInfo();
+            }
+            const body: StartRequest = { select_skill_id: skillId, ip: this.userInfo.ip };
             const response = await fetch(`${serverUrl}/start`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -236,6 +239,7 @@ export class GameScene extends Phaser.Scene {
             if (!this.userInfo) {
                 this.userInfo = await Utils.getUserInfo();
             }
+            name = name.length > LIMITS.END_NAME_LENGTH ? name.substring(0, LIMITS.END_NAME_LENGTH) : name;
             msg = msg.length > LIMITS.END_MSG_LENGTH ? msg.substring(0, LIMITS.END_MSG_LENGTH) : msg;
             const body: EndRequest = {
                 game_id: this.currentGameId,

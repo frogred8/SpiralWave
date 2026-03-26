@@ -439,32 +439,36 @@ export class UIManager {
         const emoji = this.scene.add.text(-245, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         const name = this.scene.add.text(-210, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         
-        const maxWidth = 330;
+        const msgMaxWidth = 330;
         const msg = this.scene.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         
-        if (msg.width > maxWidth) {
-            const originalMsg = rank.msg;
-            let low = 0, high = originalMsg.length;
-            let best = "";
-            while (low <= high) {
-                let mid = Math.floor((low + high) / 2);
-                let test = originalMsg.substring(0, mid) + "...";
-                msg.setText(test);
-                if (msg.width <= maxWidth) {
-                    best = test;
-                    low = mid + 1;
-                } else {
-                    high = mid - 1;
-                }
-            }
-            msg.setText(best);
+        if (msg.width < msgMaxWidth || rank.msg.indexOf("\n") >= 0) {
+            this.truncateStringByTextWidth(rank.msg, msgMaxWidth, msg);
             msg.setInteractive({ useHandCursor: true });
-            msg.on('pointerover', (p: Phaser.Input.Pointer) => this.showTooltip(p.x, p.y, originalMsg));
+            msg.on('pointerover', (p: Phaser.Input.Pointer) => this.showTooltip(p.x, p.y, rank.msg));
             msg.on('pointerout', () => this.hideTooltip());
         }
 
         container.add([score, emoji, name, msg]);
     }
+
+    private truncateStringByTextWidth(str: string, maxWidth: number, text:Phaser.GameObjects.Text) {
+        let low = 0;
+        let high = str.indexOf("\n");
+        if (high < 0) high = str.length;
+
+        while (low <= high) {
+            let mid = Math.floor((low + high) / 2);
+            let test = str.substring(0, mid) + "...";
+            text.setText(test);
+            if (text.width <= maxWidth) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+    }
+
 
     private showTooltip(x: number, y: number, text: string) {
         this.hideTooltip();

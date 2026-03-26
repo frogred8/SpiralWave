@@ -5,6 +5,7 @@
 // POST /start
 export interface StartRequest {
     select_skill_id: number;
+    ip: string;
 }
 
 // POST /end

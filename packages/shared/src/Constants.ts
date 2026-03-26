@@ -119,5 +119,6 @@ export const UI_CONFIG = {
 };
 
 export const LIMITS = {
+    END_NAME_LENGTH: 10,
     END_MSG_LENGTH: 200
 };

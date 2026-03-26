@@ -2,6 +2,10 @@ import cron from 'node-cron';
 import * as fs from 'fs';
 import 'dotenv/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 // Gemini SDK 초기화
 const API_KEY = process.env.GEMINI_API_KEY || '';
@@ -61,7 +65,24 @@ async function run() {
     // 3. 파일 저장
     savePromptToFile(prompt);
 
-    // 4. Prompt 실행 
+    // 4. Prompt 실행 (gemini-cli 호출)
+    if (prompt) {
+        await runGeminiCli(prompt);
+    }
+}
+
+async function runGeminiCli(prompt: string) {
+    console.log('gemini-cli 실행 중...');
+    try {
+        // 프롬프트 내의 큰따옴표를 이스케이프 처리하여 쉘 인자로 안전하게 전달
+        const escapedPrompt = prompt.replace(/"/g, '\\"');
+        const { stdout, stderr } = await execAsync(`gemini "${escapedPrompt}"`);
+        
+        if (stdout) console.log('gemini-cli 결과:', stdout);
+        if (stderr) console.error('gemini-cli 에러 출력:', stderr);
+    } catch (error) {
+        console.error('gemini-cli 실행 실패:', error);
+    }
 }
 
 async function getRawData(): Promise<string> {

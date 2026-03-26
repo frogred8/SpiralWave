@@ -311,7 +311,7 @@ export class UIManager {
         });
 
         // Add tooltip listener to the message label
-        const messageLabel = this.activeDOMElement.node.querySelector('.message-label');
+        const messageLabel = this.activeDOMElement.node.querySelector('.message-label') as HTMLElement;
         if (messageLabel) {
             messageLabel.addEventListener('mouseover', () => {
                 const rect = messageLabel.getBoundingClientRect();
@@ -319,9 +319,13 @@ export class UIManager {
                 const x = this.scene.scale.transformX(rect.left);
                 const y = this.scene.scale.transformY(rect.top + rect.height / 2);
                 this.showTooltip(x, y, I18n.t('ui.message_tooltip'), 'left');
+                messageLabel.style.color = '#ffffff';
+                messageLabel.style.borderBottomColor = '#00ff00';
             });
             messageLabel.addEventListener('mouseout', () => {
                 this.hideTooltip();
+                messageLabel.style.color = '#aaaaaa';
+                messageLabel.style.borderBottomColor = '#666666';
             });
         }
 
@@ -348,7 +352,9 @@ export class UIManager {
                     <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
                 </div>
                  <div style="margin-top: 10px;">
-                    <label class="message-label" style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left; cursor: help;">${I18n.t('ui.message')}</label>
+                    <label class="message-label" style="display: inline-block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left; cursor: help; border-bottom: 1px dashed #666;">
+                        ${I18n.t('ui.message')} <span style="font-size: 14px; color: #00ff00; margin-left: 2px;">ⓘ</span>
+                    </label>
                     <textarea id="playerMsg" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
                 </div>
             </div>

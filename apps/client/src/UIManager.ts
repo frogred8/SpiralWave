@@ -349,13 +349,13 @@ export class UIManager {
             <div style="width: 290px; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; pointer-events: auto;">
                 <div>
                     <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.name')}</label>
-                    <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
+                    <input type="text" id="playerName" maxlength="10" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
                 </div>
                  <div style="margin-top: 10px;">
                     <label class="message-label" style="display: inline-block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left; cursor: help; border-bottom: 1px dashed #666;">
                         ${I18n.t('ui.message')} <span style="font-size: 14px; color: #00ff00; margin-left: 2px;">ⓘ</span>
                     </label>
-                    <textarea id="playerMsg" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
+                    <textarea id="playerMsg" maxlength="150" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
                 </div>
             </div>
         `;

@@ -329,6 +329,15 @@ export class UIManager {
             });
         }
 
+        // Add character count listener
+        const playerMsg = this.activeDOMElement.node.querySelector('#playerMsg') as HTMLTextAreaElement;
+        const charCount = this.activeDOMElement.node.querySelector('#charCount') as HTMLElement;
+        if (playerMsg && charCount) {
+            playerMsg.addEventListener('input', () => {
+                charCount.textContent = `(${playerMsg.value.length}/150)`;
+            });
+        }
+
         const closeForm = () => {
             if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
             formContainer.destroy(); overlay.destroy();
@@ -351,10 +360,13 @@ export class UIManager {
                     <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.name')}</label>
                     <input type="text" id="playerName" maxlength="10" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
                 </div>
-                 <div style="margin-top: 10px;">
-                    <label class="message-label" style="display: inline-block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left; cursor: help; border-bottom: 1px dashed #666;">
-                        ${I18n.t('ui.message')} <span style="font-size: 14px; color: #00ff00; margin-left: 2px;">ⓘ</span>
-                    </label>
+                 <div style="margin-top: 10px; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <label class="message-label" style="display: inline-block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left; cursor: help; border-bottom: 1px dashed #666;">
+                            ${I18n.t('ui.message')} <span style="font-size: 14px; color: #00ff00; margin-left: 2px;">ⓘ</span>
+                        </label>
+                        <span id="charCount" style="font-size: 14px; color: #aaaaaa; margin-bottom: 8px;">(0/150)</span>
+                    </div>
                     <textarea id="playerMsg" maxlength="150" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
                 </div>
             </div>

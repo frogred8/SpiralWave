@@ -27,4 +27,5 @@ out
 *.sln
 *.sw?
 *.js
-*.d.ts\napps/client/.env
+*.d.ts
+apps/client/.env

@@ -310,6 +310,17 @@ export class UIManager {
             el.addEventListener('keypress', (e) => e.stopPropagation());
         });
 
+        // Add tooltip listener to the message label
+        const messageLabel = this.activeDOMElement.node.querySelector('.message-label');
+        if (messageLabel) {
+            messageLabel.addEventListener('mouseover', (e: any) => {
+                this.showTooltip(e.clientX, e.clientY, I18n.t('ui.message_tooltip'));
+            });
+            messageLabel.addEventListener('mouseout', () => {
+                this.hideTooltip();
+            });
+        }
+
         const closeForm = () => {
             if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
             formContainer.destroy(); overlay.destroy();
@@ -333,7 +344,7 @@ export class UIManager {
                     <input type="text" id="playerName" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box;">
                 </div>
                  <div style="margin-top: 10px;">
-                    <label style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left;">${I18n.t('ui.message')}</label>
+                    <label class="message-label" style="display: block; font-size: 16px; color: #aaaaaa; margin-bottom: 8px; text-align: left; cursor: help;">${I18n.t('ui.message')}</label>
                     <textarea id="playerMsg" style="width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; height: 100px; resize: none; font-size: 16px; box-sizing: border-box;"></textarea>
                 </div>
             </div>

@@ -51,7 +51,7 @@ export class GameScene extends Phaser.Scene {
         // UI Manager 초기화
         this.uiManager = new UIManager(this, this.uiContainer, this.topUiContainer, this.gameStats, {
             onStartGame: () => this.startGame(),
-            onRestartGame: () => this.restartGame(),
+            onRestartGame: (canReroll) => this.restartGame(canReroll),
             onSendStartSignal: (id) => this.sendStartGameSignal(id),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
@@ -261,7 +261,7 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private restartGame() {
+    private restartGame(canReroll: boolean = false) {
         const { width, height } = this.scale;
         this.cleanupForRestart();
         
@@ -269,7 +269,7 @@ export class GameScene extends Phaser.Scene {
         
         this.isGameStarted = false;
         this.isRestarted = true;
-        this.canReroll = true;
+        this.canReroll = canReroll;
         
         this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
         this.uiManager.refreshUIAfterLanguageChange();

@@ -20,7 +20,7 @@ export interface UIState {
 
 export interface UICallbacks {
     onStartGame: () => void;
-    onRestartGame: () => void;
+    onRestartGame: (canReroll: boolean) => void;
     onSendStartSignal: (skillId: number) => void;
     onSendEndSignal: (name: string, msg: string) => void;
     onFetchLeaderboard: () => Promise<RankEntry[]>;
@@ -221,7 +221,7 @@ export class UIManager {
         rerollBg.on('pointerdown', () => {
             SoundManager.getInstance().play('reroll');
             this.clearUIByDepth(2000);
-            this.callbacks.onRestartGame(); // In terms of re-rolling, it's like a partial restart
+            this.callbacks.onRestartGame(false); // In terms of re-rolling, it's like a partial restart
         });
     }
 
@@ -522,7 +522,7 @@ export class UIManager {
         bg.on('pointerout', () => bg.setStrokeStyle(3, 0x444444));
         bg.on('pointerdown', () => {
             SoundManager.getInstance().play('restart');
-            this.callbacks.onRestartGame();
+            this.callbacks.onRestartGame(true);
             overlay.destroy();
             this.clearUIByDepth(3001);
         });

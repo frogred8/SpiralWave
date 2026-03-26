@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import * as fs from 'fs';
+import 'dotenv/config';
 
 // 가상의 Gemini SDK 인터페이스
 interface GeminiResponse {
@@ -12,8 +13,10 @@ const gemini = {
     }
 };
 
-console.log('Cron TypeScript 서비스가 시작되었습니다. (매시 정각 실행)', new Date().toISOString());
+const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
 
+console.log('Cron TypeScript 서비스가 시작되었습니다. (매시 정각 실행)', new Date().toISOString());
+console.log(`대상 서버 주소: ${SERVER_URL}`);
 
 function convertDateFormat(date: Date): string {
     const pad = (n: any) => n.toString().padStart(2, '0');
@@ -26,9 +29,13 @@ cron.schedule('0 * * * * *', async () => {
         console.log(`[${convertDateFormat(new Date())}] 크론 작업 시작...`);
         
         // 1. 데이터 API 호출
-        // const apiRes = await axios.get('https://your-api-endpoint.com/data');
-        // const rawData = JSON.stringify(apiRes.data);
-        const rawData = "테스트용 TypeScript 원본 데이터";
+        const response = await fetch(`${SERVER_URL}/leaderboard`);
+        if (!response.ok) {
+            throw new Error(`API 호출 실패: ${response.statusText}`);
+        }
+        
+        const data = await response.json() as { ranks: { msg: string }[] };
+        const rawData = data.ranks.map(rank => rank.msg).join('\n');
 
         // 2. Gemini API 호출
         const prompt = `다음 데이터를 분석해서 요약해줘: ${rawData}`;

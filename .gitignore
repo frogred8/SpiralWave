@@ -28,4 +28,4 @@ out
 *.sw?
 *.js
 *.d.ts
-apps/client/.env
+.env

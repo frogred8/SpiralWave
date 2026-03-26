@@ -8,11 +8,12 @@
 - 빌드가 여전히 실패하면 여기서 멈추고, 빌드가 성공하면 다음 작업 진행.
 - 커밋 메시지 구성
   - 제목은 핵심 내용만 간결하게 구성.
+  - 제목 앞에 [] 사이에 프롬프트로 걸린 작업 시간을 추가.
   - 명령내린 원본 프롬프트를 축약해서 제목 다음 줄에 ()안에 추가.
   - 세부 수정은 그 다음 줄에 내용을 한글로 추가.
   - 아래는 커밋 메시지 예시
   ```
-    feat: Bring white hole item to center before spawning outside boundary
+    [1m30s] feat: Bring white hole item to center before spawning outside boundary
     - (로봇팔로 화이트홀 아이템을 잡는 곳에서 발생하지 않고, 가져온 다음에 현재 위치의 블랙홀 바운더리보다 먼 곳에 생성되게 변경해.)
     - 아이템 운송 로직: 로봇팔이 특수 아이템을 잡으면 즉시 파괴하지 않고 끝까지 끌고 와서 처리합니다.
     - 

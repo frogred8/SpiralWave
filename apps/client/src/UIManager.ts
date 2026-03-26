@@ -313,8 +313,12 @@ export class UIManager {
         // Add tooltip listener to the message label
         const messageLabel = this.activeDOMElement.node.querySelector('.message-label');
         if (messageLabel) {
-            messageLabel.addEventListener('mouseover', (e: any) => {
-                this.showTooltip(e.clientX, e.clientY, I18n.t('ui.message_tooltip'));
+            messageLabel.addEventListener('mouseover', () => {
+                const rect = messageLabel.getBoundingClientRect();
+                // Convert screen coordinates to Phaser coordinates
+                const x = this.scene.scale.transformX(rect.left);
+                const y = this.scene.scale.transformY(rect.top + rect.height / 2);
+                this.showTooltip(x, y, I18n.t('ui.message_tooltip'), 'left');
             });
             messageLabel.addEventListener('mouseout', () => {
                 this.hideTooltip();
@@ -481,7 +485,7 @@ export class UIManager {
     }
 
 
-    private showTooltip(x: number, y: number, text: string) {
+    private showTooltip(x: number, y: number, text: string, side: 'top' | 'left' = 'top') {
         this.hideTooltip();
         
         const tooltipText = this.scene.add.text(0, 0, text, {
@@ -497,20 +501,29 @@ export class UIManager {
         const bg = this.scene.add.rectangle(0, 0, bgWidth, bgHeight, 0x000000, 0.95)
             .setStrokeStyle(1, 0x888888).setOrigin(0.5);
 
+        const halfWidth = bgWidth / 2;
+        const halfHeight = bgHeight / 2;
+
         this.tooltipContainer = this.scene.add.container(x, y);
         this.tooltipContainer.add([bg, tooltipText]);
         this.tooltipContainer.setDepth(20000);
         
-        const halfWidth = bgWidth / 2;
-        const halfHeight = bgHeight / 2;
-        
-        if (x - halfWidth < 10) this.tooltipContainer.x = halfWidth + 10;
-        if (x + halfWidth > this.scene.scale.width - 10) this.tooltipContainer.x = this.scene.scale.width - halfWidth - 10;
-        if (y - bgHeight - 20 < 10) {
-            this.tooltipContainer.y = y + halfHeight + 20;
+        if (side === 'left') {
+            this.tooltipContainer.x = x - halfWidth - 15;
+            this.tooltipContainer.y = y;
         } else {
-            this.tooltipContainer.y = y - halfHeight - 20;
+            if (y - bgHeight - 20 < 10) {
+                this.tooltipContainer.y = y + halfHeight + 20;
+            } else {
+                this.tooltipContainer.y = y - halfHeight - 20;
+            }
         }
+
+        // Global boundary checks
+        if (this.tooltipContainer.x - halfWidth < 10) this.tooltipContainer.x = halfWidth + 10;
+        if (this.tooltipContainer.x + halfWidth > this.scene.scale.width - 10) this.tooltipContainer.x = this.scene.scale.width - halfWidth - 10;
+        if (this.tooltipContainer.y - halfHeight < 10) this.tooltipContainer.y = halfHeight + 10;
+        if (this.tooltipContainer.y + halfHeight > this.scene.scale.height - 10) this.tooltipContainer.y = this.scene.scale.height - halfHeight - 10;
 
         this.topUiContainer.add(this.tooltipContainer);
     }

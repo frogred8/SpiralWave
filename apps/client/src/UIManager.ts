@@ -482,12 +482,17 @@ export class UIManager {
 
     private addLeaderboardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
         const y = -130 + (index * 30);
-        const score = this.scene.add.text(-260, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
-        const emoji = this.scene.add.text(-245, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
-        const name = this.scene.add.text(-210, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        const score = this.scene.add.text(-160, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
+        const emoji = this.scene.add.text(-145, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        const name = this.scene.add.text(-110, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         
-        const msgMaxWidth = 330;
-        const msg = this.scene.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        const nameMaxWidth = 140;
+        if (name.width > nameMaxWidth) {
+            this.truncateStringByTextWidth(rank.name, nameMaxWidth, name);
+        }
+
+        const msgMaxWidth = 240;
+        const msg = this.scene.add.text(40, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         
         if (msg.width > msgMaxWidth || rank.msg.indexOf("\n") >= 0) {
             this.truncateStringByTextWidth(rank.msg, msgMaxWidth, msg);

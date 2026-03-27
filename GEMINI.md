@@ -3,8 +3,9 @@
 - **client/**: 프론트엔드 (Phaser, TypeScript, Vite)
 - **server/**: 백엔드 (Node.js, Fastify, Postgresql)
 
-# 프롬프트 실행 시 매번 처음으로 할 일
-- gemini.log 파일 내부를 지우고 프롬프트를 실행한 현재 시간을 저장
+# [CRITICAL_RULE] 매 프롬프트 실행 전 필수 작업
+모든 사용자 입력(Prompt)을 처리하기 전, **예외 없이** 다음 쉘 명령을 실행하세요.
+date "+%Y-%m-%d %H:%M:%S" > gemini.log
 
 # 코드 수정 후에 순서대로 할 일
 - 빌드를 테스트해서 빌드가 실패하면 에러를 수정하여 재빌드 시도를 최대 3회 반복.

@@ -324,6 +324,11 @@ export class GameScene extends Phaser.Scene {
             this.boostTimerEvent.remove();
             this.boostTimerEvent = undefined;
         }
+
+        // Fever Overlay 초기화
+        if (this.feverOverlay) {
+            this.feverOverlay.setVisible(false).setAlpha(0);
+        }
     }
 
     private resetGameStats(width: number, height: number): any[] {

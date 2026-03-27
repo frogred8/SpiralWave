@@ -465,6 +465,14 @@ export class UIManager {
         }).setOrigin(0.5);
         container.add([bg, title]);
 
+        // Leaderboard Headers
+        const headerStyle = { fontSize: '14px', color: '#00ff00', fontStyle: 'bold' };
+        const headerY = -150;
+        const scoreHeader = this.scene.add.text(-225, headerY, I18n.t('ui.rank_score'), headerStyle).setOrigin(1, 0.5);
+        const playerHeader = this.scene.add.text(-215, headerY, I18n.t('ui.rank_player'), headerStyle).setOrigin(0, 0.5);
+        const msgHeader = this.scene.add.text(-20, headerY, I18n.t('ui.rank_message'), headerStyle).setOrigin(0, 0.5);
+        container.add([scoreHeader, playerHeader, msgHeader]);
+
         let ranks = await this.callbacks.onFetchLeaderboard();
         if (!ranks) {
             ranks = this.currentUIState.leaderBoardRanks || [];
@@ -482,18 +490,12 @@ export class UIManager {
 
     private addLeaderboardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
         const y = -130 + (index * 30);
-        const score = this.scene.add.text(-160, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
-        const emoji = this.scene.add.text(-145, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
-        const name = this.scene.add.text(-110, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        const score = this.scene.add.text(-225, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
+        const emoji = this.scene.add.text(-215, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
+        const name = this.scene.add.text(-185, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         
-        const nameMaxWidth = 140;
-        if (name.width > nameMaxWidth) {
-            this.truncateStringByTextWidth(rank.name, nameMaxWidth, name);
-        }
-
-        const msgMaxWidth = 240;
-        const msg = this.scene.add.text(40, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
-        
+        const msgMaxWidth = 300;
+        const msg = this.scene.add.text(-20, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         if (msg.width > msgMaxWidth || rank.msg.indexOf("\n") >= 0) {
             this.truncateStringByTextWidth(rank.msg, msgMaxWidth, msg);
             msg.setInteractive({ useHandCursor: true });

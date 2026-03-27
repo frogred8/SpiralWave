@@ -61,6 +61,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.submit': 'SUBMIT',
         'ui.skip': 'SKIP',
         'ui.leaderboard': 'Leaderboard',
+        'ui.rank_score': 'Score',
+        'ui.rank_player': 'Player',
+        'ui.rank_message': 'Message',
         'ui.no_rankings': 'No rankings yet.',
         'ui.bonus_time': 'BONUS TIME!',
         
@@ -160,6 +163,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.submit': '제출',
         'ui.skip': '건너뛰기',
         'ui.leaderboard': '리더보드',
+        'ui.rank_score': '점수',
+        'ui.rank_player': '플레이어',
+        'ui.rank_message': '메시지',
         'ui.no_rankings': '순위가 없습니다.',
         'ui.bonus_time': '보너스 시간!',
         
@@ -258,6 +264,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.submit': '提交',
         'ui.skip': '跳过',
         'ui.leaderboard': '排行榜',
+        'ui.rank_score': '分数',
+        'ui.rank_player': '玩家',
+        'ui.rank_message': '建议',
         'ui.no_rankings': '暂无排名。',
         'ui.bonus_time': '奖励时间！',
         
@@ -356,6 +365,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.submit': '送信',
         'ui.skip': 'スキップ',
         'ui.leaderboard': 'リーダーボード',
+        'ui.rank_score': 'スコア',
+        'ui.rank_player': 'プレイヤー',
+        'ui.rank_message': '要望',
         'ui.no_rankings': 'ランキングがまだありません。',
         'ui.bonus_time': 'ボーナスタイム！',
 

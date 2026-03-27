@@ -47,8 +47,8 @@ export class GameScene extends Phaser.Scene {
         SoundManager.getInstance().play('background');
 
         // Fever Overlay 초기화 (평소에는 숨김)
-        this.feverOverlay = this.add.rectangle(0, 0, width, height, 0xff0000, 0.15)
-            .setOrigin(0).setDepth(9999).setScrollFactor(0).setVisible(false);
+        this.feverOverlay = this.add.rectangle(0, 0, width, height, 0xff0000, 0.08)
+            .setOrigin(0).setDepth(9999).setScrollFactor(0).setVisible(false).setAlpha(0);
 
         const skillData = this.initGameStats();
         this.initContainers();
@@ -98,11 +98,33 @@ export class GameScene extends Phaser.Scene {
         // Fever Mode Listeners
         this.gameStats.on(GameStats.EVENTS.FEVER_START, () => {
             this.cameras.main.shake(500, 0.01);
-            if (this.feverOverlay) this.feverOverlay.setVisible(true);
+            if (this.feverOverlay) {
+                this.feverOverlay.setVisible(true).setAlpha(0);
+                // 5초 주기로 스르륵 밝아졌다 어두워지는 깜박임 (2.5s fade in + 2.5s fade out)
+                this.tweens.add({
+                    targets: this.feverOverlay,
+                    alpha: 1, // rectangle의 alpha는 전체 투명도에 곱해지므로, 초기 설정된 0.08을 최대치로 사용함
+                    duration: 2500,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            }
             SoundManager.getInstance().play('skillupgrade');
         });
         this.gameStats.on(GameStats.EVENTS.FEVER_END, () => {
-            if (this.feverOverlay) this.feverOverlay.setVisible(false);
+            if (this.feverOverlay) {
+                this.tweens.killTweensOf(this.feverOverlay);
+                this.tweens.add({
+                    targets: this.feverOverlay,
+                    alpha: 0,
+                    duration: 1000,
+                    ease: 'Power2',
+                    onComplete: () => {
+                        this.feverOverlay.setVisible(false);
+                    }
+                });
+            }
         });
 
         return skillData;

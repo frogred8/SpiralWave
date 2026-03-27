@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from '@shared/GameStats';
-import { DURATIONS, RESOURCE_CONFIG } from '@shared/Constants';
-import { Utils } from '@shared/Utils';
+import { INITIAL_STATS, RESOURCE_CONFIG } from '@shared/Constants';
 import { RankEntry } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
@@ -47,6 +46,7 @@ export class UIManager {
     private isLanguageMenuOpen: boolean = false;
     public currentUIState: UIState = { overlay: null };
     private tooltipContainer: Phaser.GameObjects.Container | null = null;
+    public updateFeverDisplay!: (() => void);
 
     constructor(scene: Phaser.Scene, uiContainer: Phaser.GameObjects.Container, topUiContainer: Phaser.GameObjects.Container, stats: GameStats, callbacks: UICallbacks) {
         this.scene = scene;
@@ -108,23 +108,22 @@ export class UIManager {
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95).setStrokeStyle(2, 0x444444).setOrigin(0);
         const iconStyle = { fontSize: '20px' };
         const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
-        const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
+        const totalStyle = { fontSize: '13px', color: '#aaaaaa' };
 
         const woodIcon = this.scene.add.text(15, 25, RESOURCE_CONFIG.ICONS.wood, iconStyle).setOrigin(0, 0.5);
         const woodValue = this.scene.add.text(45, 25, '0', valueStyle).setOrigin(0, 0.5);
         const rockIcon = this.scene.add.text(105, 25, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
         const rockValue = this.scene.add.text(135, 25, '0', valueStyle).setOrigin(0, 0.5);
         
-        const totalText = this.scene.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const rateText = this.scene.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const timeText = this.scene.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle).setPadding({ top: 2, bottom: 2 });
-        const gameStatsText = this.scene.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
+        //const totalText = this.scene.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
+        const totalText = this.scene.add.text(195, 10, '', { fontSize: '13px', color: '#aaaaaa', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
+        const gameStatsText = this.scene.add.text(300, 10, '', { fontSize: '13px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
 
         // Fever Gauge Bar
         const feverBarBg = this.scene.add.rectangle(15, 52, 160, 6, 0x333333).setOrigin(0, 0.5);
         const feverBar = this.scene.add.rectangle(15, 52, 0, 6, 0xffcc00).setOrigin(0, 0.5);
 
-        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText, feverBarBg, feverBar]);
+        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, gameStatsText, feverBarBg, feverBar]);
         this.uiContainer.add(this.statsContainer);
 
         // 이전 리스너가 있다면 제거
@@ -137,17 +136,17 @@ export class UIManager {
             if (!this.statsContainer.active) return;
             woodValue.setText(this.stats.collected.wood.toString());
             rockValue.setText(this.stats.collected.rock.toString());
-            totalText.setText(`${I18n.t('stats.total')}: ${this.stats.totalAll}`);
-            rateText.setText(`${I18n.t('stats.rate')}: ${this.stats.getRecentCollectionAmount()}`);
-            timeText.setText(`${I18n.t('stats.time')}: ${this.stats.getFormattedPlaytime()}`);
-            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('stats.arms')}: ${this.stats.maxArms}\n${I18n.t('stats.speed')}: ${this.stats.armSpeedFactor.toFixed(1)}x`);
-            
+            totalText.setText(`${I18n.t('stats.total')}: ${this.stats.totalAll}\n${I18n.t('stats.rate')}: ${this.stats.getRecentCollectionAmount()}`);
+            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('stats.arms')}: ${this.stats.maxArms}`);
+        };
+
+        this.updateFeverDisplay = () => {
             // Update Fever Gauge
-            const feverPercent = this.stats.feverGauge / this.stats.MAX_FEVER_GAUGE;
+            const feverPercent = this.stats.feverGauge / INITIAL_STATS.MAX_FEVER_GAUGE;
             feverBar.width = 160 * feverPercent;
             feverBar.setFillStyle(this.stats.isFeverMode ? 0xff0000 : 0xffcc00);
             if (this.stats.isFeverMode) {
-                feverBar.setAlpha(0.5 + Math.sin(this.scene.time.now / 100) * 0.5);
+                feverBar.setAlpha(0.7 + Math.sin(this.scene.time.now / 100) * 0.3);
             } else {
                 feverBar.setAlpha(1);
             }
@@ -467,9 +466,9 @@ export class UIManager {
 
         // Leaderboard Headers
         const headerStyle = { fontSize: '14px', color: '#00ff00', fontStyle: 'bold' };
-        const headerY = -150;
+        const headerY = -130;
         const scoreHeader = this.scene.add.text(-225, headerY, I18n.t('ui.rank_score'), headerStyle).setOrigin(1, 0.5);
-        const playerHeader = this.scene.add.text(-215, headerY, I18n.t('ui.rank_player'), headerStyle).setOrigin(0, 0.5);
+        const playerHeader = this.scene.add.text(-185, headerY, I18n.t('ui.rank_player'), headerStyle).setOrigin(0, 0.5);
         const msgHeader = this.scene.add.text(-20, headerY, I18n.t('ui.rank_message'), headerStyle).setOrigin(0, 0.5);
         container.add([scoreHeader, playerHeader, msgHeader]);
 
@@ -489,7 +488,7 @@ export class UIManager {
     }
 
     private addLeaderboardEntry(container: Phaser.GameObjects.Container, rank: RankEntry, index: number) {
-        const y = -130 + (index * 30);
+        const y = -100 + (index * 30);
         const score = this.scene.add.text(-225, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
         const emoji = this.scene.add.text(-215, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         const name = this.scene.add.text(-185, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });

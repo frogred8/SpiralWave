@@ -67,6 +67,9 @@ export class ResourceManager {
 
     public spawnResource(count: number = 2) {
         if (this.resources.getLength() >= INITIAL_STATS.MAX_RESOURCES) return;
+        if (this.stats.isFeverMode) {
+            count *= 5;
+        }
 
         const { width, height } = this.getSpawnDimensions();
         for (let i = 0; i < count; i++) {

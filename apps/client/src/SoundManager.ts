@@ -20,6 +20,7 @@ export class SoundManager {
         this.loadSound('restart', 'sounds/restart.mp3');
         this.loadSound('winning', 'sounds/winning.mp3', false, 0.1);
         this.loadSound('specialitem', 'sounds/specialitem.mp3', false, 0.3);
+        this.loadSound('fever', 'sounds/fever.mp3', false, 0.2);
         this.loadSound('background', 'sounds/background.mp3', true, 0.2);
     }
 

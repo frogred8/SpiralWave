@@ -99,7 +99,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.on(GameStats.EVENTS.FEVER_START, () => {
             this.cameras.main.shake(500, 0.01);
             if (this.feverOverlay) {
-                this.feverOverlay.setVisible(true).setAlpha(0);
+                this.feverOverlay.setVisible(true).setAlpha(0.5);
                 // 5초 주기로 스르륵 밝아졌다 어두워지는 깜박임 (2.5s fade in + 2.5s fade out)
                 this.tweens.add({
                     targets: this.feverOverlay,
@@ -110,7 +110,7 @@ export class GameScene extends Phaser.Scene {
                     ease: 'Sine.easeInOut'
                 });
             }
-            SoundManager.getInstance().play('skillupgrade');
+            SoundManager.getInstance().play('fever');
         });
         this.gameStats.on(GameStats.EVENTS.FEVER_END, () => {
             if (this.feverOverlay) {
@@ -413,6 +413,11 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
             if (this.gameStats.totalAll > 1) this.uiManager.showInputForm();
             else this.uiManager.showGameOverScreen();
+            // Fever Overlay 초기화
+            if (this.feverOverlay) {
+                this.feverOverlay.setVisible(false).setAlpha(0);
+            }
+
         }, this);
 
         this.gameStats.on(GameStats.EVENTS.CALCULATE_BOOSTER, () => {
@@ -503,6 +508,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.update(cappedDelta);
         
         this.uiManager.updateTimerDisplay(time, this.isGameStarted);
+        this.uiManager.updateFeverDisplay();
         this.handleBlackHoleMovement();
         this.updateAutoNet(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);

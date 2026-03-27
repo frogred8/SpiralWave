@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { SkillData } from './SkillData';
-import { INITIAL_STATS } from './Constants';
+import { DURATIONS, INITIAL_STATS } from './Constants';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
 /**
@@ -56,9 +56,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     // 피버 모드 관련 스탯
     public feverGauge: number = 0;
     public isFeverMode: boolean = false;
-    public feverDuration: number = 10; // 10 seconds
     public feverTimer: number = 0;
-    public readonly MAX_FEVER_GAUGE = 100;
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {
@@ -154,8 +152,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
         
         // 피버 모드 처리
         if (this.isFeverMode) {
-            this.feverTimer -= elapsedSeconds;
-            this.feverGauge = Math.max(0, (this.feverTimer / this.feverDuration) * this.MAX_FEVER_GAUGE);
+            this.feverTimer -= cappedDt;
+            this.feverGauge = Math.max(0, (this.feverTimer / DURATIONS.FEVER_MODE) * INITIAL_STATS.MAX_FEVER_GAUGE);
             
             if (this.feverTimer <= 0) {
                 this.isFeverMode = false;
@@ -433,10 +431,10 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
     
     // 피버 게이지 상승
     if (!this.isFeverMode) {
-        this.feverGauge = Math.min(this.MAX_FEVER_GAUGE, this.feverGauge + 0.5);
-        if (this.feverGauge >= this.MAX_FEVER_GAUGE) {
+        this.feverGauge = Math.min(INITIAL_STATS.MAX_FEVER_GAUGE, this.feverGauge + 0.5);
+        if (this.feverGauge >= INITIAL_STATS.MAX_FEVER_GAUGE) {
             this.isFeverMode = true;
-            this.feverTimer = this.feverDuration;
+            this.feverTimer = DURATIONS.FEVER_MODE;
             this.emit(GameStats.EVENTS.FEVER_START);
         }
     }

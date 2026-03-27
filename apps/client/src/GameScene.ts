@@ -34,6 +34,7 @@ export class GameScene extends Phaser.Scene {
     private currentGameId: string = '';
     private currentSelectSkillId: number = 0;
     private userInfo: { ip: string; emoji: string }|null = null;
+    private feverOverlay!: Phaser.GameObjects.Rectangle;
 
     constructor() {
         super('GameScene');
@@ -44,6 +45,10 @@ export class GameScene extends Phaser.Scene {
         this.spiralCenter = new Phaser.Math.Vector2(width / 2, height / 2);
 
         SoundManager.getInstance().play('background');
+
+        // Fever Overlay 초기화 (평소에는 숨김)
+        this.feverOverlay = this.add.rectangle(0, 0, width, height, 0xff0000, 0.15)
+            .setOrigin(0).setDepth(9999).setScrollFactor(0).setVisible(false);
 
         const skillData = this.initGameStats();
         this.initContainers();
@@ -89,6 +94,17 @@ export class GameScene extends Phaser.Scene {
         }
 
         this.gameStats = new GameStats(skillData);
+
+        // Fever Mode Listeners
+        this.gameStats.on(GameStats.EVENTS.FEVER_START, () => {
+            this.cameras.main.shake(500, 0.01);
+            if (this.feverOverlay) this.feverOverlay.setVisible(true);
+            SoundManager.getInstance().play('skillupgrade');
+        });
+        this.gameStats.on(GameStats.EVENTS.FEVER_END, () => {
+            if (this.feverOverlay) this.feverOverlay.setVisible(false);
+        });
+
         return skillData;
     }
 
@@ -391,7 +407,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.on('resourceCollected', (type: string, amount: number) => {
             const x = type === 'wood' ? 45 : 135;
             const fontSize = amount > 1 ? '21px' : '14px';
-            this.uiManager.showFloatingText(50 + x, 15 + (55 / 2) - 20, `+${amount}`, '#00ff00', false, fontSize, this.worldContainer);
+            this.uiManager.showFloatingText(50 + x, 15 + (65 / 2) - 20, `+${amount}`, '#00ff00', false, fontSize, this.worldContainer);
         }, this);
 
         this.gameStats.on('worldResourceCollected', (data: { type: string, amount: number, x: number, y: number }) => {

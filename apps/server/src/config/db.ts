@@ -20,8 +20,17 @@ const initDb = async () => {
         table.string('game_id', 20).primary();
         table.string('ip', 45).notNullable();
         table.integer('select_skill_id');
+        table.integer('fever_gauge').defaultTo(0);
         table.timestamp('created_at').defaultTo(db.fn.now());
       });
+    } else {
+      // Check if fever_gauge exists, add if not
+      const hasFeverGauge = await db.schema.hasColumn('game', 'fever_gauge');
+      if (!hasFeverGauge) {
+        await db.schema.table('game', (table) => {
+          table.integer('fever_gauge').defaultTo(0);
+        });
+      }
     }
 
     const hasWishTable = await db.schema.hasTable('wish');
@@ -39,6 +48,7 @@ const initDb = async () => {
         table.index(['score'], 'wish_score_idx');
       });
     }
+
     console.log('Database initialized');
   } catch (err) {
     console.error('Database initialization failed', err);

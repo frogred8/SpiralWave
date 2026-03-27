@@ -53,6 +53,13 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public boosterTimeAdded: number = 0;
     public skillTreeData: SkillData[] = [];
 
+    // 피버 모드 관련 스탯
+    public feverGauge: number = 0;
+    public isFeverMode: boolean = false;
+    public feverDuration: number = 10; // 10 seconds
+    public feverTimer: number = 0;
+    public readonly MAX_FEVER_GAUGE = 100;
+
     // 이벤트 상수 정의
     public static readonly EVENTS = {
         UPDATE_SCORE: 'updateScore',
@@ -61,7 +68,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         GAME_OVER: 'gameOver',
         SPAWN_RATE_CHANGED: 'spawnRateChanged',
         SPECIAL_ITEM_INTERVAL_CHANGED: 'specialItemIntervalChanged',
-        CALCULATE_BOOSTER: 'calculateBooster'
+        CALCULATE_BOOSTER: 'calculateBooster',
+        FEVER_START: 'feverStart',
+        FEVER_END: 'feverEnd'
     };
 
     constructor(skillTreeData: SkillData[]) {
@@ -110,6 +119,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.isBoosterCalculating = false;
         this.isBoosterTime = false;
         this.boosterTimeAdded = 0;
+        
+        this.feverGauge = 0;
+        this.isFeverMode = false;
+        this.feverTimer = 0;
     }
 
     /**
@@ -139,6 +152,19 @@ export class GameStats extends Phaser.Events.EventEmitter {
         const cappedDt = Math.min(dt, 1000);
         let elapsedSeconds = cappedDt / 1000;
         
+        // 피버 모드 처리
+        if (this.isFeverMode) {
+            this.feverTimer -= elapsedSeconds;
+            this.feverGauge = Math.max(0, (this.feverTimer / this.feverDuration) * this.MAX_FEVER_GAUGE);
+            
+            if (this.feverTimer <= 0) {
+                this.isFeverMode = false;
+                this.feverGauge = 0;
+                this.emit(GameStats.EVENTS.FEVER_END);
+                this.emit(GameStats.EVENTS.UPDATE_SCORE);
+            }
+        }
+
         const oldMinutes = Math.floor(this.playtime / 60);
         this.playtime += elapsedSeconds;
         const newMinutes = Math.floor(this.playtime / 60);
@@ -404,6 +430,17 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
     this.totalCollected[type] += amount;
     this.totalAll += amount;
     this.collectionHistory.push({ timestamp: Date.now(), amount });
+    
+    // 피버 게이지 상승
+    if (!this.isFeverMode) {
+        this.feverGauge = Math.min(this.MAX_FEVER_GAUGE, this.feverGauge + 0.5);
+        if (this.feverGauge >= this.MAX_FEVER_GAUGE) {
+            this.isFeverMode = true;
+            this.feverTimer = this.feverDuration;
+            this.emit(GameStats.EVENTS.FEVER_START);
+        }
+    }
+    
     this.emit(GameStats.EVENTS.UPDATE_SCORE);
     this.emit('resourceCollected', type, amount);
     if (x !== undefined && y !== undefined) {

@@ -102,7 +102,7 @@ export class UIManager {
     }
 
     public createStatsPanel() {
-        const panelX = 50, panelY = 15, panelWidth = 380, panelHeight = 55;
+        const panelX = 50, panelY = 15, panelWidth = 380, panelHeight = 65; // Height increased for fever bar
         this.statsContainer = this.scene.add.container(panelX, panelY).setScrollFactor(0);
         
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95).setStrokeStyle(2, 0x444444).setOrigin(0);
@@ -110,17 +110,21 @@ export class UIManager {
         const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
         const totalStyle = { fontSize: '11px', color: '#aaaaaa' };
 
-        const woodIcon = this.scene.add.text(15, panelHeight / 2, RESOURCE_CONFIG.ICONS.wood, iconStyle).setOrigin(0, 0.5);
-        const woodValue = this.scene.add.text(45, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
-        const rockIcon = this.scene.add.text(105, panelHeight / 2, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
-        const rockValue = this.scene.add.text(135, panelHeight / 2, '0', valueStyle).setOrigin(0, 0.5);
+        const woodIcon = this.scene.add.text(15, 25, RESOURCE_CONFIG.ICONS.wood, iconStyle).setOrigin(0, 0.5);
+        const woodValue = this.scene.add.text(45, 25, '0', valueStyle).setOrigin(0, 0.5);
+        const rockIcon = this.scene.add.text(105, 25, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
+        const rockValue = this.scene.add.text(135, 25, '0', valueStyle).setOrigin(0, 0.5);
         
         const totalText = this.scene.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
         const rateText = this.scene.add.text(195, 25, `${I18n.t('stats.rate')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
         const timeText = this.scene.add.text(195, 40, `${I18n.t('stats.time')}: 00:00`, totalStyle).setPadding({ top: 2, bottom: 2 });
         const gameStatsText = this.scene.add.text(300, 10, '', { fontSize: '11px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
 
-        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText]);
+        // Fever Gauge Bar
+        const feverBarBg = this.scene.add.rectangle(15, 52, 160, 6, 0x333333).setOrigin(0, 0.5);
+        const feverBar = this.scene.add.rectangle(15, 52, 0, 6, 0xffcc00).setOrigin(0, 0.5);
+
+        this.statsContainer.add([bg, woodIcon, woodValue, rockIcon, rockValue, totalText, rateText, timeText, gameStatsText, feverBarBg, feverBar]);
         this.uiContainer.add(this.statsContainer);
 
         // 이전 리스너가 있다면 제거
@@ -137,6 +141,16 @@ export class UIManager {
             rateText.setText(`${I18n.t('stats.rate')}: ${this.stats.getRecentCollectionAmount()}`);
             timeText.setText(`${I18n.t('stats.time')}: ${this.stats.getFormattedPlaytime()}`);
             gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('stats.arms')}: ${this.stats.maxArms}\n${I18n.t('stats.speed')}: ${this.stats.armSpeedFactor.toFixed(1)}x`);
+            
+            // Update Fever Gauge
+            const feverPercent = this.stats.feverGauge / this.stats.MAX_FEVER_GAUGE;
+            feverBar.width = 160 * feverPercent;
+            feverBar.setFillStyle(this.stats.isFeverMode ? 0xff0000 : 0xffcc00);
+            if (this.stats.isFeverMode) {
+                feverBar.setAlpha(0.5 + Math.sin(this.scene.time.now / 100) * 0.5);
+            } else {
+                feverBar.setAlpha(1);
+            }
         };
 
         this.stats.on(GameStats.EVENTS.UPDATE_SCORE, this.statsUpdateListener);
@@ -475,7 +489,7 @@ export class UIManager {
         const msgMaxWidth = 330;
         const msg = this.scene.add.text(-50, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         
-        if (msg.width < msgMaxWidth || rank.msg.indexOf("\n") >= 0) {
+        if (msg.width > msgMaxWidth || rank.msg.indexOf("\n") >= 0) {
             this.truncateStringByTextWidth(rank.msg, msgMaxWidth, msg);
             msg.setInteractive({ useHandCursor: true });
             msg.on('pointerover', (p: Phaser.Input.Pointer) => this.showTooltip(p.x, p.y, rank.msg));

@@ -11,7 +11,7 @@
     "build": "turbo run build",
     "db": "turbo run db",
     "start": "turbo run start",
-    "cron": "turbo run dev --filter=@repo/cron"
+    "cron": "turbo run cron"
   },
   "devDependencies": {
     "turbo": "^2.8.20"

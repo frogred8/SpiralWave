@@ -9,6 +9,7 @@ import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, Leaderbo
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
+import { OrbitSystem } from './OrbitSystem';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -19,6 +20,7 @@ export class GameScene extends Phaser.Scene {
     private gameRenderer!: GameRenderer;
     private resourceManager!: ResourceManager;
     private uiManager!: UIManager;
+    private orbitSystem!: OrbitSystem;
     private arms: RoboticArm[] = [];
     private uiUpdateTimer?: Phaser.Time.TimerEvent;
     
@@ -142,6 +144,14 @@ export class GameScene extends Phaser.Scene {
 
         // ResourceManager 초기화
         this.resourceManager = new ResourceManager(this, this.gameStats, this.gameRenderer, this.worldContainer, this.spiralCenter);
+
+        this.orbitSystem = new OrbitSystem(
+            this,
+            this.worldContainer,
+            this.spiralCenter,
+            () => this.resourceManager.getGroup().getChildren(),
+            (resource, centerX, centerY) => this.collectResource(resource, false, false, centerX, centerY)
+        );
 
         // 로봇팔 초기화
         this.arms = [];
@@ -318,6 +328,7 @@ export class GameScene extends Phaser.Scene {
         this.time.removeAllEvents();
         this.tweens.killAll();
         this.arms.forEach(arm => arm.reset());
+        this.orbitSystem.resetResourceState();
         this.radiusMultiplier = 1.0;
         this.netTimerAccumulator = 0;
         if (this.boostTimerEvent) {
@@ -512,6 +523,7 @@ export class GameScene extends Phaser.Scene {
         this.handleBlackHoleMovement();
         this.updateAutoNet(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);
+        this.orbitSystem.update(cappedDelta);
         this.updateArms(cappedDelta);
         this.updateAutoArms(time);
 
@@ -583,6 +595,7 @@ export class GameScene extends Phaser.Scene {
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as any;
             if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
+            if (this.orbitSystem.isAttracting(res)) return;
 
             const dist = Utils.getDistance(res.x, res.y, centerX, centerY);
             if (res.itemType === 'special') {

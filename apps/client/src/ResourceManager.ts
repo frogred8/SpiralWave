@@ -4,6 +4,7 @@ import { GameRenderer } from './GameRenderer';
 import { Utils } from '@shared/Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
 import { Resource, SpecialItem, Collectible } from '@shared/Types';
+import { getResourceMetadata } from './ResourceRegistry';
 
 export class ResourceManager {
     private scene: Phaser.Scene;
@@ -314,12 +315,16 @@ export class ResourceManager {
     }
 
     public getIcon(type: string): string {
-        return (RESOURCE_CONFIG.ICONS as any)[type] || RESOURCE_CONFIG.ICONS.default;
+        return getResourceMetadata(type).icon;
     }
 
     public getParticleTint(res: any): number {
+        if (res.itemType === 'special' && res.specialType) {
+            return getResourceMetadata(res.specialType).tint;
+        }
+
         const type = res.resourceType;
-        return (RESOURCE_CONFIG.COLORS as any)[type] || RESOURCE_CONFIG.COLORS.default;
+        return getResourceMetadata(type).tint;
     }
 
     public clear() {

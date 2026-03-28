@@ -8,6 +8,15 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+// console.log/error 랩핑
+const originalLog = console.log;
+const originalError = console.error;
+
+const getLogPrefix = () => `[${new Date().toISOString()}]`;
+
+console.log = (...args) => originalLog(getLogPrefix(), ...args);
+console.error = (...args) => originalError(getLogPrefix(), ...args);
+
 // Gemini SDK 초기화
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
@@ -58,7 +67,7 @@ cron.schedule('0 0 * * * *', async () => {
 
 async function run() {
     const timestamp = convertDateFormat(new Date());
-    console.log(`[${timestamp}] 크론 작업 시작...`);
+    console.log('크론 작업 시작...');
 
     // 1. 데이터 API 호출
     const rawData = await getRawData();
@@ -82,18 +91,18 @@ async function run() {
 
     try {
         // 5. main 브랜치를 임시 폴더에 clone
-        console.log(`[${timestamp}] 임시 폴더에 클론 중: ${tempDir}`);
+        console.log(`임시 폴더에 클론 중: ${tempDir}`);
         if (fs.existsSync(tempDir)) {
             fs.rmSync(tempDir, { recursive: true, force: true });
         }
         await execAsync(`git clone -b main ${REPO_URL} ${tempDir}`);
 
         // 6. 날짜_시간 이름으로 브랜치를 생성
-        console.log(`[${timestamp}] 브랜치 생성 중: ${branchName}`);
+        console.log(`브랜치 생성 중: ${branchName}`);
         await execAsync(`git checkout -b ${branchName}`, { cwd: tempDir });
         
         // 7. rawData와 plan을 README.md에 저장
-        console.log(`[${timestamp}] README.md 업데이트 중`);
+        console.log('README.md 업데이트 중');
         const readmePath = path.join(tempDir, 'README.md');
         const readmeContent = `
 # Automatic Update - ${timestamp}
@@ -114,24 +123,26 @@ ${prompt}
         await runGeminiCli(prompt, tempDir);
 
         // 9. 브랜치를 원격 저장소에 푸시
-        console.log(`[${timestamp}] 원격 저장소에 푸시 중`);
+        console.log('원격 저장소에 푸시 중');
         await execAsync(`git push origin ${branchName}`, { cwd: tempDir });
-        console.log(`[${timestamp}] 작업 완료 및 푸시 성공: ${branchName}`);
+        console.log(`작업 완료 및 푸시 성공: ${branchName}`);
 
     } catch (error) {
-        console.error(`[${timestamp}] 작업 중 오류 발생:`, error);
+        console.error('작업 중 오류 발생:', error);
     } finally {
-        // 임시 폴더 삭제 (필요시 주석 해제)
-        // if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
+        // 임시 폴더 삭제
+        if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
     }
 }
 
 async function runGeminiCli(prompt: string, cwd: string) {
     console.log('gemini-cli 실행 중...');
     try {
+        prompt = `Read GEMINI.md first to understand the project structure and coding standards. Then, generate code based on the following plan while strictly adhering to the rules.:\n${prompt}`;
+
         // 프롬프트 내의 큰따옴표를 이스케이프 처리하여 쉘 인자로 안전하게 전달
         const escapedPrompt = prompt.replace(/"/g, '\\"');
-        const { stdout, stderr } = await execAsync(`gemini "${escapedPrompt}"`, { cwd });
+        const { stdout, stderr } = await execAsync(`gemini "${escapedPrompt}" -y`, { cwd });
         
         if (stdout) console.log('gemini-cli 결과:', stdout);
         if (stderr) console.error('gemini-cli 에러 출력:', stderr);
@@ -147,14 +158,19 @@ async function getRawData(): Promise<string> {
     }
 
     const data = await res.json() as { ranks: { msg: string }[] };
-    const rawData = data.ranks.map(rank => rank.msg).join('\n');
+    // const rawData = data.ranks.map(rank => rank.msg).join('\n');
+    const rawData = `
+        수집한 자원의 도감 및 상세 정보 확인 기능 (서버 요청 없이도 가능)
+        블랙홀 주변을 도는 위성 추가. 위성 주변부의 중력으로 자원 수집 가능 
+    `;
 
     return rawData || '';
 }
 
 async function buildPromptFromRawData(rawData: string): Promise<string> {
     const res = await gemini.generateText(`
-        @apps/client @apps/server 이건 유저들의 요구사항이 담긴 다국어 문자열이야. 이 요구사항을 영어로 번역 후 분석하고 정리해서, 코드 생성을 위한 플랜을 프롬프트 형태로 만들어: ${rawData}`);
+        @apps/client @apps/server 이건 유저들의 요구사항이 담긴 다국어 문자열이야. 
+        이 요구사항을 영어로 번역 후 분석하고 정리해서, 코드 생성을 위한 플랜을 프롬프트 형태만 출력해. 다른 내용은 절대 출력하지마.: ${rawData}`);
     if (res.ok) {
         return res.text;
     }

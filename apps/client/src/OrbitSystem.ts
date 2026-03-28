@@ -74,8 +74,6 @@ export class OrbitSystem {
             satellite.x = this.orbitState.center.x + (this.gameStats.radius+satellite.gravityRadius) * Math.cos(satellite.angle);
             satellite.y = this.orbitState.center.y + (this.gameStats.radius+satellite.gravityRadius) * Math.sin(satellite.angle);
         });
-
-        this.applyGravityWells();
     }
 
     public clear() {
@@ -94,6 +92,42 @@ export class OrbitSystem {
 
     public isAttracting(resource: Collectible): boolean {
         return (resource as Resource).orbitCollectionState === 'attracted';
+    }
+
+    public handleResourceGravity(resource: Resource): boolean {
+        if (!resource.active || resource.itemType === 'special' || resource.isBeingPulled) return false;
+
+        const nearest = this.getNearestSatellite(resource);
+        if (!nearest) {
+            if (resource.orbitCollectionState === 'attracted') {
+                resource.orbitCollectionState = 'floating';
+            }
+            return false;
+        }
+
+        resource.orbitCollectionState = 'attracted';
+
+        if (resource.body && resource.body.enable) {
+            Utils.applyGravityToPoint(
+                resource,
+                nearest.distance,
+                nearest.satellite.gravityRadius,
+                nearest.satellite.x,
+                nearest.satellite.y,
+                this.gameStats.force * 0.5,
+                PHYSICS_CONFIG.ACCEL_BASE,
+                PHYSICS_CONFIG.DRAG_BASE
+            );
+            Utils.limitSpeed(resource, nearest.distance, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
+        }
+
+        if (nearest.distance <= nearest.satellite.collectionRadius) {
+            resource.orbitCollectionState = 'collected';
+            this.collectResource(resource, nearest.satellite.x, nearest.satellite.y);
+            return true;
+        }
+
+        return true;
     }
 
     private createSatellites(options: Required<OrbitSystemOptions>) {
@@ -128,42 +162,6 @@ export class OrbitSystem {
 
             this.orbitState.satellites.push(satellite);
         }
-    }
-
-    private applyGravityWells() {
-        this.resourceProvider().forEach((child) => {
-            const resource = child as Resource;
-            if (!resource.active || resource.itemType === 'special' || resource.isBeingPulled) return;
-
-            const nearest = this.getNearestSatellite(resource);
-            if (!nearest) {
-                if (resource.orbitCollectionState === 'attracted') {
-                    resource.orbitCollectionState = 'floating';
-                }
-                return;
-            }
-
-            resource.orbitCollectionState = 'attracted';
-
-            if (resource.body && resource.body.enable) {
-                Utils.applyGravityToPoint(
-                    resource,
-                    nearest.distance,
-                    nearest.satellite.gravityRadius,
-                    nearest.satellite.x,
-                    nearest.satellite.y,
-                    this.gameStats.force*0.5,
-                    PHYSICS_CONFIG.ACCEL_BASE,
-                    PHYSICS_CONFIG.DRAG_BASE
-                );
-                Utils.limitSpeed(resource, nearest.distance, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
-            }
-
-            if (nearest.distance <= nearest.satellite.collectionRadius) {
-                resource.orbitCollectionState = 'collected';
-                this.collectResource(resource, nearest.satellite.x, nearest.satellite.y);
-            }
-        });
     }
 
     private getNearestSatellite(resource: Resource): { satellite: Satellite; distance: number } | null {

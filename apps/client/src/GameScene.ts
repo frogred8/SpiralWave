@@ -599,7 +599,9 @@ export class GameScene extends Phaser.Scene {
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as any;
             if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
-            if (this.orbitSystem.isAttracting(res)) return;
+            
+            // 위성 중력 처리 통합
+            if (this.orbitSystem.handleResourceGravity(res)) return;
 
             const dist = Utils.getDistance(res.x, res.y, centerX, centerY);
             if (res.itemType === 'special') {

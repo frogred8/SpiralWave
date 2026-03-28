@@ -22,6 +22,10 @@ const API_KEY = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-3-flash-preview' });
 
+// Codex 환경 설정
+const CODEX_API_KEY = process.env.CODEX_API_KEY || '';
+const CODEX_MODEL = process.env.CODEX_MODEL || 'codex-flash';
+
 // Gemini 응답 인터페이스
 interface GeminiResponse {
     ok: boolean;
@@ -148,6 +152,22 @@ async function runGeminiCli(prompt: string, cwd: string) {
         if (stderr) console.error('gemini-cli 에러 출력:', stderr);
     } catch (error) {
         console.error('gemini-cli 실행 실패:', error);
+    }
+}
+
+async function runCodexCli(prompt: string, cwd: string) {
+    console.log('codex-cli 실행 중...');
+    try {
+        prompt = `Read GEMINI.md first to understand the project structure and coding standards. Then, generate code based on the following plan while strictly adhering to the rules.:\n${prompt}`;
+
+        // 프롬프트 내의 큰따옴표를 이스케이프 처리하여 쉘 인자로 안전하게 전달
+        const escapedPrompt = prompt.replace(/"/g, '\\"');
+        const { stdout, stderr } = await execAsync(`codex "${escapedPrompt}" -y`, { cwd });
+        
+        if (stdout) console.log('codex-cli 결과:', stdout);
+        if (stderr) console.error('codex-cli 에러 출력:', stderr);
+    } catch (error) {
+        console.error('codex-cli 실행 실패:', error);
     }
 }
 

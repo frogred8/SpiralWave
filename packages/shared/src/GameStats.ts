@@ -167,9 +167,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.playtime += elapsedSeconds;
         const newMinutes = Math.floor(this.playtime / 60);
 
-        // 1분마다 자원 생성량 20% 증가 (배율 업데이트)
+        // 1분마다 자원 생성량 30% 증가 (배율 업데이트)
         if (newMinutes > oldMinutes && newMinutes > 0) {
-            this.timeSpawnMultiplier = 1 + (newMinutes * 0.2);
+            this.timeSpawnMultiplier = 1 + (newMinutes * 0.3);
             this.emit(GameStats.EVENTS.SPAWN_RATE_CHANGED);
         }
 

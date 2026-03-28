@@ -61,13 +61,13 @@ function convertDateFormat(date: Date): string {
 await run();
 
 // 매시 정각마다 실행 (초 분 시 일 월 요일)
-cron.schedule('0 0 * * * *', async () => {
-    try {
-        await run();
-    } catch (error) {
-        console.error('오류 발생:', error);
-    }
-});
+// cron.schedule('0 0 * * * *', async () => {
+//     try {
+//         await run();
+//     } catch (error) {
+//         console.error('오류 발생:', error);
+//     }
+// });
 
 async function run() {
     const timestamp = convertDateFormat(new Date());
@@ -81,8 +81,40 @@ async function run() {
     }
 
     // 2. rawData를 분석하여 plan 생성
-    const prompt = await buildPromptFromRawData(rawData);
-    if (prompt === '') {
+    // const prompt = await buildPromptFromRawData(rawData);
+    const prompt = `
+1. Requirements Translation & Analysis
+
+Resource Encyclopedia: Implementation of a client-side system to view detailed information and a list of collected resources. Data must be accessible without server-side fetching for every view action.
+Orbital Satellites: Addition of satellite entities that revolve around a central Black Hole coordinate.
+Gravity-based Collection: A proximity-based mechanic where satellites "attract" or collect resources within a specific gravitational radius.
+2. Technical Specifications
+
+Client-Side State (@apps/client):
+Define a ResourceMetadata registry (static constant) containing descriptions, names, and icons.
+Implement a useCollectionStore to manage the IDs of resources currently owned/discovered by the player.
+Create EncyclopediaList and ResourceDetail components utilizing the local store and registry.
+Physics & Mechanics (@apps/client):
+Orbit Logic: Calculate satellite positions using x = cx + r * cos(θ) and y = cy + r * sin(θ) where (cx, cy) is the Black Hole center.
+Gravity Detection: Implement a proximity check in the animation loop. If distance(satellite, resource) < gravityRadius, move the resource toward the satellite and trigger the collectResource action.
+Server Sync (@apps/server):
+Provide an endpoint to save/load the user's collection state, ensuring the initial load populates the client-side store.
+3. Implementation Plan
+
+Phase 1: Data Architecture
+Define TypeScript interfaces for Resource, Satellite, and OrbitState.
+Create the static resource information library.
+Phase 2: UI Development
+Build the Encyclopedia UI that filters the static library based on the user's collected IDs.
+Ensure zero-latency navigation between resource details.
+Phase 3: Orbital Simulation
+Implement a useOrbit hook or a dedicated system to handle the frame-by-frame update of satellite positions around the Black Hole.
+Phase 4: Collection Logic
+Develop the "Gravity Well" logic to detect nearby resources and handle the transition from "Floating" to "Collected" status.
+Update the collection state upon successful gravity-based gathering.
+Instruction: Generate the TypeScript code for the ResourceRegistry, the OrbitSystem physics logic, and the Encyclopedia UI components according to this plan.
+    `;
+    if (!prompt.trim()) {
         console.error('Gemini 프롬프트 생성 실패');
         return;
     }
@@ -124,7 +156,8 @@ ${prompt}
         await execAsync(`git commit -m "docs: Update README with user feedback and AI plan [${timestamp}]"`, { cwd: tempDir });
 
         // 8. 플랜 기반으로 코드 생성 및 커밋
-        await runGeminiCli(prompt, tempDir);
+        // await runGeminiCli(prompt, tempDir);
+        await runCodexCli(prompt, tempDir);
 
         // 9. 브랜치를 원격 저장소에 푸시
         console.log('원격 저장소에 푸시 중');
@@ -135,7 +168,7 @@ ${prompt}
         console.error('작업 중 오류 발생:', error);
     } finally {
         // 임시 폴더 삭제
-        if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
+        //if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
     }
 }
 
@@ -162,7 +195,7 @@ async function runCodexCli(prompt: string, cwd: string) {
 
         // 프롬프트 내의 큰따옴표를 이스케이프 처리하여 쉘 인자로 안전하게 전달
         const escapedPrompt = prompt.replace(/"/g, '\\"');
-        const { stdout, stderr } = await execAsync(`codex "${escapedPrompt}" -y`, { cwd });
+        const { stdout, stderr } = await execAsync(`codex -a never exec "${escapedPrompt}"`, { cwd });
         
         if (stdout) console.log('codex-cli 결과:', stdout);
         if (stderr) console.error('codex-cli 에러 출력:', stderr);

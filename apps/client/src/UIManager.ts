@@ -6,9 +6,11 @@ import { RankEntry } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { SkillTreeUI } from './SkillTreeUI';
+import { EncyclopediaManager } from './EncyclopediaManager';
+import { ENCYCLOPEDIA_DATA } from '@shared/Constants';
 
 export interface UIState {
-    overlay: 'initialSkill' | 'inputForm' | 'gameOver' | null;
+    overlay: 'initialSkill' | 'inputForm' | 'gameOver' | 'encyclopedia' | null;
     initialSkillData?: any[];
     excludeSkillIds?: string[];
     selectedInitialSkills?: any[];
@@ -38,6 +40,7 @@ export class UIManager {
     private langSelectorContainer!: Phaser.GameObjects.Container;
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
+    private encyclopediaBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private skillTreeUI: SkillTreeUI | null = null;
     
@@ -698,6 +701,86 @@ export class UIManager {
             const isMuted = SoundManager.getInstance().isMuted();
             soundBg.setStrokeStyle(1, isMuted ? 0xaa0000 : 0x444444);
         });
+
+        this.setupEncyclopediaButton(x, y + height + 5, width, height);
+    }
+
+    private setupEncyclopediaButton(x: number, y: number, width: number, height: number) {
+        this.encyclopediaBtnContainer = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
+        const txt = this.scene.add.text(width / 2, height / 2, I18n.t('ui.encyclopedia'), { fontSize: '11px', color: '#ffffff' }).setOrigin(0.5);
+        
+        this.encyclopediaBtnContainer.add([bg, txt]);
+        this.encyclopediaBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+        this.topUiContainer.add(this.encyclopediaBtnContainer);
+
+        this.encyclopediaBtnContainer.on('pointerdown', () => this.showEncyclopedia());
+        this.encyclopediaBtnContainer.on('pointerover', () => bg.setStrokeStyle(1, 0x00ff00));
+        this.encyclopediaBtnContainer.on('pointerout', () => bg.setStrokeStyle(1, 0x444444));
+    }
+
+    public showEncyclopedia() {
+        this.currentUIState.overlay = 'encyclopedia';
+        const { width, height } = this.scene.scale;
+        
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.9).setOrigin(0).setInteractive().setDepth(5000);
+        this.uiContainer.add(overlay);
+
+        const container = this.scene.add.container(width / 2, height / 2).setDepth(5001);
+        this.uiContainer.add(container);
+
+        const bg = this.scene.add.rectangle(0, 0, 800, 500, 0x1a1a1a, 0.95).setStrokeStyle(2, 0x444444);
+        const title = this.scene.add.text(0, -220, I18n.t('ui.encyclopedia_title'), { fontSize: '32px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        
+        const closeBtn = this.scene.add.text(370, -220, '✕', { fontSize: '32px', color: '#ffffff' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        closeBtn.on('pointerdown', () => { overlay.destroy(); container.destroy(); this.currentUIState.overlay = null; });
+
+        container.add([bg, title, closeBtn]);
+
+        const items = ENCYCLOPEDIA_DATA;
+        const cols = 3;
+        const itemW = 220, itemH = 120;
+        const startX = -((cols - 1) * itemW) / 2;
+        const startY = -120;
+
+        items.forEach((item, i) => {
+            const ix = startX + (i % cols) * itemW;
+            const iy = startY + Math.floor(i / cols) * itemH;
+            
+            const isDiscovered = EncyclopediaManager.getInstance().isDiscovered(item.id);
+            const card = this.createEncyclopediaCard(ix, iy, item, isDiscovered);
+            container.add(card);
+        });
+    }
+
+    private createEncyclopediaCard(x: number, y: number, item: any, isDiscovered: boolean): Phaser.GameObjects.Container {
+        const card = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, 200, 100, 0x222222, 0.8).setStrokeStyle(2, isDiscovered ? 0x00ff00 : 0x444444);
+        
+        const icon = this.scene.add.text(-60, 0, item.icon, { fontSize: '48px' }).setOrigin(0.5);
+        if (!isDiscovered) icon.setAlpha(0.2).setTint(0x333333);
+
+        const name = this.scene.add.text(10, -20, isDiscovered ? I18n.t(item.nameKey) : '???', { fontSize: '18px', color: isDiscovered ? '#00ff00' : '#888888', fontStyle: 'bold' }).setOrigin(0, 0.5);
+        const rarity = this.scene.add.text(10, 5, isDiscovered ? item.rarity.toUpperCase() : 'UNKNOWN', { fontSize: '12px', color: isDiscovered ? this.getRarityColor(item.rarity) : '#444444' }).setOrigin(0, 0.5);
+        
+        card.add([bg, icon, name, rarity]);
+
+        if (isDiscovered) {
+            bg.setInteractive({ useHandCursor: true });
+            bg.on('pointerover', (p: Phaser.Input.Pointer) => this.showTooltip(p.x, p.y, I18n.t(item.descKey)));
+            bg.on('pointerout', () => this.hideTooltip());
+        }
+
+        return card;
+    }
+
+    private getRarityColor(rarity: string): string {
+        switch (rarity) {
+            case 'common': return '#ffffff';
+            case 'rare': return '#00ffff';
+            case 'epic': return '#ff00ff';
+            default: return '#ffffff';
+        }
     }
 
     public refreshUIAfterLanguageChange() {
@@ -728,6 +811,10 @@ export class UIManager {
         if (this.soundBtnContainer) {
             const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
             this.soundBtnContainer.setPosition(startX, startY + btnHeight + 5 + menuOffset);
+        }
+        if (this.encyclopediaBtnContainer) {
+            const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
+            this.encyclopediaBtnContainer.setPosition(startX, startY + (btnHeight + 5) * 2 + menuOffset);
         }
     }
 

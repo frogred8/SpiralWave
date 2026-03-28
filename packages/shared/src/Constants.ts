@@ -21,7 +21,10 @@ export const INITIAL_STATS = {
     SMALL_BLACK_HOLE_RADIUS: 150,
     NET_DISTANCE: 500,
     SPECIAL_ITEM_INTERVAL: 15000,
-    MAX_FEVER_GAUGE: 100
+    MAX_FEVER_GAUGE: 100,
+    SATELLITE_COUNT: 0,
+    SATELLITE_RADIUS: 250,
+    SATELLITE_GRAVITY: 0.5
 };
 
 export const SKILL_TREE_CONFIG = {
@@ -29,6 +32,21 @@ export const SKILL_TREE_CONFIG = {
     TREES: 3,
     ROWS: 5
 };
+
+export const SATELLITE_CONFIG = {
+    BASE_SPEED: 0.001,
+    GRAVITY_RADIUS: 50,
+    COLORS: [0xffffff, 0x00ffff, 0xffff00, 0xff00ff]
+};
+
+export const ENCYCLOPEDIA_DATA = [
+    { id: 'rock', nameKey: 'resource.rock', descKey: 'encyclopedia.rock.desc', icon: '🪨', rarity: 'common' },
+    { id: 'wood', nameKey: 'resource.wood', descKey: 'encyclopedia.wood.desc', icon: '🪵', rarity: 'common' },
+    { id: 'high_rock', nameKey: 'resource.high_rock', descKey: 'encyclopedia.high_rock.desc', icon: '💎', rarity: 'rare' },
+    { id: 'high_wood', nameKey: 'resource.high_wood', descKey: 'encyclopedia.high_wood.desc', icon: '🌿', rarity: 'rare' },
+    { id: 'whitehole', nameKey: 'resource.whitehole', descKey: 'encyclopedia.whitehole.desc', icon: '🌀', rarity: 'epic' },
+    { id: 'boost', nameKey: 'resource.boost', descKey: 'encyclopedia.boost.desc', icon: '⚡', rarity: 'epic' }
+];
 
 export const DURATIONS = {
     WHITE_HOLE: 3000,

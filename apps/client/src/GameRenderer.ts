@@ -11,6 +11,7 @@ export class GameRenderer {
     private boundaryGraphics: Phaser.GameObjects.Graphics;
     private roboticArmGraphics: Phaser.GameObjects.Graphics;
     private netChargeGraphics: Phaser.GameObjects.Graphics;
+    private satelliteGraphics: Phaser.GameObjects.Graphics;
     private sparks: Phaser.GameObjects.Particles.ParticleEmitter;
     private spiralCenter: Phaser.Math.Vector2;
     private blackHole!: Phaser.GameObjects.Arc;
@@ -26,7 +27,8 @@ export class GameRenderer {
         this.boundaryGraphics = this.scene.add.graphics();
         this.roboticArmGraphics = this.scene.add.graphics();
         this.netChargeGraphics = this.scene.add.graphics();
-        this.worldContainer.add([this.boundaryGraphics, this.roboticArmGraphics, this.netChargeGraphics]);
+        this.satelliteGraphics = this.scene.add.graphics();
+        this.worldContainer.add([this.boundaryGraphics, this.roboticArmGraphics, this.netChargeGraphics, this.satelliteGraphics]);
 
         this.createBackground();
         this.createSpiralVisuals();
@@ -105,6 +107,26 @@ export class GameRenderer {
 
     public clearArmGraphics() {
         this.roboticArmGraphics.clear();
+    }
+
+    public clearSatelliteGraphics() {
+        this.satelliteGraphics.clear();
+    }
+
+    public drawSatellites(satellites: { x: number, y: number, color: number }[], gravityRadius: number) {
+        satellites.forEach(sat => {
+            // Gravity Zone
+            this.satelliteGraphics.lineStyle(1, sat.color, 0.3);
+            this.satelliteGraphics.strokeCircle(sat.x, sat.y, gravityRadius);
+            this.satelliteGraphics.fillStyle(sat.color, 0.1);
+            this.satelliteGraphics.fillCircle(sat.x, sat.y, gravityRadius);
+
+            // Satellite Body
+            this.satelliteGraphics.fillStyle(sat.color, 1);
+            this.satelliteGraphics.fillCircle(sat.x, sat.y, 6);
+            this.satelliteGraphics.lineStyle(2, 0xffffff, 0.8);
+            this.satelliteGraphics.strokeCircle(sat.x, sat.y, 6);
+        });
     }
 
     public drawArm(startX: number, startY: number, endX: number, endY: number) {

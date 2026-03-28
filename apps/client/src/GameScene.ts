@@ -2,13 +2,14 @@ import Phaser from 'phaser';
 import { GameStats } from '@shared/GameStats';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm } from './RoboticArm';
-import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Constants';
+import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS, SATELLITE_CONFIG } from '@shared/Constants';
 import { Utils } from '@shared/Utils';
 import { ResourceManager } from './ResourceManager';
 import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, LeaderboardResponse } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
+import { EncyclopediaManager } from './EncyclopediaManager';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -20,6 +21,7 @@ export class GameScene extends Phaser.Scene {
     private resourceManager!: ResourceManager;
     private uiManager!: UIManager;
     private arms: RoboticArm[] = [];
+    private satellites: { angle: number, color: number, x: number, y: number }[] = [];
     private uiUpdateTimer?: Phaser.Time.TimerEvent;
     
     private radiusMultiplier: number = 1.0;
@@ -511,12 +513,49 @@ export class GameScene extends Phaser.Scene {
         this.uiManager.updateFeverDisplay();
         this.handleBlackHoleMovement();
         this.updateAutoNet(cappedDelta);
+        this.updateSatellites(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);
         this.updateArms(cappedDelta);
         this.updateAutoArms(time);
 
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
         this.processResources();
+    }
+
+    private updateSatellites(delta: number) {
+        this.syncSatellitesCount();
+        this.gameRenderer.clearSatelliteGraphics();
+        
+        if (this.satellites.length === 0) return;
+
+        const orbitRadius = this.gameStats.satelliteRadius;
+        const speed = SATELLITE_CONFIG.BASE_SPEED * (this.gameStats.armSpeedFactor || 1); // Use arm speed factor as a base
+        
+        this.satellites.forEach((sat, index) => {
+            // Offset angles for multiple satellites
+            const angleOffset = (index / this.satellites.length) * Math.PI * 2;
+            sat.angle += speed * delta;
+            
+            sat.x = this.spiralCenter.x + Math.cos(sat.angle + angleOffset) * orbitRadius;
+            sat.y = this.spiralCenter.y + Math.sin(sat.angle + angleOffset) * orbitRadius;
+        });
+
+        this.gameRenderer.drawSatellites(this.satellites, SATELLITE_CONFIG.GRAVITY_RADIUS);
+    }
+
+    private syncSatellitesCount() {
+        const count = this.gameStats.satelliteCount;
+        while (this.satellites.length < count) {
+            this.satellites.push({
+                angle: Math.random() * Math.PI * 2,
+                color: SATELLITE_CONFIG.COLORS[this.satellites.length % SATELLITE_CONFIG.COLORS.length],
+                x: 0,
+                y: 0
+            });
+        }
+        while (this.satellites.length > count) {
+            this.satellites.pop();
+        }
     }
 
     private handleBlackHoleMovement() {
@@ -615,6 +654,23 @@ export class GameScene extends Phaser.Scene {
                 }
             });
 
+            // 위성 중력 및 수집
+            if (!collectedBySBH) {
+                this.satellites.forEach(sat => {
+                    if (!res.active) return;
+                    const satDist = Utils.getDistance(res.x, res.y, sat.x, sat.y);
+                    const gravRadius = SATELLITE_CONFIG.GRAVITY_RADIUS;
+                    if (satDist < gravRadius) {
+                        Utils.applyGravityToPoint(res, satDist, gravRadius, sat.x, sat.y, this.gameStats.satelliteGravity, PHYSICS_CONFIG.ACCEL_BASE, PHYSICS_CONFIG.DRAG_BASE);
+                        
+                        // 수집 범위
+                        if (satDist < 20) {
+                            this.collectResource(res, false, false, sat.x, sat.y);
+                        }
+                    }
+                });
+            }
+
             if (!collectedBySBH) {
                 if (dist > screenLimit) res.destroy();
                 else Utils.limitSpeed(res, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
@@ -638,6 +694,14 @@ export class GameScene extends Phaser.Scene {
 
     private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number, silent: boolean = false) {
         if (!collectible.active) return;
+
+        // 도감 등록 시도
+        if (collectible.itemType === 'special') {
+            EncyclopediaManager.getInstance().discover(collectible.specialType);
+        } else {
+            const discId = collectible.isHighDim ? `high_${collectible.resourceType}` : collectible.resourceType;
+            EncyclopediaManager.getInstance().discover(discId);
+        }
 
         if (collectible.itemType === 'special') {
             this.handleSpecialItem(collectible, byArm, byNet, silent);

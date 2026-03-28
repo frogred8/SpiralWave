@@ -34,6 +34,11 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public netDistance: number = 600;
     public specialItemInterval: number = 15000;
     
+    // 위성 시스템 스탯
+    public satelliteCount: number = 0;
+    public satelliteRadius: number = 250;
+    public satelliteGravity: number = 0.5;
+
     // 연구 및 스킬 트리 상태
     public skillLevels!: Record<string, number>;
     public researchReduction!: number; // 기존 researchBonus 명칭 변경 (의미 명확화)
@@ -100,8 +105,12 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.smallBlackHoleRadius = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
         this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
+        this.satelliteCount = INITIAL_STATS.SATELLITE_COUNT;
+        this.satelliteRadius = INITIAL_STATS.SATELLITE_RADIUS;
+        this.satelliteGravity = INITIAL_STATS.SATELLITE_GRAVITY;
 
-        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
+        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;
+        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
         this.skillLevels = {};
         this.skillTreeData.forEach(skill => {
@@ -506,6 +515,9 @@ getRecentCollectionAmount(): number {
                 this.specialItemInterval += val * 1000; // val is in seconds (-1), convert to ms (-1000)
                 this.emit(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
                 break;
+            case 'satelliteCount': this.satelliteCount += val; break;
+            case 'satelliteRadius': this.satelliteRadius += val; break;
+            case 'satelliteGravity': this.satelliteGravity += val; break;
         }
 
         this.emit(GameStats.EVENTS.SKILL_UPGRADED, skill.id);

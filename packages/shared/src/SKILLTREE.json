@@ -220,5 +220,47 @@
         "effectProperty": "specialItemBooster",
         "effectValue": -1,
         "maxLevel": 3
-    }
-]
+        },
+        {
+        "id": "satellite",
+        "tree": 0,
+        "row": 5,
+        "costs": [
+            { "wood": 100, "rock": 100 },
+            { "wood": 200, "rock": 200 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [30, 45],
+        "effectProperty": "satelliteCount",
+        "effectValue": 1,
+        "maxLevel": 2
+        },
+        {
+        "id": "satellite_radius",
+        "tree": 1,
+        "row": 5,
+        "costs": [
+            { "wood": 50, "rock": 50 },
+            { "wood": 100, "rock": 100 }
+        ],
+        "prerequisites": [ { "id": "satellite", "level": 1 } ],
+        "researchTimes": [20, 30],
+        "effectProperty": "satelliteRadius",
+        "effectValue": 50,
+        "maxLevel": 2
+        },
+        {
+        "id": "satellite_gravity",
+        "tree": 2,
+        "row": 5,
+        "costs": [
+            { "wood": 50, "rock": 50 },
+            { "wood": 100, "rock": 100 }
+        ],
+        "prerequisites": [ { "id": "satellite", "level": 1 } ],
+        "researchTimes": [20, 30],
+        "effectProperty": "satelliteGravity",
+        "effectValue": 0.2,
+        "maxLevel": 2
+        }
+        ]

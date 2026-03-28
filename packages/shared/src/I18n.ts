@@ -5,7 +5,23 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         // Resources
         'resource.wood': 'WOOD',
         'resource.rock': 'ROCK',
+        'resource.high_wood': 'HIGH DIM WOOD',
+        'resource.high_rock': 'HIGH DIM ROCK',
+        'resource.whitehole': 'WHITE HOLE',
+        'resource.boost': 'BOOST',
         
+        // Encyclopedia
+        'ui.encyclopedia': 'ENCYCLOPEDIA',
+        'ui.encyclopedia_title': 'RESOURCE ENCYCLOPEDIA',
+        'ui.discovered': 'DISCOVERED',
+        'ui.undiscovered': 'UNDISCOVERED',
+        'encyclopedia.rock.desc': 'A basic space rock. Very common.',
+        'encyclopedia.wood.desc': 'Floating space wood. Purpose unknown.',
+        'encyclopedia.high_rock.desc': 'A dense rock from a high-dimensional space.',
+        'encyclopedia.high_wood.desc': 'Rare wood infused with cosmic energy.',
+        'encyclopedia.whitehole.desc': 'A mysterious celestial object that spews out resources.',
+        'encyclopedia.boost.desc': 'An energy burst that temporarily expands your collection radius.',
+
         // Stats Panel
         'stats.total': 'TOTAL',
         'stats.rate': '10s',
@@ -40,6 +56,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': 'Small Black Hole Range',
         'prop.netLength': 'Net Length',
         'prop.specialItemBooster': 'Special Item Interval',
+        'prop.satelliteCount': 'Satellite Count',
+        'prop.satelliteRadius': 'Satellite Orbit Radius',
+        'prop.satelliteGravity': 'Satellite Gravity',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -100,13 +119,35 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': 'Net Length',
         'skill.net_length.desc': 'Net Length +100',
         'skill.special_item_booster.name': 'Special Item Booster',
-        'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s'
+        'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s',
+        'skill.satellite.name': 'Orbital Satellite',
+        'skill.satellite.desc': 'Activate orbital satellites that collect resources via gravity.',
+        'skill.satellite_radius.name': 'Orbit Expansion',
+        'skill.satellite_radius.desc': 'Satellite Orbit Radius +50',
+        'skill.satellite_gravity.name': 'Gravity Boost',
+        'skill.satellite_gravity.desc': 'Satellite Gravity Strength +0.2'
     },
     ko: {
         // Resources
         'resource.wood': '나무',
         'resource.rock': '돌',
-        
+        'resource.high_wood': '고차원 나무',
+        'resource.high_rock': '고차원 돌',
+        'resource.whitehole': '화이트홀',
+        'resource.boost': '부스트',
+
+        // Encyclopedia
+        'ui.encyclopedia': '도감',
+        'ui.encyclopedia_title': '자원 도감',
+        'ui.discovered': '발견됨',
+        'ui.undiscovered': '미발견',
+        'encyclopedia.rock.desc': '기본적인 우주 암석입니다. 매우 흔합니다.',
+        'encyclopedia.wood.desc': '우주를 떠다니는 나무입니다. 용도는 알 수 없습니다.',
+        'encyclopedia.high_rock.desc': '고차원 공간에서 온 밀도가 높은 암석입니다.',
+        'encyclopedia.high_wood.desc': '우주 에너지가 깃든 희귀한 나무입니다.',
+        'encyclopedia.whitehole.desc': '자원을 내뿜는 신비한 천체입니다.',
+        'encyclopedia.boost.desc': '수집 범위를 일시적으로 확장하는 에너지 폭발입니다.',
+
         // Stats Panel
         'stats.total': '총계',
         'stats.rate': '10초당',
@@ -114,7 +155,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'stats.radius': '반지름',
         'stats.arms': '로봇팔',
         'stats.speed': '배속',
-        
+
         // Skill Tree UI
         'skill.level': '레벨',
         'skill.prerequisites': '선행 조건:',
@@ -124,7 +165,6 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.waiting': '(선행)',
 
         // Properties
-
 
         'prop.radius': '반지름',
         'prop.force': '인력',
@@ -142,6 +182,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': '작은 블랙홀 범위',
         'prop.netLength': '그물 길이',
         'prop.specialItemBooster': '특수 아이템 주기',
+        'prop.satelliteCount': '위성 개수',
+        'prop.satelliteRadius': '위성 공전 반지름',
+        'prop.satelliteGravity': '위성 중력',
+
         
         // Utils / Formatting
         'ui.on': '켬',
@@ -202,7 +246,13 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': '그물 길이',
         'skill.net_length.desc': '그물 길이 +100',
         'skill.special_item_booster.name': '특수 아이템 부스터',
-        'skill.special_item_booster.desc': '특수 아이템 생성 간격 -1초'
+        'skill.special_item_booster.desc': '특수 아이템 생성 간격 -1초',
+        'skill.satellite.name': '인공위성',
+        'skill.satellite.desc': '중력을 이용해 자원을 수집하는 인공위성을 활성화합니다.',
+        'skill.satellite_radius.name': '공전 궤도 확장',
+        'skill.satellite_radius.desc': '위성 공전 반지름 +50',
+        'skill.satellite_gravity.name': '위성 중력 강화',
+        'skill.satellite_gravity.desc': '위성 중력 세기 +0.2'
     },
     zh: {
         // Resources
@@ -303,7 +353,25 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': '网长度',
         'skill.net_length.desc': '网长度 +100',
         'skill.special_item_booster.name': '特殊物品助推器',
-        'skill.special_item_booster.desc': '特殊物品生成间隔 -1秒'
+        'skill.special_item_booster.desc': '特殊物品生成间隔 -1秒',
+        'skill.satellite.name': '轨道卫星',
+        'skill.satellite.desc': '激活通过重力收集资源的轨道卫星。',
+        'skill.satellite_radius.name': '轨道扩张',
+        'skill.satellite_radius.desc': '卫星轨道半径 +50',
+        'skill.satellite_gravity.name': '重力增强',
+        'skill.satellite_gravity.desc': '卫星重力强度 +0.2',
+        
+        // Encyclopedia
+        'ui.encyclopedia': '图鉴',
+        'ui.encyclopedia_title': '资源图鉴',
+        'ui.discovered': '已发现',
+        'ui.undiscovered': '未发现',
+        'encyclopedia.rock.desc': '基本的太空中岩石。非常常见。',
+        'encyclopedia.wood.desc': '漂浮的太空木头。用途不明。',
+        'encyclopedia.high_rock.desc': '来自高维空间的致密岩石。',
+        'encyclopedia.high_wood.desc': '蕴含宇宙能量的稀有木头。',
+        'encyclopedia.whitehole.desc': '喷出资源的神秘天体。',
+        'encyclopedia.boost.desc': '暂时扩大收集半径的能量爆发。'
     },
     ja: {
         // Resources
@@ -404,7 +472,25 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': 'ネットの長さ',
         'skill.net_length.desc': 'ネットの長さ +100',
         'skill.special_item_booster.name': '特殊アイテムブースター',
-        'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒'
+        'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒',
+        'skill.satellite.name': '軌道衛星',
+        'skill.satellite.desc': '重力を利用して資源を収集する軌道衛星を有効にします。',
+        'skill.satellite_radius.name': '軌道拡張',
+        'skill.satellite_radius.desc': '衛星軌道半径 +50',
+        'skill.satellite_gravity.name': '重力強化',
+        'skill.satellite_gravity.desc': '衛星重力強度 +0.2',
+        
+        // Encyclopedia
+        'ui.encyclopedia': '図鑑',
+        'ui.encyclopedia_title': '資源図鑑',
+        'ui.discovered': '発見済み',
+        'ui.undiscovered': '未発見',
+        'encyclopedia.rock.desc': '基本的な宇宙の岩石です。非常に一般的です。',
+        'encyclopedia.wood.desc': '宇宙を漂う木材です。用途は不明です。',
+        'encyclopedia.high_rock.desc': '高次元空間から来た密度の高い岩石です。',
+        'encyclopedia.high_wood.desc': '宇宙エネルギーが宿る希少な木材です',
+        'encyclopedia.whitehole.desc': '資源を噴出する謎の天体です。',
+        'encyclopedia.boost.desc': '収集範囲を一時的に拡張するエネルギー爆発です。'
     }
 };
 

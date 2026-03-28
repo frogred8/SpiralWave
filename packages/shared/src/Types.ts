@@ -57,6 +57,17 @@ export interface ActiveResearch {
 }
 
 /**
+ * 도감 아이템 인터페이스
+ */
+export interface EncyclopediaItem {
+    id: string;
+    nameKey: string;
+    descKey: string;
+    icon: string;
+    rarity: 'common' | 'rare' | 'epic';
+}
+
+/**
  * 스킬 트리 비용 구조
  */
 export interface SkillCosts {
@@ -83,4 +94,7 @@ export type EffectProperty =
     | 'smallBlackHole'
     | 'smallBlackHoleRange'
     | 'netLength'
-    | 'specialItemBooster';
+    | 'specialItemBooster'
+    | 'satelliteCount'
+    | 'satelliteRadius'
+    | 'satelliteGravity';

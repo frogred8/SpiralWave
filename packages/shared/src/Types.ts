@@ -80,6 +80,7 @@ export type EffectProperty =
     | 'moveSpeed' 
     | 'net'
     | 'netAngle'
+    | 'satelliteCount'
     | 'smallBlackHole'
     | 'smallBlackHoleRange'
     | 'netLength'

@@ -150,7 +150,8 @@ export class GameScene extends Phaser.Scene {
             this.worldContainer,
             this.spiralCenter,
             () => this.resourceManager.getGroup().getChildren(),
-            (resource, centerX, centerY) => this.collectResource(resource, false, false, centerX, centerY)
+            (resource, centerX, centerY) => this.collectResource(resource, false, false, centerX, centerY),
+            { satelliteCount: this.gameStats.satelliteCount }
         );
 
         // 로봇팔 초기화
@@ -351,6 +352,7 @@ export class GameScene extends Phaser.Scene {
             skillData = Utils.generateRandomSkillTree(skillData);
         }
         this.gameStats.reset(skillData);
+        this.orbitSystem.setSatelliteCount(this.gameStats.satelliteCount);
         return skillData;
     }
 
@@ -418,6 +420,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, () => {
             this.updateSpawnTimer();
             this.syncArmsCount();
+            this.orbitSystem.setSatelliteCount(this.gameStats.satelliteCount);
             SoundManager.getInstance().play('skilllevelup');
         }, this);
         

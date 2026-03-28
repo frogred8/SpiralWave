@@ -29,6 +29,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public spawnRateFactor!: number;
     public isNetEnabled!: boolean;
     public netAngle!: number;
+    public satelliteCount!: number;
     public smallBlackHoleCount: number = 0;
     public smallBlackHoleRadius: number = 150;
     public netDistance: number = 600;
@@ -96,6 +97,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
         this.isNetEnabled = false;
         this.netAngle = INITIAL_STATS.NET_ANGLE;
+        this.satelliteCount = 0;
         this.smallBlackHoleCount = 0;
         this.smallBlackHoleRadius = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
@@ -499,6 +501,7 @@ getRecentCollectionAmount(): number {
             case 'moveSpeed': this.moveSpeed += val; break;
             case 'net': this.isNetEnabled = true; break;
             case 'netAngle': this.netAngle += val; break;
+            case 'satelliteCount': this.satelliteCount += val; break;
             case 'smallBlackHole': this.smallBlackHoleCount += val; break;
             case 'smallBlackHoleRange': this.smallBlackHoleRadius += val; break;
             case 'netLength': this.netDistance += val; break;

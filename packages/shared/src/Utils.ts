@@ -137,6 +137,7 @@ export const Utils = {
             case 'spawnRate': return `${value.toFixed(1)}x`;
             case 'moveSpeed': return `${value.toFixed(2)}`;
             case 'netAngle': return `${value}°`;
+            case 'satelliteCount': return `${value}`;
             default: return `${value}`;
         }
     },
@@ -154,6 +155,7 @@ export const Utils = {
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;
             case 'researchBonus': return `${bonus}${I18n.t('unit.second')}`;
             case 'netAngle': return `${sign}${bonus}°`;
+            case 'satelliteCount': return `${sign}${bonus}`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }
     },

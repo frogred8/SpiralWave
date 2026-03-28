@@ -19,7 +19,7 @@ interface SatelliteGravityConfig {
 }
 
 const DEFAULT_OPTIONS: Required<OrbitSystemOptions> = {
-    satelliteCount: 2,
+    satelliteCount: 0,
     orbitRadius: 150,
     gravityRadius: 110,
     collectionRadius: 22,
@@ -54,6 +54,14 @@ export class OrbitSystem {
         };
 
         this.createSatellites(config);
+    }
+
+    public setSatelliteCount(satelliteCount: number) {
+        this.clear();
+        this.createSatellites({
+            ...DEFAULT_OPTIONS,
+            satelliteCount
+        });
     }
 
     public update(delta: number) {
@@ -93,6 +101,8 @@ export class OrbitSystem {
     }
 
     private createSatellites(options: Required<OrbitSystemOptions>) {
+        if (options.satelliteCount <= 0) return;
+
         const metadata = getResourceMetadata('satellite');
 
         for (let index = 0; index < options.satelliteCount; index++) {

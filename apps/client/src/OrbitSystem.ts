@@ -19,7 +19,7 @@ const DEFAULT_OPTIONS: Required<OrbitSystemOptions> = {
     orbitRadius: 150,
     gravityRadius: 110,
     collectionRadius: 22,
-    angularVelocity: Phaser.Math.DegToRad(30)
+    angularVelocity: Phaser.Math.DegToRad(20)
 };
 
 export class OrbitSystem {
@@ -56,6 +56,7 @@ export class OrbitSystem {
     }
 
     public setSatelliteCount(satelliteCount: number) {
+        if (this.orbitState.satellites.length === satelliteCount) return; 
         this.clear();
         this.createSatellites({
             ...DEFAULT_OPTIONS,
@@ -69,9 +70,9 @@ export class OrbitSystem {
 
         this.orbitState.satellites.forEach((satellite) => {
             satellite.angle += satellite.angularVelocity * deltaSeconds;
-
-            satellite.x = this.orbitState.center.x + satellite.orbitRadius * Math.cos(satellite.angle);
-            satellite.y = this.orbitState.center.y + satellite.orbitRadius * Math.sin(satellite.angle);
+            
+            satellite.x = this.orbitState.center.x + (this.gameStats.radius+satellite.gravityRadius) * Math.cos(satellite.angle);
+            satellite.y = this.orbitState.center.y + (this.gameStats.radius+satellite.gravityRadius) * Math.sin(satellite.angle);
         });
 
         this.applyGravityWells();
@@ -114,9 +115,8 @@ export class OrbitSystem {
             const swirl = this.scene.add.circle(0, 0, 16, metadata.tint, 0.14)
                 .setStrokeStyle(1, metadata.tint, 0.45);
             const core = this.scene.add.circle(0, 0, 7, 0x000000, 1);
-            const icon = this.scene.add.text(0, -20, metadata.icon, { fontSize: '18px' }).setOrigin(0.5);
 
-            satellite.add([boundary, swirl, core, icon]);
+            satellite.add([boundary, swirl, core]);
             this.worldContainer.add(satellite);
 
             this.scene.tweens.add({
@@ -152,10 +152,11 @@ export class OrbitSystem {
                     nearest.satellite.gravityRadius,
                     nearest.satellite.x,
                     nearest.satellite.y,
-                    this.gameStats.force,
+                    this.gameStats.force*0.5,
                     PHYSICS_CONFIG.ACCEL_BASE,
                     PHYSICS_CONFIG.DRAG_BASE
                 );
+                Utils.limitSpeed(resource, nearest.distance, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
             }
 
             if (nearest.distance <= nearest.satellite.collectionRadius) {

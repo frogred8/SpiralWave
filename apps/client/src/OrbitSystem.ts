@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { Utils } from '@shared/Utils';
 import { Collectible } from '@repo/shared';
+import { GameStats } from '@shared/GameStats';
+import { PHYSICS_CONFIG } from '@shared/Constants';
 import { getResourceMetadata } from './ResourceRegistry';
 import { OrbitState, Resource, Satellite } from './OrbitTypes';
 
@@ -10,12 +12,6 @@ interface OrbitSystemOptions {
     gravityRadius?: number;
     collectionRadius?: number;
     angularVelocity?: number;
-}
-
-interface SatelliteGravityConfig {
-    gravityRadius: number;
-    collectionRadius: number;
-    pullStrength: number;
 }
 
 const DEFAULT_OPTIONS: Required<OrbitSystemOptions> = {
@@ -29,6 +25,7 @@ const DEFAULT_OPTIONS: Required<OrbitSystemOptions> = {
 export class OrbitSystem {
     private scene: Phaser.Scene;
     private worldContainer: Phaser.GameObjects.Container;
+    private gameStats: GameStats;
     private resourceProvider: () => Phaser.GameObjects.GameObject[];
     private collectResource: (resource: Collectible, centerX?: number, centerY?: number) => void;
     private orbitState: OrbitState;
@@ -37,12 +34,14 @@ export class OrbitSystem {
         scene: Phaser.Scene,
         worldContainer: Phaser.GameObjects.Container,
         center: Phaser.Math.Vector2,
+        gameStats: GameStats,
         resourceProvider: () => Phaser.GameObjects.GameObject[],
         collectResource: (resource: Collectible, centerX?: number, centerY?: number) => void,
         options: OrbitSystemOptions = {}
     ) {
         this.scene = scene;
         this.worldContainer = worldContainer;
+        this.gameStats = gameStats;
         this.resourceProvider = resourceProvider;
         this.collectResource = collectResource;
 
@@ -75,11 +74,7 @@ export class OrbitSystem {
             satellite.y = this.orbitState.center.y + satellite.orbitRadius * Math.sin(satellite.angle);
         });
 
-        this.applyGravityWells({
-            gravityRadius: DEFAULT_OPTIONS.gravityRadius,
-            collectionRadius: DEFAULT_OPTIONS.collectionRadius,
-            pullStrength: 180
-        });
+        this.applyGravityWells();
     }
 
     public clear() {
@@ -135,7 +130,7 @@ export class OrbitSystem {
         }
     }
 
-    private applyGravityWells(config: SatelliteGravityConfig) {
+    private applyGravityWells() {
         this.resourceProvider().forEach((child) => {
             const resource = child as Resource;
             if (!resource.active || resource.itemType === 'special' || resource.isBeingPulled) return;
@@ -151,11 +146,16 @@ export class OrbitSystem {
             resource.orbitCollectionState = 'attracted';
 
             if (resource.body && resource.body.enable) {
-                const angle = Phaser.Math.Angle.Between(resource.x, resource.y, nearest.satellite.x, nearest.satellite.y);
-                const pullSpeed = Phaser.Math.Linear(config.pullStrength, config.pullStrength * 1.8, 1 - nearest.distance / nearest.satellite.gravityRadius);
-                resource.body.velocity.x = Math.cos(angle) * pullSpeed;
-                resource.body.velocity.y = Math.sin(angle) * pullSpeed;
-                resource.body.setDrag(180);
+                Utils.applyGravityToPoint(
+                    resource,
+                    nearest.distance,
+                    nearest.satellite.gravityRadius,
+                    nearest.satellite.x,
+                    nearest.satellite.y,
+                    this.gameStats.force,
+                    PHYSICS_CONFIG.ACCEL_BASE,
+                    PHYSICS_CONFIG.DRAG_BASE
+                );
             }
 
             if (nearest.distance <= nearest.satellite.collectionRadius) {

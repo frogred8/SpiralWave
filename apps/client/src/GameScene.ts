@@ -149,6 +149,7 @@ export class GameScene extends Phaser.Scene {
             this,
             this.worldContainer,
             this.spiralCenter,
+            this.gameStats,
             () => this.resourceManager.getGroup().getChildren(),
             (resource, centerX, centerY) => this.collectResource(resource, false, false, centerX, centerY),
             { satelliteCount: this.gameStats.satelliteCount }

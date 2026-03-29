@@ -6,6 +6,8 @@ POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-password}"
 POSTGRES_DB="${POSTGRES_DB:-spiralwave}"
 POSTGRES_HOST="${POSTGRES_HOST:-127.0.0.1}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+POSTGRES_LISTEN_ADDRESSES="${POSTGRES_LISTEN_ADDRESSES:-*}"
+POSTGRES_HOST_AUTH_METHOD="${POSTGRES_HOST_AUTH_METHOD:-md5}"
 POSTGRES_DATA_DIR="${POSTGRES_DATA_DIR:-/var/lib/postgresql/data}"
 APP_PORT="${PORT:-3000}"
 
@@ -21,18 +23,18 @@ PG_CTL_BIN="$PG_BIN_DIR/pg_ctl"
 PSQL_BIN="$PG_BIN_DIR/psql"
 
 if [ ! -s "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
-  su postgres -c "\"$INITDB_BIN\" -D \"$POSTGRES_DATA_DIR\""
+  su postgres -c "\"$INITDB_BIN\" -D \"$POSTGRES_DATA_DIR\" --auth-local=trust --auth-host=$POSTGRES_HOST_AUTH_METHOD"
 fi
 
 PG_HBA_FILE="$POSTGRES_DATA_DIR/pg_hba.conf"
-if ! grep -q "spiralwave-md5" "$PG_HBA_FILE"; then
+if ! grep -q "spiralwave-host-auth" "$PG_HBA_FILE"; then
   cat <<'EOF' >> "$PG_HBA_FILE"
-host all all 127.0.0.1/32 md5 # spiralwave-md5
-host all all ::1/128 md5 # spiralwave-md5
+host all all 0.0.0.0/0 md5 # spiralwave-host-auth
+host all all ::/0 md5 # spiralwave-host-auth
 EOF
 fi
 
-su postgres -c "\"$PG_CTL_BIN\" -D \"$POSTGRES_DATA_DIR\" -o \"-c listen_addresses='127.0.0.1' -p $POSTGRES_PORT\" -w start"
+su postgres -c "\"$PG_CTL_BIN\" -D \"$POSTGRES_DATA_DIR\" -o \"-c listen_addresses='$POSTGRES_LISTEN_ADDRESSES' -p $POSTGRES_PORT\" -w start"
 
 cleanup() {
   su postgres -c "\"$PG_CTL_BIN\" -D \"$POSTGRES_DATA_DIR\" -m fast stop" >/dev/null 2>&1 || true

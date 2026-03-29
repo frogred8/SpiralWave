@@ -59,12 +59,28 @@ export class OrbitSystem {
     }
 
     public setSatelliteCount(satelliteCount: number) {
-        if (this.orbitState.satellites.length === satelliteCount) return; 
-        this.clear();
-        this.createSatellites({
+        const currentCount = this.orbitState.satellites.length;
+        if (currentCount === satelliteCount) return;
+
+        if (satelliteCount <= 0) {
+            this.clear();
+            return;
+        }
+
+        const options = {
             ...DEFAULT_OPTIONS,
             satelliteCount
-        });
+        };
+
+        if (currentCount === 0 || satelliteCount < currentCount) {
+            this.clear();
+            this.createSatellites(options);
+            return;
+        }
+
+        while (this.orbitState.satellites.length < satelliteCount) {
+            this.createSatellite(this.getNextSatelliteAngle(), options);
+        }
     }
 
     public update(delta: number) {
@@ -73,10 +89,7 @@ export class OrbitSystem {
 
         this.orbitState.satellites.forEach((satellite) => {
             satellite.angle += satellite.angularVelocity * deltaSeconds;
-
-            const orbitDistance = this.getOrbitBaseRadius() + satellite.gravityRadius;
-            satellite.x = this.orbitState.center.x + orbitDistance * Math.cos(satellite.angle);
-            satellite.y = this.orbitState.center.y + orbitDistance * Math.sin(satellite.angle);
+            this.positionSatellite(satellite);
         });
     }
 
@@ -137,35 +150,72 @@ export class OrbitSystem {
     private createSatellites(options: Required<OrbitSystemOptions>) {
         if (options.satelliteCount <= 0) return;
 
-        const metadata = getResourceMetadata('satellite');
-
         for (let index = 0; index < options.satelliteCount; index++) {
             const angle = (Math.PI * 2 * index) / options.satelliteCount;
-            const satellite = this.scene.add.container(0, 0) as Satellite;
-            satellite.orbitRadius = options.orbitRadius;
-            satellite.angle = angle;
-            satellite.angularVelocity = options.angularVelocity;
-            satellite.gravityRadius = options.gravityRadius;
-            satellite.collectionRadius = options.collectionRadius;
-
-            const boundary = this.scene.add.circle(0, 0, satellite.gravityRadius, 0x333333, 0.15)
-                .setStrokeStyle(1, 0x666666, 0.35);
-            const swirl = this.scene.add.circle(0, 0, 16, metadata.tint, 0.14)
-                .setStrokeStyle(1, metadata.tint, 0.45);
-            const core = this.scene.add.circle(0, 0, 7, 0x000000, 1);
-
-            satellite.add([boundary, swirl, core]);
-            this.worldContainer.add(satellite);
-
-            this.scene.tweens.add({
-                targets: swirl,
-                angle: 360,
-                duration: 2200,
-                repeat: -1
-            });
-
-            this.orbitState.satellites.push(satellite);
+            this.createSatellite(angle, options);
         }
+    }
+
+    private createSatellite(angle: number, options: Required<OrbitSystemOptions>) {
+        const metadata = getResourceMetadata('satellite');
+        const satellite = this.scene.add.container(0, 0) as Satellite;
+        satellite.orbitRadius = options.orbitRadius;
+        satellite.angle = angle;
+        satellite.angularVelocity = options.angularVelocity;
+        satellite.gravityRadius = options.gravityRadius;
+        satellite.collectionRadius = options.collectionRadius;
+
+        const boundary = this.scene.add.circle(0, 0, satellite.gravityRadius, 0x333333, 0.15)
+            .setStrokeStyle(1, 0x666666, 0.35);
+        const swirl = this.scene.add.circle(0, 0, 16, metadata.tint, 0.14)
+            .setStrokeStyle(1, metadata.tint, 0.45);
+        const core = this.scene.add.circle(0, 0, 7, 0x000000, 1);
+
+        satellite.add([boundary, swirl, core]);
+        this.worldContainer.add(satellite);
+        this.positionSatellite(satellite);
+
+        this.scene.tweens.add({
+            targets: swirl,
+            angle: 360,
+            duration: 2200,
+            repeat: -1
+        });
+
+        this.orbitState.satellites.push(satellite);
+    }
+
+    private positionSatellite(satellite: Satellite) {
+        const orbitDistance = this.getOrbitBaseRadius() + satellite.gravityRadius;
+        satellite.x = this.orbitState.center.x + orbitDistance * Math.cos(satellite.angle);
+        satellite.y = this.orbitState.center.y + orbitDistance * Math.sin(satellite.angle);
+    }
+
+    private getNextSatelliteAngle() {
+        if (this.orbitState.satellites.length === 0) return 0;
+
+        const sortedAngles = this.orbitState.satellites
+            .map((satellite) => Phaser.Math.Angle.Normalize(satellite.angle))
+            .sort((left, right) => left - right);
+
+        let largestGap = -1;
+        let nextAngle = sortedAngles[0];
+
+        for (let index = 0; index < sortedAngles.length; index++) {
+            const currentAngle = sortedAngles[index];
+            const nextIndex = (index + 1) % sortedAngles.length;
+            const followingAngle = nextIndex === 0
+                ? sortedAngles[0] + Math.PI * 2
+                : sortedAngles[nextIndex];
+            const gap = followingAngle - currentAngle;
+
+            if (gap > largestGap) {
+                largestGap = gap;
+                nextAngle = currentAngle + gap / 2;
+            }
+        }
+
+        return Phaser.Math.Angle.Normalize(nextAngle);
     }
 
     private getNearestSatellite(resource: Resource): { satellite: Satellite; distance: number } | null {

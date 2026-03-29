@@ -1,0 +1,10 @@
+node_modules
+.git
+.turbo
+**/node_modules
+**/.turbo
+**/dist
+**/.DS_Store
+codex.log
+gemini.log
+apps/server/docker-compose.yml

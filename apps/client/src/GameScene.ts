@@ -32,6 +32,10 @@ export class GameScene extends Phaser.Scene {
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
+
+    private getServerUrl() {
+        return (import.meta.env.VITE_SERVER_URL || '').replace(/\/$/, '');
+    }
     private specialItemTimer?: Phaser.Time.TimerEvent;
     private currentGameId: string = '';
     private currentSelectSkillId: number = 0;
@@ -259,8 +263,7 @@ export class GameScene extends Phaser.Scene {
 
     private async sendStartGameSignal(skillId: number) {
         this.currentSelectSkillId = skillId;
-        const serverUrl = import.meta.env.VITE_SERVER_URL;
-        if (!serverUrl) return;
+        const serverUrl = this.getServerUrl();
 
         try {
             if (!this.userInfo) {
@@ -282,8 +285,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private async sendEndGameSignal(name: string, msg: string) {
-        const serverUrl = import.meta.env.VITE_SERVER_URL;
-        if (!serverUrl) return;
+        const serverUrl = this.getServerUrl();
 
         try {
             // Get IP and emoji from external service
@@ -643,8 +645,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private async fetchLeaderboardData(): Promise<RankEntry[]> {
-        const serverUrl = import.meta.env.VITE_SERVER_URL;
-        if (!serverUrl) return [];
+        const serverUrl = this.getServerUrl();
 
         try {
             const response = await fetch(`${serverUrl}/leaderboard`);

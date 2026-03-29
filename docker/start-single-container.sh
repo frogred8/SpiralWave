@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+POSTGRES_USER="${POSTGRES_USER:-user}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-password}"
+POSTGRES_DB="${POSTGRES_DB:-spiralwave}"
+POSTGRES_HOST="${POSTGRES_HOST:-127.0.0.1}"
+POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+POSTGRES_DATA_DIR="${POSTGRES_DATA_DIR:-/var/lib/postgresql/data}"
+APP_PORT="${PORT:-3000}"
+
+export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_HOST POSTGRES_PORT PORT="$APP_PORT"
+
+mkdir -p "$POSTGRES_DATA_DIR" /var/run/postgresql
+chown -R postgres:postgres "$POSTGRES_DATA_DIR" /var/run/postgresql
+chmod 700 "$POSTGRES_DATA_DIR"
+
+PG_BIN_DIR="$(dirname "$(find /usr/lib/postgresql -name postgres -type f | sort | tail -n 1)")"
+INITDB_BIN="$PG_BIN_DIR/initdb"
+PG_CTL_BIN="$PG_BIN_DIR/pg_ctl"
+PSQL_BIN="$PG_BIN_DIR/psql"
+
+if [ ! -s "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
+  su postgres -c "\"$INITDB_BIN\" -D \"$POSTGRES_DATA_DIR\""
+fi
+
+PG_HBA_FILE="$POSTGRES_DATA_DIR/pg_hba.conf"
+if ! grep -q "spiralwave-md5" "$PG_HBA_FILE"; then
+  cat <<'EOF' >> "$PG_HBA_FILE"
+host all all 127.0.0.1/32 md5 # spiralwave-md5
+host all all ::1/128 md5 # spiralwave-md5
+EOF
+fi
+
+su postgres -c "\"$PG_CTL_BIN\" -D \"$POSTGRES_DATA_DIR\" -o \"-c listen_addresses='127.0.0.1' -p $POSTGRES_PORT\" -w start"
+
+cleanup() {
+  su postgres -c "\"$PG_CTL_BIN\" -D \"$POSTGRES_DATA_DIR\" -m fast stop" >/dev/null 2>&1 || true
+}
+
+trap cleanup EXIT INT TERM
+
+su postgres -c "\"$PSQL_BIN\" -v ON_ERROR_STOP=1 postgres" <<SQL
+DO \$\$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${POSTGRES_USER}') THEN
+    EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', '${POSTGRES_USER}', '${POSTGRES_PASSWORD}');
+  ELSE
+    EXECUTE format('ALTER ROLE %I WITH LOGIN PASSWORD %L', '${POSTGRES_USER}', '${POSTGRES_PASSWORD}');
+  END IF;
+END
+\$\$;
+SQL
+
+DB_EXISTS="$(su postgres -c "\"$PSQL_BIN\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$POSTGRES_DB'\" postgres" | tr -d '[:space:]')"
+if [ "$DB_EXISTS" != "1" ]; then
+  su postgres -c "\"$PSQL_BIN\" -v ON_ERROR_STOP=1 postgres -c \"CREATE DATABASE \\\"$POSTGRES_DB\\\" OWNER \\\"$POSTGRES_USER\\\"\""
+fi
+
+cd /app
+/app/node_modules/.bin/tsx /app/apps/server/src/index.ts &
+APP_PID=$!
+
+wait "$APP_PID"

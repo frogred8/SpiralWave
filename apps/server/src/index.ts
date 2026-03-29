@@ -1,7 +1,11 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
+import path from 'node:path';
 import { GameController } from './controllers/game.controller';
 import './config/db'; // Initialize database
+
+const clientDistDir = path.resolve(process.cwd(), 'apps/client/dist');
 
 const fastify = Fastify({
   logger: {
@@ -26,20 +30,30 @@ await fastify.register(cors, {
   origin: '*' // Allow all origins for development
 });
 
+await fastify.register(fastifyStatic, {
+  root: clientDistDir,
+  prefix: '/',
+  wildcard: false,
+});
+
 // Basic health check endpoint
 fastify.get('/health', async (request, reply) => {
   return { status: 'ok', timestamp: new Date().toISOString() };
-});
-
-// Root endpoint
-fastify.get('/', async (request, reply) => {
-  return { message: 'SpiralWave API Server' };
 });
 
 // Routes
 fastify.post('/start', GameController.handleStart);
 fastify.post('/end', GameController.handleEnd);
 fastify.get('/leaderboard', GameController.handleGetLeaderboard);
+
+fastify.setNotFoundHandler(async (request, reply) => {
+  if (request.method !== 'GET') {
+    reply.code(404).send({ message: 'Not Found' });
+    return;
+  }
+
+  return reply.sendFile('index.html');
+});
 
 /**
  * Run the server!

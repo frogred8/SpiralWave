@@ -26,6 +26,7 @@ export class OrbitSystem {
     private scene: Phaser.Scene;
     private worldContainer: Phaser.GameObjects.Container;
     private gameStats: GameStats;
+    private getOrbitBaseRadius: () => number;
     private resourceProvider: () => Phaser.GameObjects.GameObject[];
     private collectResource: (resource: Collectible, centerX?: number, centerY?: number) => void;
     private orbitState: OrbitState;
@@ -35,6 +36,7 @@ export class OrbitSystem {
         worldContainer: Phaser.GameObjects.Container,
         center: Phaser.Math.Vector2,
         gameStats: GameStats,
+        getOrbitBaseRadius: () => number,
         resourceProvider: () => Phaser.GameObjects.GameObject[],
         collectResource: (resource: Collectible, centerX?: number, centerY?: number) => void,
         options: OrbitSystemOptions = {}
@@ -42,6 +44,7 @@ export class OrbitSystem {
         this.scene = scene;
         this.worldContainer = worldContainer;
         this.gameStats = gameStats;
+        this.getOrbitBaseRadius = getOrbitBaseRadius;
         this.resourceProvider = resourceProvider;
         this.collectResource = collectResource;
 
@@ -70,9 +73,10 @@ export class OrbitSystem {
 
         this.orbitState.satellites.forEach((satellite) => {
             satellite.angle += satellite.angularVelocity * deltaSeconds;
-            
-            satellite.x = this.orbitState.center.x + (this.gameStats.radius+satellite.gravityRadius) * Math.cos(satellite.angle);
-            satellite.y = this.orbitState.center.y + (this.gameStats.radius+satellite.gravityRadius) * Math.sin(satellite.angle);
+
+            const orbitDistance = this.getOrbitBaseRadius() + satellite.gravityRadius;
+            satellite.x = this.orbitState.center.x + orbitDistance * Math.cos(satellite.angle);
+            satellite.y = this.orbitState.center.y + orbitDistance * Math.sin(satellite.angle);
         });
     }
 

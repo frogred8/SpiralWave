@@ -60,7 +60,7 @@ if [ "$DB_EXISTS" != "1" ]; then
 fi
 
 cd /app
-/app/node_modules/.bin/tsx /app/apps/server/src/index.ts &
+npm run start --workspace @repo/server &
 APP_PID=$!
 
 wait "$APP_PID"

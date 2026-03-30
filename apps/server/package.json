@@ -2,12 +2,12 @@
   "name": "@repo/server",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/index.js",
+  "main": "dist/apps/server/src/index.js",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/apps/server/src/index.js",
     "db": "docker-compose up -d"
   },
   "dependencies": {

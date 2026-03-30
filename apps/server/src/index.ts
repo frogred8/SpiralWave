@@ -7,16 +7,20 @@ import './config/db'; // Initialize database
 
 const clientDistDir = path.resolve(process.cwd(), 'apps/client/dist');
 
-const fastify = Fastify({
-  logger: {
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname',
+const fastifyLogger = process.env.NODE_ENV === 'production'
+  ? true
+  : {
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+        },
       },
-    },
-  },
+    };
+
+const fastify = Fastify({
+  logger: fastifyLogger,
   trustProxy: true, // Enable trust proxy for correct client IP logging
 });
 

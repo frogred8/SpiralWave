@@ -63,7 +63,7 @@ export class RoboticArm {
         const factor = this.stats.armSpeedFactor;
         const isHighDim = this.grabbedResource?.isHighDim || false;
         const baseRetractSpeed = DURATIONS.ARM_RETRACT_BASE;
-        const speedMultiplier = isHighDim ? 0.25 : 1.0;
+        const speedMultiplier = isHighDim ? 0.50 : 1.0;
         const speed = baseRetractSpeed * factor * speedMultiplier;
 
         const distance = Utils.getDistance(this.target.x, this.target.y, this.spiralCenter.x, this.spiralCenter.y);

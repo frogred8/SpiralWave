@@ -85,7 +85,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.highDimProb = INITIAL_STATS.HIGH_DIM_PROB;
         this.moveSpeed = INITIAL_STATS.MOVE_SPEED;
         
-        this.collected = { rock: 1000, wood: 1000 };
+        this.collected = { rock: INITIAL_STATS.ROCK, wood: INITIAL_STATS.WOOD };
         this.totalCollected = { rock: 0, wood: 0 };
         this.totalAll = 0;
         this.maxResources = INITIAL_STATS.MAX_RESOURCES;

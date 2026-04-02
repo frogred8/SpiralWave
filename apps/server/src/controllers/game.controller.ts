@@ -1,6 +1,6 @@
 import { FastifyRequest } from 'fastify';
 import { GameService } from '../services/game.service';
-import { StartRequest, EndRequest } from '@repo/shared';
+import type { StartRequest, EndRequest } from '@repo/shared';
 
 export const GameController = {
   async handleStart(request: FastifyRequest) {

@@ -1,4 +1,4 @@
-import { LeaderboardResponse as LeaderboardResponse } from '@repo/shared';
+import type { LeaderboardResponse } from '@repo/shared';
 import db from '../config/db';
 
 /**

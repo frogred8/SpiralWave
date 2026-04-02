@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "main": "dist/apps/server/src/index.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",

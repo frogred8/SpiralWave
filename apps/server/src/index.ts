@@ -29,17 +29,6 @@ fastify.get('/favicon.ico', (request, reply) => {
   reply.code(204).send();
 });
 
-// Register CORS
-await fastify.register(cors, {
-  origin: '*' // Allow all origins for development
-});
-
-await fastify.register(fastifyStatic, {
-  root: clientDistDir,
-  prefix: '/',
-  wildcard: false,
-});
-
 // Basic health check endpoint
 fastify.get('/health', async (request, reply) => {
   return { status: 'ok', timestamp: new Date().toISOString() };
@@ -64,6 +53,16 @@ fastify.setNotFoundHandler(async (request, reply) => {
  */
 const start = async () => {
   try {
+    await fastify.register(cors, {
+      origin: '*' // Allow all origins for development
+    });
+
+    await fastify.register(fastifyStatic, {
+      root: clientDistDir,
+      prefix: '/',
+      wildcard: false,
+    });
+
     const port = Number(process.env.PORT) || 3000;
     const host = process.env.HOST || '0.0.0.0';
     

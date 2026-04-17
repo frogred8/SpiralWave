@@ -163,11 +163,52 @@ fastify.get('/metrics', async (request, reply) => {
         options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Requests by Type', color: '#eee' } } }
       });
 
+      // Process IP data for Bar Chart: Total count per IP
+      const ipTotals = {};
+      data.ipMetrics.forEach(m => {
+        if (!ipTotals[m.ip]) ipTotals[m.ip] = 0;
+        ipTotals[m.ip] += m.request_count;
+      });
+
+      // Sort and take top 10
+      const top10Ips = Object.entries(ipTotals)
+        .sort((a, b) => (b[1] as number) - (a[1] as number))
+        .slice(0, 10);
+
+      const ipLabels = top10Ips.map(item => item[0]);
+      const ipCounts = top10Ips.map(item => item[1]);
+
       if (ipChart) ipChart.destroy();
       ipChart = new Chart(document.getElementById('ipChart'), {
-        type: 'line',
-        data: { datasets: Object.values(ipDatasetsMap) },
-        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Requests by IP', color: '#eee' } } }
+        type: 'bar',
+        data: {
+          labels: ipLabels,
+          datasets: [{
+            label: 'Total Requests by IP (Top 10)',
+            data: ipCounts,
+            backgroundColor: colors.slice(0, 10),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          color: '#eee',
+          scales: {
+            y: { beginAtZero: true, ticks: { color: '#eee' }, title: { display: true, text: 'Total Requests', color: '#eee' } },
+            x: { ticks: { color: '#eee' }, title: { display: true, text: 'IP Address', color: '#eee' } }
+          },
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Top 10 Requests by IP', color: '#eee' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return \`Total Requests: \${context.parsed.y}\`;
+                }
+              }
+            }
+          }
+        }
       });
     }
     loadMetrics();

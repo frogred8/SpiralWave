@@ -44,6 +44,7 @@ RUN npm ci --omit=dev --workspace @repo/server --workspace @repo/shared --worksp
 
 COPY --from=build /app/apps/server/dist ./apps/server/dist
 COPY --from=build /app/apps/client/dist ./apps/client/dist
+COPY --from=build /app/packages/shared/dist ./packages/shared/dist
 COPY --from=build /app/docker/start-single-container.sh ./docker/start-single-container.sh
 
 RUN chmod +x /app/docker/start-single-container.sh

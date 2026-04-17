@@ -106,14 +106,21 @@ fastify.get('/metrics', async (request, reply) => {
     async function loadMetrics() {
       const date = document.getElementById('startDate').value;
       const hour = document.getElementById('startHour').value;
-      const hours = document.getElementById('duration').value;
+      const durationHours = parseInt(document.getElementById('duration').value);
       
-      let query = \`?hours=\${hours}\`;
+      let query = \`?hours=\${durationHours}\`;
+      let startDt, endDt;
+
       if (date) {
         const localDateStr = \`\${date}T\${hour}:00:00\`;
-        const startDt = new Date(localDateStr);
+        startDt = new Date(localDateStr);
         query += \`&start=\${startDt.toISOString()}\`;
+      } else {
+        startDt = new Date();
+        startDt.setHours(startDt.getHours() - durationHours);
       }
+      
+      endDt = new Date(startDt.getTime() + durationHours * 60 * 60 * 1000);
 
       const res = await fetch('/api/metrics' + query);
       const data = await res.json();
@@ -132,26 +139,19 @@ fastify.get('/metrics', async (request, reply) => {
         typeDatasetsMap[m.request_type].data.push({ x: m.bucket_start, y: m.request_count });
       });
 
-      const ipDatasetsMap = {};
-      data.ipMetrics.forEach(m => {
-        if (!ipDatasetsMap[m.ip]) {
-          ipDatasetsMap[m.ip] = {
-            label: m.ip,
-            data: [],
-            borderColor: getColor(Object.keys(ipDatasetsMap).length + 3),
-            tension: 0.1,
-            fill: false
-          };
-        }
-        ipDatasetsMap[m.ip].data.push({ x: m.bucket_start, y: m.request_count });
-      });
-
       const commonOptions = {
         responsive: true,
         color: '#eee',
         scales: { 
           y: { beginAtZero: true, ticks: { color: '#eee' }, title: { display: true, text: 'Requests', color: '#eee' } }, 
-          x: { type: 'time', time: { unit: 'hour' }, ticks: { color: '#eee' }, title: { display: true, text: 'Time', color: '#eee' } } 
+          x: { 
+            type: 'time', 
+            time: { unit: durationHours <= 24 ? 'hour' : 'day' }, 
+            ticks: { color: '#eee' }, 
+            title: { display: true, text: 'Time', color: '#eee' },
+            min: startDt.toISOString(),
+            max: endDt.toISOString()
+          } 
         }, 
         plugins: { legend: { labels: { color: '#eee' } } } 
       };
@@ -170,13 +170,13 @@ fastify.get('/metrics', async (request, reply) => {
         ipTotals[m.ip] += m.request_count;
       });
 
-      // Sort and take top 10
-      const top10Ips = Object.entries(ipTotals)
+      // Sort and take top 20
+      const top20Ips = Object.entries(ipTotals)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
+        .slice(0, 20);
 
-      const ipLabels = top10Ips.map(item => item[0]);
-      const ipCounts = top10Ips.map(item => item[1]);
+      const ipLabels = top20Ips.map(item => item[0]);
+      const ipCounts = top20Ips.map(item => item[1]);
 
       if (ipChart) ipChart.destroy();
       ipChart = new Chart(document.getElementById('ipChart'), {
@@ -184,9 +184,9 @@ fastify.get('/metrics', async (request, reply) => {
         data: {
           labels: ipLabels,
           datasets: [{
-            label: 'Total Requests by IP (Top 10)',
+            label: 'Total Requests by IP (Top 20)',
             data: ipCounts,
-            backgroundColor: colors.slice(0, 10),
+            backgroundColor: ipLabels.map((_, i) => getColor(i + 3)),
             borderWidth: 1
           }]
         },
@@ -195,11 +195,11 @@ fastify.get('/metrics', async (request, reply) => {
           color: '#eee',
           scales: {
             y: { beginAtZero: true, ticks: { color: '#eee' }, title: { display: true, text: 'Total Requests', color: '#eee' } },
-            x: { ticks: { color: '#eee' }, title: { display: true, text: 'IP Address', color: '#eee' } }
+            x: { ticks: { color: '#eee', autoSkip: false }, title: { display: true, text: 'IP Address', color: '#eee' } }
           },
           plugins: {
             legend: { display: false },
-            title: { display: true, text: 'Top 10 Requests by IP', color: '#eee' },
+            title: { display: true, text: 'Top 20 Requests by IP', color: '#eee' },
             tooltip: {
               callbacks: {
                 label: function(context) {

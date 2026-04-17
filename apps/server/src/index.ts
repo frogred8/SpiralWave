@@ -1,22 +1,11 @@
+import './logger';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { GameController } from './controllers/game.controller';
 import './config/db'; // Initialize database
 
-const fastifyLogger = process.env.NODE_ENV === 'production'
-  ? true
-  : {
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      },
-    };
-
 const fastify = Fastify({
-  logger: fastifyLogger,
+  logger: false,
   trustProxy: true, // Enable trust proxy for correct client IP logging
 });
 
@@ -50,7 +39,7 @@ const start = async () => {
     await fastify.listen({ port, host });
     console.log(`Server listening at http://${host}:${port}`);
   } catch (err) {
-    fastify.log.error(err);
+    console.error(err);
     process.exit(1);
   }
 };

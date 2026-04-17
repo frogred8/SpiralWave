@@ -1,3 +1,4 @@
+import './logger';
 import Phaser from 'phaser';
 
 let game: Phaser.Game | null = null;

@@ -1,3 +1,4 @@
+import './logger';
 import cron from 'node-cron';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -7,15 +8,6 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
-
-// console.log/error 랩핑
-const originalLog = console.log;
-const originalError = console.error;
-
-const getLogPrefix = () => `[${new Date().toISOString()}]`;
-
-console.log = (...args) => originalLog(getLogPrefix(), ...args);
-console.error = (...args) => originalError(getLogPrefix(), ...args);
 
 // Gemini SDK 초기화
 const API_KEY = process.env.GEMINI_API_KEY || '';

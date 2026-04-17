@@ -9,19 +9,9 @@ export class SoundManager {
     private playingCounts: Map<string, number> = new Map();
     private volume: number = 0.15;
     private muted: boolean = false;
+    private initialized: boolean = false;
 
     private constructor() {
-        // Initialize with sounds from the sounds folder
-        this.loadSound('gather', '/sounds/gather.mp3', false, 0.1);
-        this.loadSound('skilllevelup', '/sounds/skilllevelup.mp3');
-        this.loadSound('skillupgrade', '/sounds/skillupgrade.mp3');
-        this.loadSound('reroll', '/sounds/reroll.mp3');
-        this.loadSound('gamestart', '/sounds/gamestart.mp3');
-        this.loadSound('restart', '/sounds/restart.mp3');
-        this.loadSound('winning', '/sounds/winning.mp3', false, 0.1);
-        this.loadSound('specialitem', '/sounds/specialitem.mp3', false, 0.3);
-        this.loadSound('fever', '/sounds/fever.mp3', false, 0.2);
-        this.loadSound('background', '/sounds/background.mp3', true, 0.2);
     }
 
     public static getInstance(): SoundManager {
@@ -45,6 +35,24 @@ export class SoundManager {
      */
     public isMuted(): boolean {
         return this.muted;
+    }
+
+    public initializeSounds() {
+        if (this.initialized) {
+            return;
+        }
+
+        this.loadSound('gather', '/sounds/gather.mp3', false, 0.1);
+        this.loadSound('skilllevelup', '/sounds/skilllevelup.mp3');
+        this.loadSound('skillupgrade', '/sounds/skillupgrade.mp3');
+        this.loadSound('reroll', '/sounds/reroll.mp3');
+        this.loadSound('gamestart', '/sounds/gamestart.mp3');
+        this.loadSound('restart', '/sounds/restart.mp3');
+        this.loadSound('winning', '/sounds/winning.mp3', false, 0.1);
+        this.loadSound('specialitem', '/sounds/specialitem.mp3', false, 0.3);
+        this.loadSound('fever', '/sounds/fever.mp3', false, 0.2);
+        this.loadSound('background', '/sounds/background.mp3', true, 0.2);
+        this.initialized = true;
     }
 
     /**
@@ -86,6 +94,10 @@ export class SoundManager {
      * @param key Key of the sound to play.
      */
     public play(key: string) {
+        if (!this.initialized) {
+            return;
+        }
+
         const sound = this.sounds.get(key);
         if (sound) {
             // 'gather' 사운드에 대해 동시 재생 4개 제한

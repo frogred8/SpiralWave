@@ -277,7 +277,9 @@ export class UIManager {
 
     private handleInitialSkillSelection(skill: any, btn: Phaser.GameObjects.Container, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
         this.stats.grantSkill(skill);
-        SoundManager.getInstance().play('skillupgrade');
+        const soundManager = SoundManager.getInstance();
+        soundManager.initializeSounds();
+        soundManager.play('skillupgrade');
         
         const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
         this.callbacks.onSendStartSignal(skillIndex);

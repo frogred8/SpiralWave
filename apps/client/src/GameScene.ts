@@ -50,8 +50,6 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = this.scale;
         this.spiralCenter = new Phaser.Math.Vector2(width / 2, height / 2);
 
-        SoundManager.getInstance().play('background');
-
         // Fever Overlay 초기화 (평소에는 숨김)
         this.feverOverlay = this.add.rectangle(0, 0, width, height, 0xff0000, 0.08)
             .setOrigin(0).setDepth(9999).setScrollFactor(0).setVisible(false).setAlpha(0);
@@ -257,7 +255,9 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.startGame();
         this.setupTimers();
         this.isGameStarted = true;
-        SoundManager.getInstance().play('gamestart');
+        const soundManager = SoundManager.getInstance();
+        soundManager.play('background');
+        soundManager.play('gamestart');
     }
 
     private async sendStartGameSignal(skillId: number) {

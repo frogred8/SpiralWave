@@ -90,25 +90,23 @@ export class RequestMetricsService {
     this.requestIpCounts.clear();
 
     try {
-      await db.transaction(async (trx) => {
-        if (requestTypeRows.length > 0) {
-          await trx('request_type_metric')
-            .insert(requestTypeRows)
-            .onConflict(['bucket_start', 'request_type'])
-            .merge({
-              request_count: db.raw('request_type_metric.request_count + EXCLUDED.request_count'),
-            });
-        }
+      if (requestTypeRows.length > 0) {
+        await db('request_type_metric')
+          .insert(requestTypeRows)
+          .onConflict(['bucket_start', 'request_type'])
+          .merge({
+            request_count: db.raw('request_type_metric.request_count + EXCLUDED.request_count'),
+          });
+      }
 
-        if (requestIpRows.length > 0) {
-          await trx('request_ip_metric')
-            .insert(requestIpRows)
-            .onConflict(['bucket_start', 'ip'])
-            .merge({
-              request_count: db.raw('request_ip_metric.request_count + EXCLUDED.request_count'),
-            });
-        }
-      });
+      if (requestIpRows.length > 0) {
+        await db('request_ip_metric')
+          .insert(requestIpRows)
+          .onConflict(['bucket_start', 'ip'])
+          .merge({
+            request_count: db.raw('request_ip_metric.request_count + EXCLUDED.request_count'),
+          });
+      }
     } catch (error) {
       console.error('Failed to flush request metrics', error);
 

@@ -40,6 +40,26 @@ const initDb = async () => {
       });
     }
 
+    const hasRequestTypeMetricTable = await db.schema.hasTable('request_type_metric');
+    if (!hasRequestTypeMetricTable) {
+      await db.schema.createTable('request_type_metric', (table) => {
+        table.timestamp('bucket_start').notNullable();
+        table.string('request_type', 100).notNullable();
+        table.integer('request_count').notNullable().defaultTo(0);
+        table.primary(['bucket_start', 'request_type']);
+      });
+    }
+
+    const hasRequestIpMetricTable = await db.schema.hasTable('request_ip_metric');
+    if (!hasRequestIpMetricTable) {
+      await db.schema.createTable('request_ip_metric', (table) => {
+        table.timestamp('bucket_start').notNullable();
+        table.string('ip', 45).notNullable();
+        table.integer('request_count').notNullable().defaultTo(0);
+        table.primary(['bucket_start', 'ip']);
+      });
+    }
+
     console.log('Database initialized');
   } catch (err) {
     console.error('Database initialization failed', err);

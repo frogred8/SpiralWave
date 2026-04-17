@@ -3,10 +3,22 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { GameController } from './controllers/game.controller';
 import './config/db'; // Initialize database
+import { requestMetricsService } from './services/request-metrics.service';
 
 const fastify = Fastify({
   logger: false,
   trustProxy: true, // Enable trust proxy for correct client IP logging
+});
+
+requestMetricsService.start();
+
+fastify.addHook('onResponse', async (request) => {
+  const requestType = `${request.method} ${request.routeOptions.url || request.url}`;
+  requestMetricsService.record(requestType, request.ip || 'unknown');
+});
+
+fastify.addHook('onClose', async () => {
+  await requestMetricsService.stop();
 });
 
 // Handle favicon requests to prevent unnecessary errors in logs

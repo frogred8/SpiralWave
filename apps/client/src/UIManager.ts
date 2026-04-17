@@ -5,7 +5,6 @@ import { INITIAL_STATS, RESOURCE_CONFIG } from '@shared/Constants';
 import { RankEntry } from '@repo/shared';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
-import { SkillTreeUI } from './SkillTreeUI';
 
 export interface UIState {
     overlay: 'initialSkill' | 'inputForm' | 'gameOver' | null;
@@ -39,7 +38,7 @@ export class UIManager {
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
-    private skillTreeUI: SkillTreeUI | null = null;
+    private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
     
     private statsUpdateListener: (() => void) | null = null;
     
@@ -56,14 +55,16 @@ export class UIManager {
         this.callbacks = callbacks;
     }
 
-    public setupSkillTree(skillData: any[]) {
+    public async setupSkillTree(skillData: any[]) {
+        const { SkillTreeUI } = await import('./SkillTreeUI');
+
         if (this.skillTreeUI) {
             this.skillTreeUI.destroy();
         }
         this.skillTreeUI = new SkillTreeUI(this.scene, this.uiContainer, this.stats, skillData);
     }
 
-    public getSkillTreeUI(): SkillTreeUI | null {
+    public getSkillTreeUI(): import('./SkillTreeUI').SkillTreeUI | null {
         return this.skillTreeUI;
     }
 
@@ -663,7 +664,7 @@ export class UIManager {
             if (I18n.getLanguage() !== lang.code) {
                 I18n.setLanguage(lang.code as any);
                 this.isLanguageMenuOpen = false;
-                this.refreshUIAfterLanguageChange();
+                void this.refreshUIAfterLanguageChange();
             } else {
                 this.isLanguageMenuOpen = false;
                 this.langMenuContainer.setVisible(false);
@@ -700,7 +701,7 @@ export class UIManager {
         });
     }
 
-    public refreshUIAfterLanguageChange() {
+    public async refreshUIAfterLanguageChange() {
         this.hideTooltip();
         const currentSkillData = this.stats.skillTreeData;
         this.uiContainer.removeAll(true);
@@ -709,7 +710,7 @@ export class UIManager {
         
         // UI 컴포넌트 재구성
         this.setupMainUI();
-        this.setupSkillTree(currentSkillData);
+        await this.setupSkillTree(currentSkillData);
         
         // 오버레이 상태 복구 (다국어 변경 시에도 오버레이 유지)
         this.restoreUIState();

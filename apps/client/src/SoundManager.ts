@@ -62,7 +62,7 @@ export class SoundManager {
         const sound = new Howl({
             src: [url],
             volume: volume,
-            preload: true,
+            preload: false,
             loop: loop
         });
 

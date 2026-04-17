@@ -73,8 +73,7 @@ export class GameScene extends Phaser.Scene {
         this.initCameras(width, height);
 
         this.setupPhysics();
-        this.setupUI(skillData);
-        this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
+        void this.setupUI(skillData);
 
         this.scale.on('resize', this.handleResize, this);
 
@@ -387,9 +386,9 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private setupUI(skillData: any) {
+    private async setupUI(skillData: any) {
         this.uiManager.setupMainUI();
-        this.uiManager.setupSkillTree(skillData);
+        await this.uiManager.setupSkillTree(skillData);
 
         this.setupGameStatsListeners();
         this.setupInputListeners();
@@ -407,7 +406,12 @@ export class GameScene extends Phaser.Scene {
 
         this.cameras.main.flash(1000, 255, 255, 255);
         this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
-        this.uiManager.restoreUIState();
+        if (this.uiManager.currentUIState.overlay) {
+            this.uiManager.restoreUIState();
+            return;
+        }
+
+        this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
     }
 
     private setupGameStatsListeners() {

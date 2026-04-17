@@ -10,6 +10,28 @@ const createProxyEntry = () => ({
 
 export default defineConfig({
   root: '.',
+  build: {
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return;
+          }
+
+          if (id.includes('/phaser/')) {
+            return 'phaser';
+          }
+
+          if (id.includes('/howler/')) {
+            return 'audio';
+          }
+
+          return 'vendor';
+        },
+      },
+    },
+  },
   preview: {
     host: '0.0.0.0',
     port: 3000,

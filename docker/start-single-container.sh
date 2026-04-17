@@ -9,9 +9,11 @@ POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 POSTGRES_LISTEN_ADDRESSES="${POSTGRES_LISTEN_ADDRESSES:-*}"
 POSTGRES_HOST_AUTH_METHOD="${POSTGRES_HOST_AUTH_METHOD:-md5}"
 POSTGRES_DATA_DIR="${POSTGRES_DATA_DIR:-/var/lib/postgresql/data}"
-APP_PORT="${PORT:-3000}"
+CLIENT_PORT="${CLIENT_PORT:-3000}"
+SERVER_PORT="${SERVER_PORT:-3001}"
+INTERNAL_SERVER_URL="${INTERNAL_SERVER_URL:-http://127.0.0.1:$SERVER_PORT}"
 
-export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_HOST POSTGRES_PORT PORT="$APP_PORT"
+export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_HOST POSTGRES_PORT CLIENT_PORT SERVER_PORT INTERNAL_SERVER_URL
 
 mkdir -p "$POSTGRES_DATA_DIR" /var/run/postgresql
 chown -R postgres:postgres "$POSTGRES_DATA_DIR" /var/run/postgresql
@@ -37,6 +39,12 @@ fi
 su postgres -c "\"$PG_CTL_BIN\" -D \"$POSTGRES_DATA_DIR\" -o \"-c listen_addresses='$POSTGRES_LISTEN_ADDRESSES' -p $POSTGRES_PORT\" -w start"
 
 cleanup() {
+  if [ -n "${CLIENT_PID:-}" ]; then
+    kill "$CLIENT_PID" >/dev/null 2>&1 || true
+  fi
+  if [ -n "${SERVER_PID:-}" ]; then
+    kill "$SERVER_PID" >/dev/null 2>&1 || true
+  fi
   su postgres -c "\"$PG_CTL_BIN\" -D \"$POSTGRES_DATA_DIR\" -m fast stop" >/dev/null 2>&1 || true
 }
 
@@ -60,7 +68,17 @@ if [ "$DB_EXISTS" != "1" ]; then
 fi
 
 cd /app
-npm run start --workspace @repo/server &
-APP_PID=$!
+PORT="$SERVER_PORT" npm run start --workspace @repo/server &
+SERVER_PID=$!
 
-wait "$APP_PID"
+for _ in $(seq 1 30); do
+  if node -e "const http=require('node:http'); const req=http.get('${INTERNAL_SERVER_URL}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }); req.on('error', () => process.exit(1));" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+
+CLIENT_PORT="$CLIENT_PORT" INTERNAL_SERVER_URL="$INTERNAL_SERVER_URL" npm run start --workspace @repo/client &
+CLIENT_PID=$!
+
+wait -n "$SERVER_PID" "$CLIENT_PID"

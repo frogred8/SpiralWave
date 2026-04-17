@@ -1,11 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import fastifyStatic from '@fastify/static';
-import path from 'node:path';
 import { GameController } from './controllers/game.controller';
 import './config/db'; // Initialize database
-
-const clientDistDir = path.resolve(process.cwd(), 'apps/client/dist');
 
 const fastifyLogger = process.env.NODE_ENV === 'production'
   ? true
@@ -39,15 +35,6 @@ fastify.post('/start', GameController.handleStart);
 fastify.post('/end', GameController.handleEnd);
 fastify.get('/leaderboard', GameController.handleGetLeaderboard);
 
-fastify.setNotFoundHandler(async (request, reply) => {
-  if (request.method !== 'GET') {
-    reply.code(404).send({ message: 'Not Found' });
-    return;
-  }
-
-  return reply.sendFile('index.html');
-});
-
 /**
  * Run the server!
  */
@@ -57,14 +44,8 @@ const start = async () => {
       origin: '*' // Allow all origins for development
     });
 
-    await fastify.register(fastifyStatic, {
-      root: clientDistDir,
-      prefix: '/',
-      wildcard: false,
-    });
-
-    const port = Number(process.env.PORT) || 3000;
-    const host = process.env.HOST || '0.0.0.0';
+    const port = Number(process.env.PORT) || 3001;
+    const host = process.env.HOST || '127.0.0.1';
     
     await fastify.listen({ port, host });
     console.log(`Server listening at http://${host}:${port}`);

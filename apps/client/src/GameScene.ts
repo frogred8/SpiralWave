@@ -34,7 +34,7 @@ export class GameScene extends Phaser.Scene {
     private canReroll: boolean = false;
 
     private getServerUrl() {
-        return (import.meta.env.VITE_SERVER_URL || '').replace(/\/$/, '');
+        return (import.meta.env.VITE_SERVER_URL || '127.0.0.1:3001').replace(/\/$/, '');
     }
     private specialItemTimer?: Phaser.Time.TimerEvent;
     private currentGameId: string = '';
@@ -270,7 +270,7 @@ export class GameScene extends Phaser.Scene {
                 this.userInfo = await Utils.getUserInfo();
             }
             const body: StartRequest = { select_skill_id: skillId, ip: this.userInfo.ip };
-            const response = await fetch(`${serverUrl}/start`, {
+            const response = await fetch(`/start`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -285,8 +285,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     private async sendEndGameSignal(name: string, msg: string) {
-        const serverUrl = this.getServerUrl();
-
         try {
             // Get IP and emoji from external service
             if (!this.userInfo) {
@@ -304,7 +302,7 @@ export class GameScene extends Phaser.Scene {
                 ip: this.userInfo.ip
             };
 
-            await fetch(`${serverUrl}/end`, {
+            await fetch(`/end`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -645,10 +643,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     private async fetchLeaderboardData(): Promise<RankEntry[]> {
-        const serverUrl = this.getServerUrl();
-
         try {
-            const response = await fetch(`${serverUrl}/leaderboard`);
+            const response = await fetch(`/leaderboard`);
             const data: LeaderboardResponse = await response.json();
             return data.ranks || [];
         } catch (err) {

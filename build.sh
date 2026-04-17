@@ -1,2 +1,2 @@
 npm run build
-docker build -t spiralwave .
+docker buildx build --platform linux/arm64 -t spiralwave . --load

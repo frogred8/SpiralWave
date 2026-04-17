@@ -39,7 +39,8 @@ fastify.get('/leaderboard', GameController.handleGetLeaderboard);
 // Metrics API
 fastify.get('/api/metrics', async (request, reply) => {
   const hours = Number((request.query as any).hours) || 24;
-  const data = await requestMetricsService.getMetricsData(hours);
+  const start = (request.query as any).start;
+  const data = await requestMetricsService.getMetricsData(hours, start);
   return data;
 });
 
@@ -56,10 +57,30 @@ fastify.get('/metrics', async (request, reply) => {
     body { font-family: sans-serif; margin: 20px; background: #111; color: #eee; }
     .chart-container { width: 100%; max-width: 1000px; margin: 20px auto; background: #222; padding: 20px; border-radius: 8px; }
     h1 { text-align: center; }
+    .controls { text-align: center; margin-bottom: 20px; background: #222; padding: 15px; border-radius: 8px; max-width: 1000px; margin-left: auto; margin-right: auto; }
+    .controls label { margin: 0 10px; }
+    .controls input, .controls select, .controls button { padding: 5px; margin-left: 5px; background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; }
+    .controls button { cursor: pointer; background: #4ade80; color: #111; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Server Metrics (Last 24h)</h1>
+  <h1>Server Metrics</h1>
+  <div class="controls">
+    <label>Start Date: <input type="date" id="startDate"></label>
+    <label>Time: 
+      <select id="startHour">
+        ${Array.from({length: 24}, (_, i) => `<option value="${i.toString().padStart(2, '0')}">${i}:00</option>`).join('')}
+      </select>
+    </label>
+    <label>Duration: 
+      <select id="duration">
+        <option value="1">1 Hour</option>
+        <option value="24" selected>24 Hours</option>
+        <option value="168">1 Week</option>
+      </select>
+    </label>
+    <button onclick="loadMetrics()">Apply</button>
+  </div>
   <div class="chart-container">
     <canvas id="typeChart"></canvas>
   </div>
@@ -72,8 +93,29 @@ fastify.get('/metrics', async (request, reply) => {
       return colors[index % colors.length];
     }
 
+    let typeChart, ipChart;
+
+    // Initialize default values
+    const today = new Date();
+    // Use local date for input
+    const offset = today.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(today.getTime() - offset)).toISOString().slice(0, -1);
+    document.getElementById('startDate').value = localISOTime.split('T')[0];
+    document.getElementById('startHour').value = "00";
+
     async function loadMetrics() {
-      const res = await fetch('/api/metrics');
+      const date = document.getElementById('startDate').value;
+      const hour = document.getElementById('startHour').value;
+      const hours = document.getElementById('duration').value;
+      
+      let query = \`?hours=\${hours}\`;
+      if (date) {
+        const localDateStr = \`\${date}T\${hour}:00:00\`;
+        const startDt = new Date(localDateStr);
+        query += \`&start=\${startDt.toISOString()}\`;
+      }
+
+      const res = await fetch('/api/metrics' + query);
       const data = await res.json();
       
       const typeDatasetsMap = {};
@@ -114,13 +156,15 @@ fastify.get('/metrics', async (request, reply) => {
         plugins: { legend: { labels: { color: '#eee' } } } 
       };
 
-      new Chart(document.getElementById('typeChart'), {
+      if (typeChart) typeChart.destroy();
+      typeChart = new Chart(document.getElementById('typeChart'), {
         type: 'line',
         data: { datasets: Object.values(typeDatasetsMap) },
         options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Requests by Type', color: '#eee' } } }
       });
 
-      new Chart(document.getElementById('ipChart'), {
+      if (ipChart) ipChart.destroy();
+      ipChart = new Chart(document.getElementById('ipChart'), {
         type: 'line',
         data: { datasets: Object.values(ipDatasetsMap) },
         options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Requests by IP', color: '#eee' } } }

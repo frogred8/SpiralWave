@@ -122,6 +122,26 @@ export class RequestMetricsService {
       }
     }
   }
+
+  async getMetricsData(hours: number = 24) {
+    const timeLimit = new Date();
+    timeLimit.setHours(timeLimit.getHours() - hours);
+
+    const typeMetrics = await db('request_type_metric')
+      .select('bucket_start', 'request_type', 'request_count')
+      .where('bucket_start', '>=', timeLimit)
+      .orderBy('bucket_start', 'asc');
+
+    const ipMetrics = await db('request_ip_metric')
+      .select('bucket_start', 'ip', 'request_count')
+      .where('bucket_start', '>=', timeLimit)
+      .orderBy('bucket_start', 'asc');
+
+    return {
+      typeMetrics,
+      ipMetrics
+    };
+  }
 }
 
 export const requestMetricsService = new RequestMetricsService();

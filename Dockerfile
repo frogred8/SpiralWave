@@ -39,7 +39,7 @@ COPY apps/client/vite.config.ts apps/client/vite.config.ts
 COPY apps/server/package.json apps/server/package.json
 COPY packages/shared/package.json packages/shared/package.json
 
-RUN npm ci --omit=dev --workspace @repo/server --workspace @repo/shared --workspace @repo/client --include-workspace-root=false \
+RUN npm ci --omit=dev --workspace @repo/server --workspace @repo/client --include-workspace-root=false \
   && npm cache clean --force
 
 COPY --from=build /app/apps/server/dist ./apps/server/dist

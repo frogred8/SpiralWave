@@ -172,7 +172,7 @@ fastify.get('/metrics', async (request, reply) => {
 
       // Sort and take top 10
       const top10Ips = Object.entries(ipTotals)
-        .sort((a, b) => (b[1] as number) - (a[1] as number))
+        .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
 
       const ipLabels = top10Ips.map(item => item[0]);

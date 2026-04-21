@@ -29,3 +29,33 @@ Act as a senior full-stack developer to update @apps/client and @apps/server bas
 - Verify that the AI model metadata is correctly passed to the frontend.
 
 ---
+
+# Update - 20260421_2001
+
+## Raw User Feedback
+```
+게임이 너무 짧아서 아쉬워요. 30초는 너무 짧은 것 같아요. 1분 정도면 더 재미있게 플레이할 수 있을 것 같아요. 
+어떤 목표를 가지고 있는지 시작 화면에 게임에 대한 간단한 팁이 있으면 좋겠어요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 추가해.
+```
+
+## Gemini AI Plan
+Update @apps/client and @apps/server to implement the following feature enhancements and UI/UX improvements based on user feedback analysis:
+
+1. **Game Duration Adjustment**: 
+   - Modify the game timer logic to increase the default play session from 30 seconds to 60 seconds.
+   - Update the client-side countdown UI and ensure the server-side validation/session timeout reflects this change.
+
+2. **Onboarding & Tips Section**:
+   - Add a "How to Play" or "Pro Tips" section on the Start Screen.
+   - Include a brief description of the game objective to guide users before they begin.
+
+3. **AI Model Information Display**:
+   - Implement a metadata display at the top of the gameplay screen.
+   - Fetch the current AI model identifier (e.g., GPT-4o, Claude 3.5) from the server and display it clearly to the user.
+
+Please provide the code modifications for:
+- `@apps/client`: Update timer constants, UI components for the Start screen, and the gameplay header.
+- `@apps/server`: Update session duration logic and include model information in the initial game state response.
+
+---

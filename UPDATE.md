@@ -90,3 +90,29 @@ Update the game based on analyzed user feedback to improve playability and trans
     - (Optional) Adjust any server-side game session validation logic to accommodate the 60-second duration.
 
 ---
+
+# Update - 20260421_2101
+
+## Raw User Feedback
+```
+게임이 너무 짧아서 아쉬워요. 30초는 너무 짧은 것 같아요. 1분 정도면 더 재미있게 플레이할 수 있을 것 같아요. 
+어떤 목표를 가지고 있는지 시작 화면에 게임에 대한 간단한 팁이 있으면 좋겠어요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 추가해.
+```
+
+## Gemini AI Plan
+Instruction: Update @apps/client and @apps/server to implement the following features and improvements:
+
+1. Game Duration Extension:
+   - Increase the game time limit from 30 seconds to 60 seconds.
+   - Synchronize the countdown timer in the client UI and the session timeout logic in the server.
+
+2. Start Screen Guidance:
+   - Add a "How to Play" or "Game Tips" section to the game's entry screen.
+   - Include a concise description of the game's objectives and basic mechanics to guide new players.
+
+3. AI Model Information Display:
+   - Implement a UI element at the top of the gameplay screen that displays the name of the AI model currently in use.
+   - Ensure the server provides the model metadata to the client via the initial game state or configuration API.
+
+---

@@ -9,7 +9,7 @@ else
 fi
 
 # 풀 이미지 경로 생성 (변수 직접 사용)
-FULL_IMAGE="${OCI_REGION}.ocir.io/${OCI_NAMESPACE}/${OCI_REPO}:latest"
+FULL_IMAGE="${OCI_REGION}.ocir.io/${OCI_NAMESPACE}/${OCI_REPO}:${OCI_VERSION:-latest}"
 
 echo "🚀 [1/4] Docker 이미지 빌드 시작 (Platform: linux/arm64)"
 docker buildx build --platform linux/arm64 -t ${FULL_IMAGE} . --load

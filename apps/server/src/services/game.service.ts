@@ -1,4 +1,4 @@
-import type { LeaderboardResponse } from '@repo/shared';
+import { INITIAL_STATS, type LeaderboardResponse } from '@repo/shared';
 import db from '../config/db';
 
 /**
@@ -56,11 +56,11 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
     return null; 
   }
 
-  // 3. gameId가 있을 때 해당 레코드의 created_at+5분이 endAt보다 클 때
+  // 3. 제한 시간보다 이르게 종료 요청이 들어온 경우
   const createdAt = new Date(gameRecord.created_at);
-  const limitTime = new Date(createdAt.getTime());// + 5 * 60 * 1000);
-  if (limitTime >= endAt) { 
-    console.log(`Validation failed (3): Time validation error. Limit: ${limitTime.toISOString()}, EndAt: ${endAt.toISOString()}`); 
+  const earliestValidEndAt = new Date(createdAt.getTime() + INITIAL_STATS.TIME_LIMIT * 1000);
+  if (earliestValidEndAt > endAt) { 
+    console.log(`Validation failed (3): Time validation error. Earliest valid end: ${earliestValidEndAt.toISOString()}, EndAt: ${endAt.toISOString()}`); 
     return null; 
   }
 

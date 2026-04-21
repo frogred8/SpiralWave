@@ -46,7 +46,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     private lastUpdateTime: number = 0;
     private gameStarted: boolean = false;
     public isGameOver: boolean = false;
-    public readonly TIME_LIMIT = INITIAL_STATS.TIME_LIMIT; // 5분 (300초)
+    public readonly TIME_LIMIT = INITIAL_STATS.TIME_LIMIT;
     public timeSpawnMultiplier: number = 1.0;
     
     public isBoosterCalculating: boolean = false;

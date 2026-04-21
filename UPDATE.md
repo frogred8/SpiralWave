@@ -59,3 +59,34 @@ Please provide the code modifications for:
 - `@apps/server`: Update session duration logic and include model information in the initial game state response.
 
 ---
+
+# Update - 20260421_2010
+
+## Raw User Feedback
+```
+게임이 너무 짧아서 아쉬워요. 30초는 너무 짧은 것 같아요. 1분 정도면 더 재미있게 플레이할 수 있을 것 같아요. 
+어떤 목표를 가지고 있는지 시작 화면에 게임에 대한 간단한 팁이 있으면 좋겠어요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 추가해.
+```
+
+## Gemini AI Plan
+@apps/client @apps/server
+
+Update the game based on analyzed user feedback to improve playability and transparency. Implement the following features and adjustments:
+
+1. **Extend Game Duration**: Increase the round timer from 30 seconds to 60 seconds to allow for a more engaging play session.
+2. **Onboarding Tips**: Add a "How to Play" or "Tips & Goals" section to the start screen UI to provide clear objectives to the user before they begin.
+3. **AI Model Information**: Display the name/identifier of the current AI model being utilized at the top of the gameplay interface.
+
+**Implementation Plan:**
+
+- **@apps/client**:
+    - Modify the game timer constant or state logic to set the default duration to 60 seconds.
+    - Update the `StartScreen` component to include a text layout or modal displaying game tips and objectives.
+    - Update the `GamePlay` or `Header` component to include a label showing the active AI model (retrieved from the server or config).
+  
+- **@apps/server**:
+    - Ensure the game initialization API or WebSocket handshake includes metadata identifying the AI model being used.
+    - (Optional) Adjust any server-side game session validation logic to accommodate the 60-second duration.
+
+---

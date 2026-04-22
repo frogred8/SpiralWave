@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { SkillData } from '@shared/SkillData';
-import { GameStats } from '@shared/GameStats';
+import { GameStats } from './GameStats';
 import { INITIAL_STATS, UI_CONFIG, RESOURCE_CONFIG } from '@shared/Constants';
-import { Utils } from '@shared/Utils';
+import { Utils } from './Utils';
 import { SoundManager } from './SoundManager';
 
 export class SkillTreeUI {

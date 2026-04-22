@@ -1,4 +1,4 @@
-import { ResourceType, SpecialItemType } from '@repo/shared';
+import { ResourceType, SpecialItemType } from './Types';
 
 export type ResourceRegistryKey = ResourceType | SpecialItemType | 'satellite';
 

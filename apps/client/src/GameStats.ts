@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { SkillData } from './SkillData';
-import { DURATIONS, INITIAL_STATS } from './Constants';
+import { SkillData } from '@shared/SkillData';
+import { DURATIONS, INITIAL_STATS } from '@shared/Constants';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
 /**

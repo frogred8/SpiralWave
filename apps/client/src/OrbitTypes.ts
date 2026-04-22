@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Collectible } from '@repo/shared';
+import { Collectible } from './Types';
 
 export type OrbitCollectionState = 'floating' | 'attracted' | 'collected';
 

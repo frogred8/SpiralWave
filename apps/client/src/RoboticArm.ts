@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { GameStats } from '@shared/GameStats';
+import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
-import { Utils } from '@shared/Utils';
-import { Collectible, ArmState } from '@shared/Types';
+import { Utils } from './Utils';
+import { Collectible, ArmState } from './Types';
 import { DURATIONS } from '@shared/Constants';
 
 export class RoboticArm {

@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
-import { GameStats } from '@shared/GameStats';
+import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Constants';
-import { Utils } from '@shared/Utils';
+import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
-import { SpecialItem, Collectible, StartRequest, EndRequest, RankEntry, LeaderboardResponse } from '@repo/shared';
+import { SpecialItem, Collectible } from './Types';
+import { StartRequest, EndRequest, RankEntry, LeaderboardResponse } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';

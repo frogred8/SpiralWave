@@ -424,6 +424,10 @@ export class I18n {
     private static currentLanguage: Language = I18n.getInitialLanguage();
 
     private static getInitialLanguage(): Language {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
+
         // window-info-language 값을 읽어서 초기 언어 설정
         let infoLang = window.navigator.language || (window.navigator as any).userLanguage;
         infoLang = infoLang.toLowerCase();

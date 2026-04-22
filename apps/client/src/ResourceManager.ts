@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import { GameStats } from '@shared/GameStats';
+import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
-import { Utils } from '@shared/Utils';
+import { Utils } from './Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
-import { Resource, SpecialItem, Collectible } from '@shared/Types';
+import { Resource, SpecialItem, Collectible } from './Types';
 import { getResourceMetadata } from './ResourceRegistry';
 
 export class ResourceManager {

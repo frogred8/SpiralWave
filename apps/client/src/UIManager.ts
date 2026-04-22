@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
-import { GameStats } from '@shared/GameStats';
+import { GameStats } from './GameStats';
 import { INITIAL_STATS, RESOURCE_CONFIG } from '@shared/Constants';
-import { RankEntry } from '@repo/shared';
+import { RankEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 

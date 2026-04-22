@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { Utils } from '@shared/Utils';
-import { Collectible } from '@repo/shared';
-import { GameStats } from '@shared/GameStats';
+import { Utils } from './Utils';
+import { Collectible } from './Types';
+import { GameStats } from './GameStats';
 import { PHYSICS_CONFIG } from '@shared/Constants';
 import { getResourceMetadata } from './ResourceRegistry';
 import { OrbitState, Resource, Satellite } from './OrbitTypes';

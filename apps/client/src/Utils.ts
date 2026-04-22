@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { I18n } from './I18n';
-import { SKILL_TREE_CONFIG } from './Constants';
+import { I18n } from '@shared/I18n';
+import { SKILL_TREE_CONFIG } from '@shared/Constants';
 
 /**
  * 게임 전반에서 사용되는 유틸리티 함수들

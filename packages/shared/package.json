@@ -9,10 +9,6 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
-    "phaser": "^3.60.0"
-  },
-  "peerDependencies": {
-    "phaser": "^3.60.0"
+    "typescript": "^5.7.3"
   }
 }

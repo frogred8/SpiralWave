@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 /**
  * 자원 종류 정의
  */
@@ -7,6 +9,38 @@ export type ResourceType = 'rock' | 'wood';
  * 특수 아이템 종류 정의
  */
 export type SpecialItemType = 'whitehole' | 'boost';
+
+/**
+ * 수집 가능한 객체 인터페이스
+ */
+export interface Collectible extends Phaser.GameObjects.GameObject {
+    x: number;
+    y: number;
+    active: boolean;
+    body: Phaser.Physics.Arcade.Body;
+    resourceType?: ResourceType;
+    isHighDim?: boolean;
+    itemType?: 'special';
+    specialType?: SpecialItemType;
+}
+
+/**
+ * 자원 객체 인터페이스
+ */
+export interface Resource extends Phaser.GameObjects.Text {
+    resourceType: ResourceType;
+    isHighDim: boolean;
+    body: Phaser.Physics.Arcade.Body;
+}
+
+/**
+ * 특수 아이콘 객체 인터페이스
+ */
+export interface SpecialItem extends Phaser.GameObjects.Text {
+    itemType: 'special';
+    specialType: SpecialItemType;
+    body: Phaser.Physics.Arcade.Body;
+}
 
 /**
  * 로봇팔 상태 정의

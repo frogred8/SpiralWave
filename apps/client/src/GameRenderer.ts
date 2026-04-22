@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GameStats } from '@shared/GameStats';
+import { GameStats } from './GameStats';
 import { DURATIONS } from '@shared/Constants';
 
 export class GameRenderer {

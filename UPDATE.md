@@ -212,3 +212,19 @@ Please provide the modified code for the timer logic and the updated start scree
 2. Modify the visual representation and styling of the black hole entity to resemble a sun.
 
 ---
+
+# Update - 20260422_1221
+
+## Raw User Feedback
+```
+게임이 길어요. 20초 정도면 더 재미있게 플레이할 수 있을 것 같아요. 
+블랙홀이 태양처럼 보였으면 좋겠어요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 보여줘.
+```
+
+## Gemini AI Plan
+@apps/client @apps/server
+1. Update the game session duration to 20 seconds to improve gameplay pacing and engagement.
+2. Modify the visual representation of the 'black hole' entity to resemble a 'sun' by updating its sprites or styling.
+
+---

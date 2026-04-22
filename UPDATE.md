@@ -228,3 +228,19 @@ Please provide the modified code for the timer logic and the updated start scree
 2. Modify the visual representation of the 'black hole' entity to resemble a 'sun' by updating its sprites or styling.
 
 ---
+
+# Update - 20260422_1625
+
+## Raw User Feedback
+```
+게임이 길어요. 20초 정도면 더 재미있게 플레이할 수 있을 것 같아요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 보여줘.
+```
+
+## Gemini AI Plan
+Modify the game session duration to 20 seconds to improve gameplay pacing. 
+
+- @apps/client: Update the game timer logic and UI to start or countdown from 20 seconds, ensuring the game session terminates and transitions to the result screen when the time expires.
+- @apps/server: Adjust the game session management logic to validate or enforce a 20-second playtime limit for each session.
+
+---

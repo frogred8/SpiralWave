@@ -355,3 +355,16 @@ Modify the game duration to 20 seconds to enhance gameplay pacing. Update the ti
 Adjust the game session duration to 20 seconds. Update the timer logic in the game configuration to ensure rounds conclude after 20 seconds, and synchronize the countdown UI and any server-side session validation to reflect this new time limit.
 
 ---
+
+# Update - 20260422_1853
+
+## Raw User Feedback
+```
+게임이 길어요. 20초 정도면 더 재미있게 플레이할 수 있을 것 같아요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 보여줘.
+```
+
+## Gemini AI Plan
+Modify the gameplay duration logic to set the round time limit to 20 seconds. In @apps/client, update the timer UI and countdown state to reflect the new 20-second limit. In @apps/server, adjust the session validation and game state management to enforce the 20-second duration per round.
+
+---

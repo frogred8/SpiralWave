@@ -397,3 +397,16 @@ Adjust the game duration to 20 seconds to improve gameplay pacing.
 - @apps/server: Modify the game session validation and timeout logic to match the 20-second duration.
 
 ---
+
+# Update - 20260422_1937
+
+## Raw User Feedback
+```
+게임이 길어요. 20초 정도면 더 재미있게 플레이할 수 있을 것 같아요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 보여줘.
+```
+
+## Gemini AI Plan
+@apps/client @apps/server Adjust the game session duration to 20 seconds. Update the countdown timer and UI components in the client to reflect the new 20-second limit, and synchronize the game end logic on the server to terminate the session after 20 seconds.
+
+---

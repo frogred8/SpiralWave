@@ -38,6 +38,7 @@ export class UIManager {
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
+    private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
     
     private statsUpdateListener: (() => void) | null = null;
@@ -598,13 +599,23 @@ export class UIManager {
     }
 
     private createCoffeeBanner(x: number, y: number): Phaser.GameObjects.DOMElement {
+        this.destroyCoffeeBanner();
+
         const banner = this.scene.add.dom(x, y).createFromHTML(`
             <a href="https://www.buymeacoffee.com/frogred8" target="_blank" rel="noopener noreferrer" style="display:block;width:250px;background-size:0px 0px;">
                 <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=frogred8&button_colour=FF5F5F&font_colour=ffffff&font_family=Comic&outline_colour=000000&coffee_colour=FFDD00" style="display:block;width:100%;height:auto;border:0;"/>
             </a>
         `).setOrigin(0.5).setDepth(3001);
-        this.uiContainer.add(banner);
+        banner.setScrollFactor(0);
+        this.coffeeBannerElement = banner;
         return banner;
+    }
+
+    private destroyCoffeeBanner() {
+        if (this.coffeeBannerElement) {
+            this.coffeeBannerElement.destroy();
+            this.coffeeBannerElement = null;
+        }
     }
 
     private createRestartButton(x: number, y: number, overlay: any): Phaser.GameObjects.Container {
@@ -737,6 +748,7 @@ export class UIManager {
     public async refreshUIAfterLanguageChange() {
         this.hideTooltip();
         const currentSkillData = this.stats.skillTreeData;
+        this.destroyCoffeeBanner();
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
         if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
@@ -775,10 +787,15 @@ export class UIManager {
         this.uiContainer.iterate((child: any) => {
             if (child && child.depth >= minDepth) child.destroy();
         });
+
+        if (this.coffeeBannerElement && this.coffeeBannerElement.depth >= minDepth) {
+            this.destroyCoffeeBanner();
+        }
     }
 
     public destroy() {
         this.hideTooltip();
+        this.destroyCoffeeBanner();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);

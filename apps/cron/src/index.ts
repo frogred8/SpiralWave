@@ -62,7 +62,7 @@ await run();
 
 async function run() {
     const timestamp = convertDateFormat(new Date());
-    console.log('크론 작업 시작...');
+    console.log(`크론 작업 시작... (${timestamp})`);
 
     // 1. 데이터 API 호출
     console.log('[01] 데이터 API 호출');
@@ -89,8 +89,7 @@ async function run() {
 
     try {
         // 4. main 브랜치를 임시 폴더에 clone
-        console.log('[04] main 브랜치 임시 폴더 clone');
-        console.log(`임시 폴더에 클론 중: ${tempDir}`);
+        console.log(`[04] main 브랜치 임시 폴더 clone: ${tempDir}`);
         if (fs.existsSync(tempDir)) {
             fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -98,7 +97,6 @@ async function run() {
 
         // 5. main 브랜치에 rawData와 plan을 UPDATE.md 파일에 append
         console.log('[05] UPDATE.md 업데이트 및 main 브랜치 푸시');
-        console.log('UPDATE.md 업데이트 중');
         const updatePath = path.join(tempDir, 'UPDATE.md');
         const updateContent = `
 # Update - ${timestamp}
@@ -116,18 +114,15 @@ ${prompt.trim()}
         fs.appendFileSync(updatePath, updateContent);
         await execAsync(`git add UPDATE.md`, { cwd: tempDir });
         await execAsync(`git commit -m "docs: Update UPDATE.md with user feedback and AI plan [${timestamp}]"`, { cwd: tempDir });
-        console.log('main 브랜치에 UPDATE.md 푸시 중');
         await execAsync(`git push origin main`, { cwd: tempDir });
         await execAsync(`git fetch origin`, { cwd: tempDir });
         
         // 6. 날짜_시간 이름으로 브랜치를 생성
-        console.log('[06] 날짜_시간 브랜치 생성');
-        console.log(`브랜치 생성 중: ${branchName}`);
+        console.log(`[06] 날짜_시간 브랜치 생성: ${branchName}`);
         await execAsync(`git checkout -b ${branchName}`, { cwd: tempDir });
         
         // 7. rawData와 plan을 README.md에 저장
         console.log('[07] README.md 저장 및 커밋');
-        console.log('README.md 업데이트 중');
         const readmePath = path.join(tempDir, 'README.md');
         const readmeContent = `
 # Automatic Update - ${timestamp}
@@ -153,14 +148,11 @@ ${prompt}
         }
 
         // 9. 브랜치를 원격 저장소에 푸시
-        console.log('[09] 브랜치 원격 저장소 푸시');
-        console.log('원격 저장소에 푸시 중');
+        console.log(`[09] 브랜치 원격 저장소 푸시: ${branchName}`);
         await execAsync(`git push origin ${branchName}`, { cwd: tempDir });
-        console.log(`작업 완료 및 푸시 성공: ${branchName}`);
 
         // 10. deploy.sh 실행
         console.log('[10] deploy.sh 실행');
-        console.log('배포 스크립트 실행 중');
         await execAsync(`sh deploy.sh`, {
             cwd: "../../",
             env: { 

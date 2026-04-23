@@ -453,12 +453,15 @@ export class UIManager {
 
         this.createGameOverText(width);
         const leaderBoardContainer = await this.createLeaderboardUI(width, height);
-        const restartBtn = this.createRestartButton(width, height, overlay);
+        const actionY = height - 100;
+        const coffeeBanner = this.createCoffeeBanner(width / 2 - 145, actionY);
+        const restartBtn = this.createRestartButton(width / 2 + 145, actionY, overlay);
 
         leaderBoardContainer.setScale(0);
+        coffeeBanner.setScale(0);
         restartBtn.setScale(0);
         this.scene.tweens.add({
-            targets: [leaderBoardContainer, restartBtn],
+            targets: [leaderBoardContainer, coffeeBanner, restartBtn],
             scale: 1, duration: 500, ease: 'Back.easeOut', delay: 500
         });
     }
@@ -594,8 +597,18 @@ export class UIManager {
         }
     }
 
-    private createRestartButton(width: number, height: number, overlay: any): Phaser.GameObjects.Container {
-        const btn = this.scene.add.container(width / 2, height - 100).setDepth(3001);
+    private createCoffeeBanner(x: number, y: number): Phaser.GameObjects.DOMElement {
+        const banner = this.scene.add.dom(x, y).createFromHTML(`
+            <a href="https://www.buymeacoffee.com/frogred8" target="_blank" rel="noopener noreferrer" style="display:block;width:250px;background-size:0px 0px;">
+                <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=frogred8&button_colour=FF5F5F&font_colour=ffffff&font_family=Comic&outline_colour=000000&coffee_colour=FFDD00" style="display:block;width:100%;height:auto;border:0;"/>
+            </a>
+        `).setOrigin(0.5).setDepth(3001);
+        this.uiContainer.add(banner);
+        return banner;
+    }
+
+    private createRestartButton(x: number, y: number, overlay: any): Phaser.GameObjects.Container {
+        const btn = this.scene.add.container(x, y).setDepth(3001);
         const bg = this.scene.add.rectangle(0, 0, 250, 60, 0x222222, 0.9).setStrokeStyle(3, 0x444444).setInteractive({ useHandCursor: true });
         const txt = this.scene.add.text(0, 0, I18n.t('ui.restart'), { fontSize: '24px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
         btn.add([bg, txt]);

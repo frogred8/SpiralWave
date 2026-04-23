@@ -91,7 +91,7 @@ export class UIManager {
         
         if (this.stats.isBoosterTime) {
             this.timerText.setColor('#ffff00').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
-        } else if (remainingTime < 30) {
+        } else if (remainingTime <= INITIAL_STATS.TIME_LIMIT / 3) {
             this.timerText.setColor('#ff0000').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
         } else {
             this.timerText.setColor('#ffffff').setAlpha(1);

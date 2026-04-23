@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { SKILL_TREE_CONFIG } from '@shared/Constants';
+import type { SkillData } from '@shared/SkillData';
+
+type SkillPrerequisite = NonNullable<SkillData['prerequisites']>[number];
+type SkillWithPrerequisites = SkillData & { prerequisites: SkillPrerequisite[] };
 
 /**
  * 게임 전반에서 사용되는 유틸리티 함수들
@@ -9,7 +13,7 @@ export const Utils = {
     /**
      * 스킬 트리 데이터를 랜덤하게 배치하고 의존성을 설정합니다.
      */
-    generateRandomSkillTree(skillData: any[]): any[] {
+    generateRandomSkillTree(skillData: SkillData[]): SkillData[] {
         if (!skillData || skillData.length < SKILL_TREE_CONFIG.TOTAL_SKILLS) return skillData;
 
         // 1. 위치 풀 생성
@@ -21,10 +25,10 @@ export const Utils = {
         }
 
         // 2. 스킬 데이터 셔플 및 선택
-        const shuffledSkills = Phaser.Utils.Array.Shuffle([...skillData]).slice(0, SKILL_TREE_CONFIG.TOTAL_SKILLS);
+        const shuffledSkills = Phaser.Utils.Array.Shuffle([...skillData]).slice(0, SKILL_TREE_CONFIG.TOTAL_SKILLS) as SkillWithPrerequisites[];
 
         // 3. 스킬에 위치 할당 및 초기 Prerequisites 제거
-        shuffledSkills.forEach((skill: any, index: number) => {
+        shuffledSkills.forEach((skill, index) => {
             const pos = positions[index];
             skill.tree = pos.tree;
             skill.row = pos.row;
@@ -34,28 +38,28 @@ export const Utils = {
         // 4. 새로운 Prerequisites 생성 로직
         for (let r = 1; r < SKILL_TREE_CONFIG.ROWS; r++) {
             // 이 row에 있는 스킬들
-            const currentRows = shuffledSkills.filter((s: any) => s.row === r);
+            const currentRows = shuffledSkills.filter((s) => s.row === r);
             // 바로 위 row에 있는 스킬들
-            const upperRows = shuffledSkills.filter((s: any) => s.row === r - 1);
+            const upperRows = shuffledSkills.filter((s) => s.row === r - 1);
 
             // 해당 row에서 랜덤하게 하나 선택하여 추가 의존성(2개)을 부여할 대상 선정
             const multiPrereqIndex = Phaser.Math.Between(0, currentRows.length - 1);
 
-            currentRows.forEach((skill: any, index: number) => {
+            currentRows.forEach((skill, index) => {
                 // 기본 규칙: 자신의 바로 위 tree의 스킬을 선행 조건으로 포함
-                const directUpper = upperRows.find((s: any) => s.tree === skill.tree);
-                if (directUpper && !skill.prerequisites.some((p: any) => p.id === directUpper.id)) {
+                const directUpper = upperRows.find((s) => s.tree === skill.tree);
+                if (directUpper && !skill.prerequisites.some((p) => p.id === directUpper.id)) {
                     skill.prerequisites.push({ id: directUpper.id, level: 1 });
                 }
 
                 // 랜덤 규칙: row마다 하나는 이웃한 tree의 상위 스킬을 추가로 포함 (이웃: 인덱스 차이가 1)
                 if (index === multiPrereqIndex) {
-                    const otherUpper = upperRows.filter((s: any) =>
+                    const otherUpper = upperRows.filter((s) =>
                         Math.abs(s.tree - skill.tree) === 1 &&
-                        !skill.prerequisites.some((p: any) => p.id === s.id)
+                        !skill.prerequisites.some((p) => p.id === s.id)
                     );
                     if (otherUpper.length > 0) {
-                        const randomUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
+                        const randomUpper = Phaser.Utils.Array.GetRandom(otherUpper);
                         skill.prerequisites.push({ id: randomUpper.id, level: 1 });
                     }
                 }
@@ -63,20 +67,20 @@ export const Utils = {
 
             // 마지막 row인 경우, 추가로 이웃한 tree의 연결 하나 더 생성 (기존에 연결 가능한 대상이 있는지 확인)
             if (r === SKILL_TREE_CONFIG.ROWS - 1) {
-                const potentialSkills = currentRows.filter((skill: any) =>
-                    upperRows.some((up: any) =>
+                const potentialSkills = currentRows.filter((skill) =>
+                    upperRows.some((up) =>
                         Math.abs(up.tree - skill.tree) === 1 &&
-                        !skill.prerequisites.some((p: any) => p.id === up.id)
+                        !skill.prerequisites.some((p) => p.id === up.id)
                     )
                 );
 
                 if (potentialSkills.length > 0) {
-                    const randomSkill = Phaser.Utils.Array.GetRandom(potentialSkills) as any;
-                    const otherUpper = upperRows.filter((s: any) =>
+                    const randomSkill = Phaser.Utils.Array.GetRandom(potentialSkills);
+                    const otherUpper = upperRows.filter((s) =>
                         Math.abs(s.tree - randomSkill.tree) === 1 &&
-                        !randomSkill.prerequisites.some((p: any) => p.id === s.id)
+                        !randomSkill.prerequisites.some((p) => p.id === s.id)
                     );
-                    const extraUpper = Phaser.Utils.Array.GetRandom(otherUpper) as any;
+                    const extraUpper = Phaser.Utils.Array.GetRandom(otherUpper);
                     if (extraUpper) {
                         randomSkill.prerequisites.push({ id: extraUpper.id, level: 1 });
                     }
@@ -218,7 +222,8 @@ export const Utils = {
         }
     },
 
-    getEmojiByCountryCode(countryCode: string): string {
+    getEmojiByCountryCode(countryCode?: string | null): string {
+        if (typeof countryCode !== 'string') return '🌐';
         const cleanCode = countryCode.toUpperCase().trim();
         if (!/^[A-Z]{2}$/.test(cleanCode)) return '🌐';
         const codePoints: number[] = cleanCode

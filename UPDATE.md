@@ -436,3 +436,20 @@ Adjust the game duration to 20 seconds to improve gameplay pacing.
 Modify the game duration logic to set the total play time to 20 seconds. Update the initial timer value and relevant game-end conditions in @apps/client and @apps/server to ensure the game session concludes after 20 seconds.
 
 ---
+
+# Update - 20260423_1413
+
+## User Feedback
+```
+게임이 짧아요. 제한 시간을 30초로 변경하면 더 재미있게 플레이할 수 있을 것 같아요.
+현재 어떤 AI 모델을 쓰는지 게임 플레이 화면 상단에 보여줘.
+在游戏屏幕顶部显示当前正在使用的AI模型。
+리눅스 CLI 버전도 만들어주세요. CLI 버전에서는 게임 플레이 화면을 텍스트로 보여주고, 키보드 입력으로 조작할 수 있게 해주세요.
+```
+
+## Gemini AI Plan
+Update the game time limit to 30 seconds to extend gameplay duration.
+- @apps/client: Update the timer constant and UI countdown logic to reflect the new 30-second limit.
+- @apps/server: Adjust the game session validation logic and timeout settings to synchronize with the 30-second duration.
+
+---

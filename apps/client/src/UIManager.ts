@@ -193,12 +193,12 @@ export class UIManager {
             .setOrigin(0).setInteractive().setDepth(2000);
         this.uiContainer.add(overlay);
 
-        const titleY = Math.max(60, height / 2 - 250);
+        const titleY = Math.max(60, height / 2 - 280);
         const title = this.scene.add.text(width / 2, titleY, I18n.t('ui.choose_starting_skill'), {
             fontSize: '32px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 6
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
-        this.createGameTips(width, titleY + 70);
+        this.createGameTips(width, titleY + 100);
 
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {
@@ -215,7 +215,7 @@ export class UIManager {
 
         selectedSkills.forEach((skill, index) => {
             const x = width / 2 + (index === 0 ? -180 : 180);
-            const y = height / 2 + 40;
+            const y = height / 2 + 60;
             this.createSkillCard(x, y, skill, overlay, title);
         });
     }
@@ -223,13 +223,13 @@ export class UIManager {
     private createGameTips(width: number, y: number) {
         const panelWidth = Math.min(620, width - 40);
         const tipsContainer = this.scene.add.container(width / 2, y).setDepth(2001);
-        const bg = this.scene.add.rectangle(0, 0, panelWidth, 72, 0x111111, 0.72)
+        const bg = this.scene.add.rectangle(0, 0, panelWidth, 115, 0x111111, 0.72)
             .setStrokeStyle(1, 0x444444);
-        const title = this.scene.add.text(0, -18, I18n.t('ui.game_tips_title'), {
-            fontSize: '17px', color: '#00ff00', fontStyle: 'bold', align: 'center'
+        const title = this.scene.add.text(0, -34, I18n.t('ui.game_tips_title'), {
+            fontSize: '18px', color: '#00ff00', fontStyle: 'bold', align: 'center'
         }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
         const body = this.scene.add.text(0, 15, I18n.t('ui.game_tips_body'), {
-            fontSize: '14px', color: '#dddddd', align: 'center', lineSpacing: 4, wordWrap: { width: panelWidth - 50 }
+            fontSize: '16px', color: '#dddddd', align: 'left', lineSpacing: 4, wordWrap: { width: panelWidth - 50 }
         }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
 
         tipsContainer.add([bg, title, body]);

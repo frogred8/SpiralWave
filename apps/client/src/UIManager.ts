@@ -237,7 +237,7 @@ export class UIManager {
     }
 
     private createRerollButton(width: number, height: number, skillData: any[], currentSelectionIds: string[]) {
-        const rerollBtn = this.scene.add.container(width / 2, height / 2 + 250).setDepth(2001);
+        const rerollBtn = this.scene.add.container(width / 2, height / 2 + 300).setDepth(2001);
         const rerollBg = this.scene.add.rectangle(0, 0, 160, 45, 0x333333, 0.9)
             .setStrokeStyle(2, 0x00ff00)
             .setInteractive({ useHandCursor: true });

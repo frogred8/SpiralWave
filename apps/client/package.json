@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "start": "vite preview --host 0.0.0.0 --port ${CLIENT_PORT:-3000}",
+    "start": "echo \"Client assets are served by @repo/server in release mode.\"",
     "preview": "vite preview",
     "clean": "rm -rf dist"
   },

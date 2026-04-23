@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "release": "npm run build && npm run release --workspace @repo/server",
     "db": "turbo run db",
     "start": "turbo run start",
     "cron": "turbo run cron"

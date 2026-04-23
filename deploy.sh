@@ -32,7 +32,7 @@ ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVE
     docker pull ${FULL_IMAGE}
     
     # 컨테이너 이름으로 OCI_REPO 변수 직접 활용
-    docker run -d --name ${OCI_REPO} -p 3300:3000 -p 3001:3001 --restart always ${FULL_IMAGE}
+    docker run -d --name ${OCI_REPO} -p 3300:3000 --restart always ${FULL_IMAGE}
 
     docker image prune -f
     echo "✅ Deployment successful!"

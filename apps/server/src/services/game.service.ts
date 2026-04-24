@@ -112,6 +112,11 @@ async function updateCache() {
   cache.isInvalid = false;
 }
 
+function invalidateLeaderboardCache() {
+  cache.isInvalid = true;
+  cache.minScore = 0;
+}
+
 export const GameService = {
   async startGame(selectSkillId: number, ip: string) {
     // Generate UUID using custom function
@@ -169,5 +174,21 @@ export const GameService = {
       await updateCache();
     }
     return cache.data || { ranks: [] };
+  },
+
+  async resetLeaderboard(seqIds?: number[], all = false) {
+    try {
+      const query = db('wish');
+      const deletedCount = all
+        ? await query.del()
+        : await query.whereIn('seq_id', seqIds || []).del();
+
+      invalidateLeaderboardCache();
+
+      return { status: 'ok' as const, deleted_count: deletedCount };
+    } catch (err) {
+      console.error('Failed to reset leaderboard', err);
+      throw new Error('Database error');
+    }
   }
 };

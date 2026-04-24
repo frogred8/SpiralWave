@@ -50,6 +50,7 @@ fastify.get('/health', async (request, reply) => {
 fastify.post('/start', GameController.handleStart);
 fastify.post('/end', GameController.handleEnd);
 fastify.get('/leaderboard', GameController.handleGetLeaderboard);
+fastify.post('/leaderboard/reset', GameController.handleResetLeaderboard);
 
 // Metrics API
 fastify.get('/api/metrics', async (request, reply) => {

@@ -31,3 +31,14 @@ export interface RankEntry {
 export interface LeaderboardResponse {
     ranks: RankEntry[];
 }
+
+// POST /leaderboard/reset
+export interface LeaderboardResetRequest {
+    all?: boolean;
+    seq_ids?: number[];
+}
+
+export interface LeaderboardResetResponse {
+    status: 'ok';
+    deleted_count: number;
+}

@@ -455,7 +455,7 @@ export class UIManager {
         this.createGameOverText(width);
         const leaderBoardContainer = await this.createLeaderboardUI(width, height);
         const actionY = height - 100;
-        const coffeeBanner = this.createCoffeeBanner(width / 2 - 145, actionY);
+        const coffeeBanner = this.createCoffeeBanner(width / 2 - 145, actionY - 30);
         const restartBtn = this.createRestartButton(width / 2 + 145, actionY, overlay);
 
         leaderBoardContainer.setScale(0);
@@ -620,13 +620,19 @@ export class UIManager {
 
     private createRestartButton(x: number, y: number, overlay: any): Phaser.GameObjects.Container {
         const btn = this.scene.add.container(x, y).setDepth(3001);
-        const bg = this.scene.add.rectangle(0, 0, 250, 60, 0x222222, 0.9).setStrokeStyle(3, 0x444444).setInteractive({ useHandCursor: true });
-        const txt = this.scene.add.text(0, 0, I18n.t('ui.restart'), { fontSize: '24px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        const bg = this.scene.add.rectangle(0, 0, 250, 60, 0x222222, 0.9).setStrokeStyle(3, 0x00aa00).setInteractive({ useHandCursor: true });
+        const txt = this.scene.add.text(0, 0, I18n.t('ui.restart'), { fontSize: '24px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(0.5);
         btn.add([bg, txt]);
         this.uiContainer.add(btn);
 
-        bg.on('pointerover', () => bg.setStrokeStyle(4, 0x00ff00));
-        bg.on('pointerout', () => bg.setStrokeStyle(3, 0x444444));
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(4, 0x00ff00);
+            bg.setFillStyle(0x444444);
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(3, 0x00aa00);
+            bg.setFillStyle(0x222222);
+        });
         bg.on('pointerdown', () => {
             SoundManager.getInstance().play('restart');
             this.callbacks.onRestartGame(true);

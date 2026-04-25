@@ -10,7 +10,7 @@ function isValidSeqIdList(seqIds: unknown): seqIds is number[] {
 }
 
 function isValidResetSecret(secretKey: unknown) {
-  const configuredSecretKey = process.env.LEADERBOARD_RESET_SECRET_KEY;
+  const configuredSecretKey = process.env.OCI_SERVER_SECRET_KEY;
   if (!configuredSecretKey || typeof secretKey !== 'string') {
     return false;
   }

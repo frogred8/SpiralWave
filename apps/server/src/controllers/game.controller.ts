@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { GameService } from '../services/game.service';
 import type { StartRequest, EndRequest, LeaderboardResetRequest } from '@repo/shared';
@@ -6,6 +7,17 @@ function isValidSeqIdList(seqIds: unknown): seqIds is number[] {
   return Array.isArray(seqIds)
     && seqIds.length > 0
     && seqIds.every((seqId) => Number.isInteger(seqId) && seqId > 0);
+}
+
+function isValidResetSecret(secretKey: unknown) {
+  const configuredSecretKey = process.env.LEADERBOARD_RESET_SECRET_KEY;
+  if (!configuredSecretKey || typeof secretKey !== 'string') {
+    return false;
+  }
+
+  const provided = Buffer.from(secretKey);
+  const configured = Buffer.from(configuredSecretKey);
+  return provided.length === configured.length && timingSafeEqual(provided, configured);
 }
 
 export const GameController = {
@@ -30,6 +42,10 @@ export const GameController = {
     const body = request.body as LeaderboardResetRequest | undefined;
     const all = body?.all === true;
     const hasSeqIds = body?.seq_ids !== undefined;
+
+    if (!isValidResetSecret(body?.secret_key)) {
+      return reply.code(401).send({ status: 'error', message: 'Invalid secret_key' });
+    }
 
     if (all && hasSeqIds) {
       return reply.code(400).send({ status: 'error', message: 'Use either all=true or seq_ids, not both' });

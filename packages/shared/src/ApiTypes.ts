@@ -34,6 +34,7 @@ export interface LeaderboardResponse {
 
 // POST /leaderboard/reset
 export interface LeaderboardResetRequest {
+    secret_key: string;
     all?: boolean;
     seq_ids?: number[];
 }

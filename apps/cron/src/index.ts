@@ -161,6 +161,24 @@ ${prompt}
             }
         });
 
+        // 11. SERVER_URL로 reset API 호출하여 데이터 리셋
+        console.log('[11] SERVER_URL로 reset API 호출');
+        const res = await fetch(`${SERVER_URL}/leaderboard/reset`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                secret_key: process.env.OCI_SERVER_SECRET_KEY,
+                all: true
+            })
+        });
+        if (res.ok) {
+            console.log('데이터 리셋 성공');
+        } else {
+            console.error('데이터 리셋 실패:', res.status, res.statusText);
+        }
+
+        console.log('크론 작업 완료');
+
     } catch (error) {
         console.error('작업 중 오류 발생:', error);
     } finally {

@@ -60,7 +60,7 @@ export class SkillTreeUI {
             const nameTxt = this.scene.add.text(0, -10, skillName, { fontSize: '14px', fontStyle: 'bold' })
                 .setOrigin(0.5)
                 .setPadding({ top: 2, bottom: 2 });
-            this.adjustFontSize(nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
+            Utils.adjustFontSize(nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
 
             const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { 
                 fontSize: '14px', 
@@ -257,7 +257,7 @@ export class SkillTreeUI {
             // 언어 변경 등으로 이름이 바뀌었을 수 있으므로 갱신
             const skillName = I18n.t(`skill.${skill.id}.name`);
             data.nameTxt.setText(skillName);
-            this.adjustFontSize(data.nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
+            Utils.adjustFontSize(data.nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
             
             const lv = this.gameStats.skillLevels[skill.id];
             const isUnlocked = this.isSkillUnlocked(skill);
@@ -422,16 +422,6 @@ export class SkillTreeUI {
             yoyo: true,
             ease: 'Sine.easeInOut'
         });
-    }
-
-    private adjustFontSize(textObj: Phaser.GameObjects.Text, maxWidth: number) {
-        let fontSize = 14;
-        textObj.setFontSize(`${fontSize}px`);
-        
-        while (textObj.width > maxWidth && fontSize > 8) {
-            fontSize--;
-            textObj.setFontSize(`${fontSize}px`);
-        }
     }
 
     private getDynamicDescription(skill: SkillData, level: number): string {

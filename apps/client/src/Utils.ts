@@ -104,6 +104,16 @@ export const Utils = {
         return Phaser.Math.Angle.Between(x1, y1, x2, y2);
     },
 
+    adjustFontSize(textObj: Phaser.GameObjects.Text, maxWidth: number, minFontSize = 8, maxFontSize = 14) {
+        let fontSize = maxFontSize;
+        textObj.setFontSize(`${fontSize}px`);
+
+        while (textObj.width > maxWidth && fontSize > minFontSize) {
+            fontSize--;
+            textObj.setFontSize(`${fontSize}px`);
+        }
+    },
+
     /**
      * 화면 가장자리(Top, Right, Bottom, Left) 중 한 곳의 무작위 좌표를 반환합니다.
      */

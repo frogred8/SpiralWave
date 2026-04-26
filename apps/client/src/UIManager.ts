@@ -5,6 +5,7 @@ import { INITIAL_STATS, RESOURCE_CONFIG } from '@shared/Constants';
 import { DeploymentEntry, RankEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
+import { Utils } from './Utils';
 
 export interface UIState {
     overlay: 'initialSkill' | 'inputForm' | 'gameOver' | null;
@@ -394,8 +395,9 @@ export class UIManager {
             fontSize: '18px', color: '#00ff00', fontStyle: 'bold', align: 'center'
         }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
         const body = this.scene.add.text(0, 15, I18n.t('ui.game_tips_body'), {
-            fontSize: '16px', color: '#dddddd', align: 'left', lineSpacing: 4, wordWrap: { width: panelWidth - 50 }
+            fontSize: '16px', color: '#dddddd', align: 'left', lineSpacing: 4
         }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+        Utils.adjustFontSize(body, panelWidth - 50, 8, 16);
 
         tipsContainer.add([bg, title, body]);
         this.uiContainer.add(tipsContainer);

@@ -41,11 +41,11 @@ export class UIManager {
     private soundBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
-    private deploymentsElement: Phaser.GameObjects.DOMElement | null = null;
+    private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
-    
+
     private statsUpdateListener: (() => void) | null = null;
-    
+
     private isLanguageMenuOpen: boolean = false;
     public currentUIState: UIState = { overlay: null };
     private tooltipContainer: Phaser.GameObjects.Container | null = null;
@@ -92,7 +92,7 @@ export class UIManager {
         this.timerText.setVisible(isGameStarted);
         this.timerText.setText(this.stats.getFormattedRemainingTime());
         const remainingTime = this.stats.getRemainingTime();
-        
+
         if (this.stats.isBoosterTime) {
             this.timerText.setColor('#ffff00').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
         } else if (remainingTime < 30) {
@@ -109,7 +109,7 @@ export class UIManager {
     public createStatsPanel() {
         const panelX = 50, panelY = 15, panelWidth = 380, panelHeight = 65; // Height increased for fever bar
         this.statsContainer = this.scene.add.container(panelX, panelY).setScrollFactor(0);
-        
+
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95).setStrokeStyle(2, 0x444444).setOrigin(0);
         const iconStyle = { fontSize: '20px' };
         const valueStyle = { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' };
@@ -119,7 +119,7 @@ export class UIManager {
         const woodValue = this.scene.add.text(45, 25, '0', valueStyle).setOrigin(0, 0.5);
         const rockIcon = this.scene.add.text(105, 25, RESOURCE_CONFIG.ICONS.rock, iconStyle).setOrigin(0, 0.5);
         const rockValue = this.scene.add.text(135, 25, '0', valueStyle).setOrigin(0, 0.5);
-        
+
         //const totalText = this.scene.add.text(195, 10, `${I18n.t('stats.total')}: 0`, totalStyle).setPadding({ top: 2, bottom: 2 });
         const totalText = this.scene.add.text(195, 10, '', { fontSize: '13px', color: '#aaaaaa', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
         const gameStatsText = this.scene.add.text(300, 10, '', { fontSize: '13px', color: '#00ff00', lineSpacing: 4 }).setPadding({ top: 2, bottom: 2 });
@@ -162,7 +162,7 @@ export class UIManager {
 
     public showFloatingText(x: number, y: number, text: string, color: string, isInWorld: boolean = false, fontSize: string = '14px', worldContainer: Phaser.GameObjects.Container) {
         const ft = this.scene.add.text(x, y, text, { fontSize, color, fontStyle: 'bold' }).setDepth(100);
-        
+
         if (isInWorld) {
             worldContainer.add(ft);
         } else {
@@ -186,11 +186,11 @@ export class UIManager {
         this.currentUIState.excludeSkillIds = excludeSkillIds;
         this.currentUIState.isRestarted = isRestarted;
         this.currentUIState.canReroll = canReroll;
-        
+
         if (preservedSkills) {
             this.currentUIState.selectedInitialSkills = preservedSkills;
         }
-        
+
         const { width, height } = this.scene.scale;
 
         const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.8)
@@ -211,7 +211,7 @@ export class UIManager {
             selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
             this.currentUIState.selectedInitialSkills = selectedSkills;
         }
-        
+
         const currentSelectionIds = selectedSkills.map(s => s.id);
 
         if (isRestarted && canReroll) {
@@ -240,64 +240,97 @@ export class UIManager {
 
         if (visibleDeployments.length === 0) return;
 
-        const panelWidth = Math.min(420, width - 40);
-        const x = Math.max(20 + panelWidth / 2, width - panelWidth / 2 - 20);
-        const y = Math.min(height - 150, Math.max(130, height / 2 - 120));
+        const panelWidth = Math.min(340, Math.max(260, width * 0.28));
+        const panelX = Math.max(20, width - panelWidth - 24);
+        const panelY = Math.min(Math.max(120, height / 2 - 185), Math.max(120, height - 390));
 
-        this.deploymentsElement = this.scene.add.dom(x, y)
-            .createFromHTML(this.getDeploymentsPanelHtml(visibleDeployments, panelWidth))
-            .setOrigin(0.5, 0)
-            .setDepth(2002);
+        this.deploymentsElement = this.scene.add.container(panelX, panelY).setDepth(2002);
         this.deploymentsElement.setScrollFactor(0);
+        this.buildDeploymentsPanel(this.deploymentsElement, visibleDeployments, panelWidth);
         this.uiContainer.add(this.deploymentsElement);
     }
 
-    private getDeploymentsPanelHtml(deployments: DeploymentEntry[], width: number) {
-        const items = deployments.map((deployment) => {
-            const releaseNote = this.escapeHtml(deployment.release_note || '').replace(/\n/g, '<br>');
-            const releasedAt = this.formatReleasedAt(deployment.released_at);
-            return `
-                <details style="border-top:1px solid #3a3a3a;padding:9px 0;">
-                    <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-                        <span style="min-width:0;">
-                            <strong style="display:block;color:#ffffff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escapeHtml(deployment.title)}</strong>
-                            <span style="display:block;color:#9ca3af;font-size:11px;margin-top:2px;">${this.escapeHtml(releasedAt)}</span>
-                        </span>
-                        <a href="${this.escapeAttribute(deployment.url)}" target="_blank" rel="noopener noreferrer" style="flex:0 0 auto;color:#101010;background:#22c55e;text-decoration:none;font-size:12px;font-weight:700;padding:6px 9px;border-radius:4px;">${I18n.t('ui.open_build')}</a>
-                    </summary>
-                    <div style="margin-top:8px;color:#d1d5db;font-size:12px;line-height:1.45;max-height:80px;overflow:auto;">${releaseNote || I18n.t('ui.no_release_note')}</div>
-                </details>
-            `;
-        }).join('');
+    private buildDeploymentsPanel(container: Phaser.GameObjects.Container, deployments: DeploymentEntry[], panelWidth: number) {
+        const headerHeight = 44;
+        const itemHeight = 82;
+        const panelHeight = headerHeight + deployments.length * itemHeight + 16;
 
-        return `
-            <div style="width:${width}px;box-sizing:border-box;background:rgba(18,18,18,0.88);border:1px solid #444;border-radius:6px;padding:12px 14px;font-family:Arial,sans-serif;pointer-events:auto;box-shadow:0 10px 24px rgba(0,0,0,0.35);">
-                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px;">
-                    <div style="color:#22c55e;font-size:15px;font-weight:700;">${I18n.t('ui.preview_builds')}</div>
-                    <div style="color:#9ca3af;font-size:11px;">${I18n.t('ui.release_notes')}</div>
-                </div>
-                ${items}
-            </div>
-        `;
+        const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x121212, 0.9)
+            .setOrigin(0)
+            .setStrokeStyle(1, 0x444444);
+        const title = this.scene.add.text(14, 12, I18n.t('ui.preview_builds'), {
+            fontSize: '15px',
+            color: '#22c55e',
+            fontStyle: 'bold'
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+        const subtitle = this.scene.add.text(panelWidth - 14, 14, I18n.t('ui.release_notes'), {
+            fontSize: '11px',
+            color: '#9ca3af'
+        }).setOrigin(1, 0).setPadding({ top: 2, bottom: 2 });
+
+        container.add([bg, title, subtitle]);
+
+        deployments.forEach((deployment, index) => {
+            this.addDeploymentEntry(container, deployment, panelWidth, headerHeight + index * itemHeight);
+        });
+    }
+
+    private addDeploymentEntry(container: Phaser.GameObjects.Container, deployment: DeploymentEntry, panelWidth: number, y: number) {
+        const divider = this.scene.add.rectangle(12, y, panelWidth - 24, 1, 0x3a3a3a, 1).setOrigin(0);
+        const title = this.scene.add.text(14, y + 10, deployment.title, {
+            fontSize: '13px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            wordWrap: { width: panelWidth - 110 }
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+        const releasedAt = this.scene.add.text(14, y + 32, this.formatReleasedAt(deployment.released_at), {
+            fontSize: '11px',
+            color: '#9ca3af'
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+        const note = this.scene.add.text(14, y + 52, this.getReleaseNotePreview(deployment.release_note), {
+            fontSize: '11px',
+            color: '#d1d5db',
+            lineSpacing: 2,
+            wordWrap: { width: panelWidth - 28 }
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+
+        const openButton = this.scene.add.container(panelWidth - 58, y + 22);
+        const openBg = this.scene.add.rectangle(0, 0, 72, 26, 0x22c55e, 1)
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true });
+        const openText = this.scene.add.text(0, 0, I18n.t('ui.open_build'), {
+            fontSize: '12px',
+            color: '#101010',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+
+        openButton.add([openBg, openText]);
+        openBg.on('pointerover', () => openBg.setFillStyle(0x4ade80));
+        openBg.on('pointerout', () => openBg.setFillStyle(0x22c55e));
+        openBg.on('pointerdown', () => {
+            window.open(deployment.url, '_blank', 'noopener,noreferrer');
+        });
+
+        if (deployment.release_note) {
+            note.setInteractive({ useHandCursor: true });
+            note.on('pointerover', (pointer: Phaser.Input.Pointer) => this.showTooltip(pointer.x, pointer.y, deployment.release_note || ''));
+            note.on('pointerout', () => this.hideTooltip());
+        }
+
+        container.add([divider, title, releasedAt, note, openButton]);
+    }
+
+    private getReleaseNotePreview(releaseNote?: string) {
+        if (!releaseNote) return I18n.t('ui.no_release_note');
+
+        const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
+        return lines.slice(0, 2).join('\n');
     }
 
     private formatReleasedAt(value: string) {
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return value;
         return date.toLocaleString();
-    }
-
-    private escapeHtml(value: string) {
-        return value
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    private escapeAttribute(value: string) {
-        return this.escapeHtml(value).replace(/`/g, '&#96;');
     }
 
     private createGameTips(width: number, y: number) {
@@ -342,7 +375,7 @@ export class UIManager {
         const bg = this.scene.add.rectangle(0, 0, 280, 320, 0x1a1a1a, 0.95)
             .setStrokeStyle(3, 0x444444)
             .setInteractive({ useHandCursor: true });
-        
+
         const skillName = I18n.t(`skill.${skill.id}.name`) || skill.id;
         const nameText = this.scene.add.text(0, -100, skillName, {
             fontSize: '24px', color: '#00ff00', fontStyle: 'bold', align: 'center', wordWrap: { width: 240 }
@@ -378,11 +411,11 @@ export class UIManager {
         const soundManager = SoundManager.getInstance();
         soundManager.initializeSounds();
         soundManager.play('skillupgrade');
-        
+
         const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
         this.callbacks.onSendStartSignal(skillIndex);
         this.callbacks.onStartGame();
-        
+
         this.scene.tweens.add({
             targets: [overlay, title, btn],
             alpha: 0,
@@ -393,7 +426,7 @@ export class UIManager {
                 this.clearUIByDepth(2000);
             }
         });
-        
+
         this.uiContainer.iterate((child: any) => {
             if (child && child.depth >= 2001 && child !== btn) {
                 this.scene.tweens.add({ targets: child, alpha: 0, duration: 300 });
@@ -404,7 +437,7 @@ export class UIManager {
     public showInputForm() {
         this.currentUIState.overlay = 'inputForm';
         const { width, height } = this.scene.scale;
-        
+
         const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(4000);
         this.uiContainer.add(overlay);
 
@@ -489,7 +522,7 @@ export class UIManager {
 
     private createFormButtons(closeCallback: () => void): Phaser.GameObjects.Container {
         const group = this.scene.add.container(0, 155);
-        
+
         const submitBtn = this.scene.add.container(-75, 0);
         const submitBg = this.scene.add.rectangle(0, 0, 140, 50, 0x00ff00, 1).setInteractive({ useHandCursor: true });
         const submitTxt = this.scene.add.text(0, 0, I18n.t('ui.submit'), { fontSize: '18px', color: '#000000', fontStyle: 'bold' }).setOrigin(0.5);
@@ -524,10 +557,10 @@ export class UIManager {
     public async showGameOverScreen() {
         this.currentUIState.overlay = 'gameOver';
         const { width, height } = this.scene.scale;
-        
+
         SoundManager.getInstance().play('winning');
         this.timerText.setAlpha(1);
-        
+
         const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(3000);
         this.uiContainer.add(overlay);
 
@@ -550,11 +583,11 @@ export class UIManager {
         const title = this.scene.add.text(width / 2, 80, I18n.t('ui.game_over'), {
             fontSize: '56px', color: '#ff0000', fontStyle: 'bold', stroke: '#000000', strokeThickness: 8
         }).setOrigin(0.5).setDepth(3001);
-        
+
         const resourceInfo = this.scene.add.text(width / 2, 160, `${I18n.t('ui.total_resources')}: ${this.stats.totalAll}`, {
             fontSize: '28px', color: '#ffffff', align: 'center', fontStyle: 'bold'
         }).setOrigin(0.5).setDepth(3001);
-        
+
         this.uiContainer.add([title, resourceInfo]);
     }
 
@@ -581,7 +614,7 @@ export class UIManager {
             ranks = this.currentUIState.leaderBoardRanks || [];
         }
         this.currentUIState.leaderBoardRanks = ranks;
-        
+
         const displayRanks = ranks.slice(0, 10);
         if (displayRanks.length === 0) {
             container.add(this.scene.add.text(0, 0, I18n.t('ui.no_rankings'), { fontSize: '18px', color: '#888888' }).setOrigin(0.5));
@@ -596,7 +629,7 @@ export class UIManager {
         const score = this.scene.add.text(-225, y, rank.score.toLocaleString(), { fontSize: '18px', color: '#00ff00', fontStyle: 'bold' }).setOrigin(1, 0.5).setPadding({ top: 4, bottom: 4 });
         const emoji = this.scene.add.text(-215, y, rank.emoji || '🌐', { fontSize: '18px' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         const name = this.scene.add.text(-185, y, rank.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
-        
+
         const msgMaxWidth = 300;
         const msg = this.scene.add.text(-20, y, rank.msg, { fontSize: '16px', color: '#aaaaaa' }).setOrigin(0, 0.5).setPadding({ top: 4, bottom: 4 });
         if (msg.width > msgMaxWidth || rank.msg.indexOf("\n") >= 0) {
@@ -609,7 +642,7 @@ export class UIManager {
         container.add([score, emoji, name, msg]);
     }
 
-    private truncateStringByTextWidth(str: string, maxWidth: number, text:Phaser.GameObjects.Text) {
+    private truncateStringByTextWidth(str: string, maxWidth: number, text: Phaser.GameObjects.Text) {
         let low = 0;
         let high = str.indexOf("\n");
         if (high < 0) high = str.length;
@@ -629,7 +662,7 @@ export class UIManager {
 
     private showTooltip(x: number, y: number, text: string, side: 'top' | 'left' = 'top') {
         this.hideTooltip();
-        
+
         const tooltipText = this.scene.add.text(0, 0, text, {
             fontSize: '14px',
             color: '#ffffff',
@@ -649,7 +682,7 @@ export class UIManager {
         this.tooltipContainer = this.scene.add.container(x, y);
         this.tooltipContainer.add([bg, tooltipText]);
         this.tooltipContainer.setDepth(20000);
-        
+
         if (side === 'left') {
             this.tooltipContainer.x = x - halfWidth - 15;
             this.tooltipContainer.y = y;
@@ -754,7 +787,7 @@ export class UIManager {
         const mainBg = this.scene.add.rectangle(0, 0, btnWidth, btnHeight, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
         const mainText = this.scene.add.text(btnWidth / 2 - 5, btnHeight / 2, currentLang.label, { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
         const arrow = this.scene.add.text(btnWidth - 15, btnHeight / 2, this.isLanguageMenuOpen ? '▲' : '▼', { fontSize: '10px', color: '#aaaaaa' }).setOrigin(0.5);
-        
+
         this.langSelectorContainer.add([mainBg, mainText, arrow]);
         this.langSelectorContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, btnWidth, btnHeight), Phaser.Geom.Rectangle.Contains);
         this.topUiContainer.add(this.langSelectorContainer);
@@ -788,7 +821,7 @@ export class UIManager {
 
         item.add([itemBg, itemText]);
         item.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
-        
+
         item.on('pointerdown', () => {
             if (I18n.getLanguage() !== lang.code) {
                 I18n.setLanguage(lang.code as any);
@@ -812,7 +845,7 @@ export class UIManager {
         const soundBg = this.scene.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
         const getSoundLabel = () => SoundManager.getInstance().isMuted() ? "🔇 OFF" : "🔊 ON";
         const soundText = this.scene.add.text(width / 2, height / 2, getSoundLabel(), { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
-        
+
         this.soundBtnContainer.add([soundBg, soundText]);
         this.soundBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
         this.topUiContainer.add(this.soundBtnContainer);
@@ -838,14 +871,14 @@ export class UIManager {
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
         if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
-        
+
         // UI 컴포넌트 재구성
         this.setupMainUI();
         await this.setupSkillTree(currentSkillData);
-        
+
         // 오버레이 상태 복구 (다국어 변경 시에도 오버레이 유지)
         this.restoreUIState();
-        
+
         // Scene에 리프레시 알림 (리사이즈나 카메라 설정 등)
         this.callbacks.onRefreshUI();
     }

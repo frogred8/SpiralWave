@@ -202,6 +202,7 @@ export class UIManager {
             fontSize: '32px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 6
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
+        this.createCurrentVersionLabel(width, titleY - 32);
         this.createGameTips(width, titleY + 100);
         void this.createDeploymentsPanel(width, height);
 
@@ -250,6 +251,38 @@ export class UIManager {
         this.uiContainer.add(this.deploymentsElement);
     }
 
+    private createCurrentVersionLabel(width: number, y: number) {
+        const label = `${I18n.t('ui.current_version')}: ${this.getCurrentVersionLabel()}`;
+        const text = this.scene.add.text(width / 2, Math.max(20, y), label, {
+            fontSize: '14px',
+            color: '#9ca3af',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setDepth(2001).setPadding({ top: 2, bottom: 2 });
+        this.uiContainer.add(text);
+    }
+
+    private getCurrentBranch() {
+        return (import.meta.env.VITE_BUILD_BRANCH || 'local').trim();
+    }
+
+    private getCurrentVersionLabel() {
+        const branch = this.getCurrentBranch();
+        return branch === 'main' ? 'stable' : branch;
+    }
+
+    private isCurrentDeployment(deployment: DeploymentEntry) {
+        const branch = this.getCurrentBranch();
+        const version = this.getCurrentVersionLabel();
+
+        if (branch === 'main') {
+            return deployment.branch === 'main' || deployment.type === 'stable' || deployment.id === 'stable';
+        }
+
+        return deployment.branch === branch || deployment.id === version;
+    }
+
     private buildDeploymentsPanel(container: Phaser.GameObjects.Container, deployments: DeploymentEntry[], panelWidth: number) {
         const headerHeight = 44;
         const itemHeight = 82;
@@ -276,10 +309,16 @@ export class UIManager {
     }
 
     private addDeploymentEntry(container: Phaser.GameObjects.Container, deployment: DeploymentEntry, panelWidth: number, y: number) {
+        const isCurrent = this.isCurrentDeployment(deployment);
         const divider = this.scene.add.rectangle(12, y, panelWidth - 24, 1, 0x3a3a3a, 1).setOrigin(0);
+        const selectedBg = isCurrent
+            ? this.scene.add.rectangle(8, y + 7, panelWidth - 16, 68, 0x12331f, 0.72)
+                .setOrigin(0)
+                .setStrokeStyle(1, 0x22c55e)
+            : null;
         const title = this.scene.add.text(14, y + 10, deployment.title, {
             fontSize: '13px',
-            color: '#ffffff',
+            color: isCurrent ? '#bbf7d0' : '#ffffff',
             fontStyle: 'bold',
             wordWrap: { width: panelWidth - 110 }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
@@ -294,22 +333,35 @@ export class UIManager {
             wordWrap: { width: panelWidth - 28 }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
 
-        const openButton = this.scene.add.container(panelWidth - 58, y + 22);
-        const openBg = this.scene.add.rectangle(0, 0, 72, 26, 0x22c55e, 1)
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true });
-        const openText = this.scene.add.text(0, 0, I18n.t('ui.open_build'), {
-            fontSize: '12px',
-            color: '#101010',
-            fontStyle: 'bold'
-        }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+        const entryItems: Phaser.GameObjects.GameObject[] = [divider, title, releasedAt, note];
+        if (selectedBg) entryItems.splice(1, 0, selectedBg);
 
-        openButton.add([openBg, openText]);
-        openBg.on('pointerover', () => openBg.setFillStyle(0x4ade80));
-        openBg.on('pointerout', () => openBg.setFillStyle(0x22c55e));
-        openBg.on('pointerdown', () => {
-            window.open(deployment.url, '_blank', 'noopener,noreferrer');
-        });
+        if (isCurrent) {
+            const currentText = this.scene.add.text(panelWidth - 22, y + 22, I18n.t('ui.current_server'), {
+                fontSize: '11px',
+                color: '#22c55e',
+                fontStyle: 'bold'
+            }).setOrigin(1, 0.5).setPadding({ top: 2, bottom: 2 });
+            entryItems.push(currentText);
+        } else {
+            const openButton = this.scene.add.container(panelWidth - 58, y + 22);
+            const openBg = this.scene.add.rectangle(0, 0, 72, 26, 0x22c55e, 1)
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true });
+            const openText = this.scene.add.text(0, 0, I18n.t('ui.open_build'), {
+                fontSize: '12px',
+                color: '#101010',
+                fontStyle: 'bold'
+            }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+
+            openButton.add([openBg, openText]);
+            openBg.on('pointerover', () => openBg.setFillStyle(0x4ade80));
+            openBg.on('pointerout', () => openBg.setFillStyle(0x22c55e));
+            openBg.on('pointerdown', () => {
+                window.open(deployment.url, '_blank', 'noopener,noreferrer');
+            });
+            entryItems.push(openButton);
+        }
 
         if (deployment.release_note) {
             note.setInteractive({ useHandCursor: true });
@@ -317,7 +369,7 @@ export class UIManager {
             note.on('pointerout', () => this.hideTooltip());
         }
 
-        container.add([divider, title, releasedAt, note, openButton]);
+        container.add(entryItems);
     }
 
     private getReleaseNotePreview(releaseNote?: string) {

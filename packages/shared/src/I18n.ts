@@ -72,6 +72,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.preview_builds': 'Preview Builds',
         'ui.release_notes': 'Release Notes',
         'ui.open_build': 'OPEN',
+        'ui.current_server': 'CURRENT',
+        'ui.current_version': 'Version',
         'ui.no_release_note': 'No release note.',
         
         // Units
@@ -181,6 +183,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.preview_builds': '실험 버전',
         'ui.release_notes': '릴리즈 노트',
         'ui.open_build': '접속',
+        'ui.current_server': '현재 접속',
+        'ui.current_version': '버전',
         'ui.no_release_note': '릴리즈 노트가 없습니다.',
         
         // Units
@@ -289,6 +293,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.preview_builds': '预览版本',
         'ui.release_notes': '发布说明',
         'ui.open_build': '打开',
+        'ui.current_server': '当前',
+        'ui.current_version': '版本',
         'ui.no_release_note': '暂无发布说明。',
         
         // Units
@@ -397,6 +403,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.preview_builds': 'プレビュー版',
         'ui.release_notes': 'リリースノート',
         'ui.open_build': '開く',
+        'ui.current_server': '現在',
+        'ui.current_version': 'バージョン',
         'ui.no_release_note': 'リリースノートはありません。',
 
         // Units

@@ -11,6 +11,9 @@ RUN npm ci
 
 COPY . .
 
+ARG BUILD_BRANCH=unknown
+ENV VITE_BUILD_BRANCH=${BUILD_BRANCH}
+
 RUN npm run build --workspace @repo/shared \
   && npm run build --workspace @repo/server \
   && npm run build --workspace @repo/client

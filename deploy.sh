@@ -30,7 +30,7 @@ fi
 RELEASE_NOTE_BASE64="$(printf '%s' "${RELEASE_NOTE}" | base64 | tr -d '\n')"
 
 echo "🚀 [1/4] Docker 이미지 빌드 시작 (Platform: linux/arm64)"
-docker buildx build --platform linux/arm64 -t ${FULL_IMAGE} . --load
+docker buildx build --platform linux/arm64 --build-arg BUILD_BRANCH="${BRANCH_NAME}" -t ${FULL_IMAGE} . --load
 
 echo "🔐 [2/4] OCI 레지스트리 로그인 및 푸시"
 # DOCKER_USER 조합 시에도 .env 변수를 직접 사용

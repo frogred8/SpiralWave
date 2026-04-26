@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from './GameStats';
 import { INITIAL_STATS, RESOURCE_CONFIG } from '@shared/Constants';
-import { RankEntry } from '@shared/ApiTypes';
+import { DeploymentEntry, RankEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 
@@ -12,6 +12,7 @@ export interface UIState {
     excludeSkillIds?: string[];
     selectedInitialSkills?: any[];
     leaderBoardRanks?: RankEntry[];
+    deployments?: DeploymentEntry[];
     isRestarted?: boolean;
     canReroll?: boolean;
 }
@@ -22,6 +23,7 @@ export interface UICallbacks {
     onSendStartSignal: (skillId: number) => void;
     onSendEndSignal: (name: string, msg: string) => void;
     onFetchLeaderboard: () => Promise<RankEntry[]>;
+    onFetchDeployments: () => Promise<DeploymentEntry[]>;
     onRefreshUI: () => void;
 }
 
@@ -39,6 +41,7 @@ export class UIManager {
     private soundBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
+    private deploymentsElement: Phaser.GameObjects.DOMElement | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
     
     private statsUpdateListener: (() => void) | null = null;
@@ -200,6 +203,7 @@ export class UIManager {
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
         this.createGameTips(width, titleY + 100);
+        void this.createDeploymentsPanel(width, height);
 
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {
@@ -219,6 +223,81 @@ export class UIManager {
             const y = height / 2 + 60;
             this.createSkillCard(x, y, skill, overlay, title);
         });
+    }
+
+    private async createDeploymentsPanel(width: number, height: number) {
+        this.destroyDeploymentsPanel();
+
+        let deployments = this.currentUIState.deployments;
+        if (!deployments) {
+            deployments = await this.callbacks.onFetchDeployments();
+            this.currentUIState.deployments = deployments;
+        }
+
+        const visibleDeployments = deployments
+            .filter((deployment) => deployment.status === 'active')
+            .slice(0, 5);
+
+        if (visibleDeployments.length === 0) return;
+
+        const panelWidth = Math.min(420, width - 40);
+        const x = Math.max(20 + panelWidth / 2, width - panelWidth / 2 - 20);
+        const y = Math.min(height - 150, Math.max(130, height / 2 - 120));
+
+        this.deploymentsElement = this.scene.add.dom(x, y)
+            .createFromHTML(this.getDeploymentsPanelHtml(visibleDeployments, panelWidth))
+            .setOrigin(0.5, 0)
+            .setDepth(2002);
+        this.deploymentsElement.setScrollFactor(0);
+        this.uiContainer.add(this.deploymentsElement);
+    }
+
+    private getDeploymentsPanelHtml(deployments: DeploymentEntry[], width: number) {
+        const items = deployments.map((deployment) => {
+            const releaseNote = this.escapeHtml(deployment.release_note || '').replace(/\n/g, '<br>');
+            const releasedAt = this.formatReleasedAt(deployment.released_at);
+            return `
+                <details style="border-top:1px solid #3a3a3a;padding:9px 0;">
+                    <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                        <span style="min-width:0;">
+                            <strong style="display:block;color:#ffffff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escapeHtml(deployment.title)}</strong>
+                            <span style="display:block;color:#9ca3af;font-size:11px;margin-top:2px;">${this.escapeHtml(releasedAt)}</span>
+                        </span>
+                        <a href="${this.escapeAttribute(deployment.url)}" target="_blank" rel="noopener noreferrer" style="flex:0 0 auto;color:#101010;background:#22c55e;text-decoration:none;font-size:12px;font-weight:700;padding:6px 9px;border-radius:4px;">${I18n.t('ui.open_build')}</a>
+                    </summary>
+                    <div style="margin-top:8px;color:#d1d5db;font-size:12px;line-height:1.45;max-height:80px;overflow:auto;">${releaseNote || I18n.t('ui.no_release_note')}</div>
+                </details>
+            `;
+        }).join('');
+
+        return `
+            <div style="width:${width}px;box-sizing:border-box;background:rgba(18,18,18,0.88);border:1px solid #444;border-radius:6px;padding:12px 14px;font-family:Arial,sans-serif;pointer-events:auto;box-shadow:0 10px 24px rgba(0,0,0,0.35);">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px;">
+                    <div style="color:#22c55e;font-size:15px;font-weight:700;">${I18n.t('ui.preview_builds')}</div>
+                    <div style="color:#9ca3af;font-size:11px;">${I18n.t('ui.release_notes')}</div>
+                </div>
+                ${items}
+            </div>
+        `;
+    }
+
+    private formatReleasedAt(value: string) {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString();
+    }
+
+    private escapeHtml(value: string) {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private escapeAttribute(value: string) {
+        return this.escapeHtml(value).replace(/`/g, '&#96;');
     }
 
     private createGameTips(width: number, y: number) {
@@ -755,6 +834,7 @@ export class UIManager {
         this.hideTooltip();
         const currentSkillData = this.stats.skillTreeData;
         this.destroyCoffeeBanner();
+        this.destroyDeploymentsPanel();
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
         if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
@@ -797,14 +877,26 @@ export class UIManager {
         if (this.coffeeBannerElement && this.coffeeBannerElement.depth >= minDepth) {
             this.destroyCoffeeBanner();
         }
+
+        if (this.deploymentsElement && this.deploymentsElement.depth >= minDepth) {
+            this.destroyDeploymentsPanel();
+        }
     }
 
     public destroy() {
         this.hideTooltip();
         this.destroyCoffeeBanner();
+        this.destroyDeploymentsPanel();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
+    }
+
+    private destroyDeploymentsPanel() {
+        if (this.deploymentsElement) {
+            this.deploymentsElement.destroy();
+            this.deploymentsElement = null;
+        }
     }
 }

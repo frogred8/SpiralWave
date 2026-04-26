@@ -69,6 +69,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.rank_message': 'Message',
         'ui.no_rankings': 'No rankings yet.',
         'ui.bonus_time': 'BONUS TIME!',
+        'ui.preview_builds': 'Preview Builds',
+        'ui.release_notes': 'Release Notes',
+        'ui.open_build': 'OPEN',
+        'ui.no_release_note': 'No release note.',
         
         // Units
         'unit.second': 's',
@@ -174,6 +178,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.rank_message': '메시지',
         'ui.no_rankings': '순위가 없습니다.',
         'ui.bonus_time': '보너스 시간!',
+        'ui.preview_builds': '실험 버전',
+        'ui.release_notes': '릴리즈 노트',
+        'ui.open_build': '접속',
+        'ui.no_release_note': '릴리즈 노트가 없습니다.',
         
         // Units
         'unit.second': '초',
@@ -278,6 +286,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.rank_message': '建议',
         'ui.no_rankings': '暂无排名。',
         'ui.bonus_time': '奖励时间！',
+        'ui.preview_builds': '预览版本',
+        'ui.release_notes': '发布说明',
+        'ui.open_build': '打开',
+        'ui.no_release_note': '暂无发布说明。',
         
         // Units
         'unit.second': '秒',
@@ -382,6 +394,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.rank_message': '要望',
         'ui.no_rankings': 'ランキングがまだありません。',
         'ui.bonus_time': 'ボーナスタイム！',
+        'ui.preview_builds': 'プレビュー版',
+        'ui.release_notes': 'リリースノート',
+        'ui.open_build': '開く',
+        'ui.no_release_note': 'リリースノートはありません。',
 
         // Units
         'unit.second': '秒',

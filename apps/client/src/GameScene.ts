@@ -6,7 +6,7 @@ import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Cons
 import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
 import { SpecialItem, Collectible } from './Types';
-import { StartRequest, EndRequest, RankEntry, LeaderboardResponse } from '@shared/ApiTypes';
+import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
@@ -65,6 +65,7 @@ export class GameScene extends Phaser.Scene {
             onSendStartSignal: (id) => this.sendStartGameSignal(id),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
+            onFetchDeployments: () => this.fetchDeploymentsData(),
             onRefreshUI: () => this.handleRefreshUI()
         });
 
@@ -654,6 +655,17 @@ export class GameScene extends Phaser.Scene {
             return data.ranks || [];
         } catch (err) {
             console.error('Failed to fetch leaderboard:', err);
+            return [];
+        }
+    }
+
+    private async fetchDeploymentsData(): Promise<DeploymentEntry[]> {
+        try {
+            const response = await fetch(`/api/deployments`);
+            const data: DeploymentsResponse = await response.json();
+            return data.deployments || [];
+        } catch (err) {
+            console.error('Failed to fetch deployments:', err);
             return [];
         }
     }

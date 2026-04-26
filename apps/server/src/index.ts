@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { GameController } from './controllers/game.controller';
 import './config/db'; // Initialize database
+import { DeploymentsService } from './services/deployments.service';
 import { requestMetricsService } from './services/request-metrics.service';
 
 const fastify = Fastify({
@@ -59,6 +60,10 @@ fastify.get('/api/metrics', async (request, reply) => {
   const start = (request.query as any).start;
   const data = await requestMetricsService.getMetricsData(hours, start);
   return data;
+});
+
+fastify.get('/api/deployments', async () => {
+  return await DeploymentsService.getDeployments();
 });
 
 // Metrics Dashboard HTML

@@ -43,3 +43,22 @@ export interface LeaderboardResetResponse {
     status: 'ok';
     deleted_count: number;
 }
+
+// GET /api/deployments
+export interface DeploymentEntry {
+    id: string;
+    type?: 'stable' | 'preview';
+    title: string;
+    url: string;
+    branch?: string;
+    image?: string;
+    container?: string;
+    port?: number;
+    status: 'active' | 'deprecated' | 'failed' | 'hidden';
+    released_at: string;
+    release_note?: string;
+}
+
+export interface DeploymentsResponse {
+    deployments: DeploymentEntry[];
+}

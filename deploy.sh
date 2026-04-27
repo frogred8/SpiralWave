@@ -21,13 +21,12 @@ DEPLOYMENTS_DIR="${DEPLOYMENTS_DIR:-/opt/spiralwave/deployments}"
 DEPLOYMENTS_FILE="${DEPLOYMENTS_FILE:-${DEPLOYMENTS_DIR}/deployments.json}"
 MAX_DEPLOYMENTS="${MAX_DEPLOYMENTS:-10}"
 BRANCH_NAME="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
-RELEASE_NOTE="${RELEASE_NOTE:-}"
+DEPLOYMENTS_SOURCE_FILE="${DEPLOYMENTS_SOURCE_FILE:-deployments.json}"
 
-if [ -n "${RELEASE_NOTE_FILE:-}" ] && [ -f "${RELEASE_NOTE_FILE}" ]; then
-    RELEASE_NOTE="$(cat "${RELEASE_NOTE_FILE}")"
+if [ ! -f "${DEPLOYMENTS_SOURCE_FILE}" ]; then
+    echo "❌ deployments.json 파일을 찾을 수 없습니다: ${DEPLOYMENTS_SOURCE_FILE}"
+    exit 1
 fi
-
-RELEASE_NOTE_BASE64="$(printf '%s' "${RELEASE_NOTE}" | base64 | tr -d '\n')"
 
 echo "🚀 [1/4] Docker 이미지 빌드 시작 (Platform: linux/arm64)"
 docker buildx build --platform linux/arm64 --build-arg BUILD_BRANCH="${BRANCH_NAME}" -t ${FULL_IMAGE} . --load
@@ -37,7 +36,10 @@ echo "🔐 [2/4] OCI 레지스트리 로그인 및 푸시"
 echo "${OCI_TOKEN}" | docker login ${OCI_REGION}.ocir.io -u "${OCI_NAMESPACE}/${OCI_EMAIL}" --password-stdin
 docker push ${FULL_IMAGE}
 
-echo "🚚 [3/4] 원격 서버 접속 및 배포 실행"
+echo "🚚 [3/4] 원격 서버 deployments.json 업로드 및 배포 실행"
+ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVER_IP} "mkdir -p '${DEPLOYMENTS_DIR}'"
+scp -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no "${DEPLOYMENTS_SOURCE_FILE}" "${OCI_SERVER_USER}@${OCI_SERVER_IP}:${DEPLOYMENTS_FILE}"
+
 ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVER_IP} << EOF
     # 서버 환경에서도 레지스트리 로그인
     echo "${OCI_TOKEN}" | docker login ${OCI_REGION}.ocir.io -u "${OCI_NAMESPACE}/${OCI_EMAIL}" --password-stdin
@@ -46,10 +48,6 @@ ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVE
 
     DEPLOYMENTS_DIR="${DEPLOYMENTS_DIR}"
     DEPLOYMENTS_FILE="${DEPLOYMENTS_FILE}"
-    mkdir -p "\${DEPLOYMENTS_DIR}"
-    if [ ! -f "\${DEPLOYMENTS_FILE}" ]; then
-        echo "[]" > "\${DEPLOYMENTS_FILE}"
-    fi
 
     echo "Stopping old container..."
     docker stop ${CONTAINER_NAME} || true
@@ -82,59 +80,6 @@ ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVE
         docker logs ${CONTAINER_NAME} --tail 80 || true
         exit 1
     fi
-
-    echo "Updating deployments.json..."
-    docker run --rm -i \
-        -e DEPLOY_ID="${DEPLOY_ID}" \
-        -e DEPLOY_TYPE="${DEPLOY_TYPE}" \
-        -e DEPLOY_TITLE="${DEPLOY_TITLE}" \
-        -e PUBLIC_URL="${PUBLIC_URL}" \
-        -e BRANCH_NAME="${BRANCH_NAME}" \
-        -e FULL_IMAGE="${FULL_IMAGE}" \
-        -e CONTAINER_NAME="${CONTAINER_NAME}" \
-        -e HOST_PORT="${HOST_PORT}" \
-        -e MAX_DEPLOYMENTS="${MAX_DEPLOYMENTS}" \
-        -e RELEASE_NOTE_BASE64="${RELEASE_NOTE_BASE64}" \
-        -v "\${DEPLOYMENTS_DIR}:/deployments" \
-        ${FULL_IMAGE} node <<'NODE'
-const fs = require('node:fs');
-const file = '/deployments/deployments.json';
-const tmp = file + '.tmp';
-
-let current = [];
-try {
-  const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
-  if (Array.isArray(parsed)) current = parsed;
-} catch (err) {
-  current = [];
-}
-
-const deployId = process.env.DEPLOY_ID || 'latest';
-const maxDeployments = Number(process.env.MAX_DEPLOYMENTS || 10);
-const releaseNote = Buffer.from(process.env.RELEASE_NOTE_BASE64 || '', 'base64').toString('utf8');
-
-const next = {
-  id: deployId,
-  type: process.env.DEPLOY_TYPE || 'stable',
-  title: process.env.DEPLOY_TITLE || deployId,
-  url: process.env.PUBLIC_URL || '',
-  branch: process.env.BRANCH_NAME || '',
-  image: process.env.FULL_IMAGE || '',
-  container: process.env.CONTAINER_NAME || '',
-  port: Number(process.env.HOST_PORT || 0),
-  status: 'active',
-  released_at: new Date().toISOString(),
-  release_note: releaseNote
-};
-
-const deployments = current
-  .filter((item) => item && item.id !== deployId)
-  .filter((item) => item.status !== 'hidden');
-
-deployments.unshift(next);
-fs.writeFileSync(tmp, JSON.stringify(deployments.slice(0, maxDeployments), null, 2) + '\n');
-fs.renameSync(tmp, file);
-NODE
 
     docker image prune -f
     echo "✅ Deployment successful!"

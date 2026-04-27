@@ -23,6 +23,20 @@ interface GeminiResponse {
     text: string;
 }
 
+interface DeploymentEntry {
+    id: string;
+    type?: 'stable' | 'preview';
+    title: string;
+    url: string;
+    branch?: string;
+    image?: string;
+    container?: string;
+    port?: number;
+    status: 'active' | 'deprecated' | 'failed' | 'hidden';
+    released_at: string;
+    release_note?: string;
+}
+
 const gemini = {
     generateText: async (prompt: string): Promise<GeminiResponse> => {
         try {
@@ -151,13 +165,24 @@ ${prompt}
         console.log(`[09] 브랜치 원격 저장소 푸시: ${branchName}`);
         await execAsync(`git push origin ${branchName}`, { cwd: tempDir });
 
-        // 10. deploy.sh 실행
-        console.log('[10] deploy.sh 실행');
+        // 10. deployments.json 생성 후 deploy.sh 실행
+        console.log('[10] deployments.json 생성 및 deploy.sh 실행');
+        const deploymentsPath = path.join(tempDir, 'deployments.json');
+        await createDeploymentsJson(deploymentsPath, {
+            branchName,
+            releaseNote: prompt.trim()
+        });
+
         await execAsync(`sh deploy.sh`, {
             cwd: "../../",
             env: { 
                 ...process.env, 
-                OCI_VERSION: branchName
+                OCI_VERSION: branchName,
+                DEPLOY_ID: process.env.DEPLOY_ID || branchName,
+                DEPLOY_TYPE: process.env.DEPLOY_TYPE || 'preview',
+                DEPLOY_TITLE: process.env.DEPLOY_TITLE || `${branchName} Feedback Build`,
+                BRANCH_NAME: branchName,
+                DEPLOYMENTS_SOURCE_FILE: deploymentsPath
             }
         });
 
@@ -259,6 +284,55 @@ async function getRawData(): Promise<string> {
     const rawData = data.ranks.map(rank => rank.msg).join('\n');
 
     return rawData || '';
+}
+
+async function createDeploymentsJson(outputPath: string, options: { branchName: string; releaseNote: string }) {
+    const deployments = await getCurrentDeployments();
+    const deployId = process.env.DEPLOY_ID || options.branchName;
+    const ociVersion = options.branchName;
+    const ociRegion = process.env.OCI_REGION || '';
+    const ociNamespace = process.env.OCI_NAMESPACE || '';
+    const ociRepo = process.env.OCI_REPO || 'spiralwave';
+    const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}:${ociVersion}`;
+    const hostPort = Number(process.env.HOST_PORT || 3300);
+    const maxDeployments = Number(process.env.MAX_DEPLOYMENTS || 10);
+    const next: DeploymentEntry = {
+        id: deployId,
+        type: (process.env.DEPLOY_TYPE as 'stable' | 'preview' | undefined) || 'preview',
+        title: process.env.DEPLOY_TITLE || `${options.branchName} Feedback Build`,
+        url: process.env.PUBLIC_URL || `http://${process.env.OCI_SERVER_IP || 'localhost'}:${hostPort}`,
+        branch: options.branchName,
+        image: fullImage,
+        container: process.env.CONTAINER_NAME || ociRepo,
+        port: hostPort,
+        status: 'active',
+        released_at: new Date().toISOString(),
+        release_note: options.releaseNote
+    };
+
+    const nextDeployments = deployments
+        .filter((deployment) => deployment.id !== deployId)
+        .filter((deployment) => deployment.status !== 'hidden');
+    nextDeployments.unshift(next);
+
+    fs.writeFileSync(outputPath, JSON.stringify(nextDeployments.slice(0, maxDeployments), null, 2) + '\n');
+    console.log(`deployments.json 생성 완료: ${outputPath}`);
+}
+
+async function getCurrentDeployments(): Promise<DeploymentEntry[]> {
+    try {
+        const res = await fetch(`${SERVER_URL}/api/deployments`);
+        if (!res.ok) {
+            console.error('getCurrentDeployments:', res.status, res.statusText);
+            return [];
+        }
+
+        const data = await res.json() as { deployments?: DeploymentEntry[] };
+        return Array.isArray(data.deployments) ? data.deployments : [];
+    } catch (error) {
+        console.error('deployments.json 기존 데이터 조회 실패:', error);
+        return [];
+    }
 }
 
 async function buildPromptFromRawData(rawData: string): Promise<string> {

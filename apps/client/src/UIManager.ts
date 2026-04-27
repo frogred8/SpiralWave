@@ -327,7 +327,8 @@ export class UIManager {
             fontSize: '11px',
             color: '#9ca3af'
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
-        const note = this.scene.add.text(14, y + 52, this.getReleaseNotePreview(deployment.release_note), {
+        const releaseNote = this.getLocalizedReleaseNote(deployment);
+        const note = this.scene.add.text(14, y + 52, this.getReleaseNotePreview(releaseNote), {
             fontSize: '11px',
             color: '#d1d5db',
             lineSpacing: 2,
@@ -364,9 +365,9 @@ export class UIManager {
             entryItems.push(openButton);
         }
 
-        if (deployment.release_note) {
+        if (releaseNote) {
             note.setInteractive({ useHandCursor: true });
-            note.on('pointerover', (pointer: Phaser.Input.Pointer) => this.showTooltip(pointer.x, pointer.y, deployment.release_note || ''));
+            note.on('pointerover', (pointer: Phaser.Input.Pointer) => this.showTooltip(pointer.x, pointer.y, releaseNote));
             note.on('pointerout', () => this.hideTooltip());
         }
 
@@ -378,6 +379,17 @@ export class UIManager {
 
         const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
         return lines.slice(0, 2).join('\n');
+    }
+
+    private getLocalizedReleaseNote(deployment: DeploymentEntry) {
+        const releaseNote = deployment.release_note as unknown;
+        if (!releaseNote) return '';
+        if (typeof releaseNote === 'string') return releaseNote;
+        if (typeof releaseNote !== 'object') return '';
+
+        const currentLanguage = I18n.getLanguage();
+        const notes = releaseNote as Partial<Record<'en' | 'ko' | 'zh' | 'ja', string>>;
+        return notes[currentLanguage] || notes.en || Object.values(notes).find(Boolean) || '';
     }
 
     private formatReleasedAt(value: string) {

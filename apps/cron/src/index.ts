@@ -34,7 +34,7 @@ interface DeploymentEntry {
     port?: number;
     status: 'active' | 'deprecated' | 'failed' | 'hidden';
     released_at: string;
-    release_note?: string;
+    release_note?: Partial<Record<'en' | 'ko' | 'zh' | 'ja', string>>;
 }
 
 const gemini = {
@@ -307,7 +307,12 @@ async function createDeploymentsJson(outputPath: string, options: { branchName: 
         port: hostPort,
         status: 'active',
         released_at: new Date().toISOString(),
-        release_note: options.releaseNote
+        release_note: {
+            en: options.releaseNote,
+            ko: options.releaseNote,
+            zh: options.releaseNote,
+            ja: options.releaseNote
+        }
     };
 
     const nextDeployments = deployments

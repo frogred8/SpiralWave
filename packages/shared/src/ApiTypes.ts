@@ -45,6 +45,8 @@ export interface LeaderboardResetResponse {
 }
 
 // GET /api/deployments
+export type ReleaseNoteByLanguage = Partial<Record<'en' | 'ko' | 'zh' | 'ja', string>>;
+
 export interface DeploymentEntry {
     id: string;
     type?: 'stable' | 'preview';
@@ -56,7 +58,7 @@ export interface DeploymentEntry {
     port?: number;
     status: 'active' | 'deprecated' | 'failed' | 'hidden';
     released_at: string;
-    release_note?: string;
+    release_note?: ReleaseNoteByLanguage;
 }
 
 export interface DeploymentsResponse {

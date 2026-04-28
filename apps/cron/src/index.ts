@@ -296,7 +296,6 @@ async function createDeploymentsJson(outputPath: string, options: { branchName: 
     const ociRepo = process.env.OCI_REPO || 'spiralwave';
     const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}:${ociVersion}`;
     const hostPort = Number(process.env.HOST_PORT || 3300);
-    const maxDeployments = Number(process.env.MAX_DEPLOYMENTS || 10);
 
     const res = await gemini.generateText(`
 영어로 된 릴리즈 노트를 한국어, 중국어, 일본어로 번역해. 
@@ -334,12 +333,22 @@ ${options.releaseNote}
         }
     };
 
-    const nextDeployments = deployments
+    const activeDeployments = deployments
         .filter((deployment) => deployment.id !== deployId)
         .filter((deployment) => deployment.status !== 'hidden');
-    nextDeployments.unshift(next);
+    activeDeployments.push(next);
 
-    fs.writeFileSync(outputPath, JSON.stringify(nextDeployments.slice(0, maxDeployments), null, 2) + '\n');
+    const stableDeployment = activeDeployments.find((deployment) => deployment.type === 'stable');
+    const previewDeployments = activeDeployments
+        .filter((deployment) => deployment.type === 'preview')
+        .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))
+        .slice(0, 4);
+
+    const nextDeployments = stableDeployment
+        ? [stableDeployment, ...previewDeployments]
+        : previewDeployments;
+
+    fs.writeFileSync(outputPath, JSON.stringify(nextDeployments, null, 2) + '\n');
     console.log(`deployments.json 생성 완료: ${outputPath}`);
 }
 

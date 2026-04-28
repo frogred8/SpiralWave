@@ -323,19 +323,15 @@ export class UIManager {
             fontStyle: 'bold',
             wordWrap: { width: panelWidth - 110 }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
-        const releasedAt = this.scene.add.text(14, y + 32, this.formatReleasedAt(deployment.released_at), {
-            fontSize: '11px',
-            color: '#9ca3af'
-        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
         const releaseNote = this.getLocalizedReleaseNote(deployment);
-        const note = this.scene.add.text(14, y + 52, this.getReleaseNotePreview(releaseNote), {
+        const note = this.scene.add.text(14, y + 32, this.getReleaseNotePreview(releaseNote), {
             fontSize: '11px',
             color: '#d1d5db',
             lineSpacing: 2,
             wordWrap: { width: panelWidth - 28 }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
 
-        const entryItems: Phaser.GameObjects.GameObject[] = [divider, title, releasedAt, note];
+        const entryItems: Phaser.GameObjects.GameObject[] = [divider, title, note];
         if (selectedBg) entryItems.splice(1, 0, selectedBg);
 
         if (isCurrent) {
@@ -378,7 +374,7 @@ export class UIManager {
         if (!releaseNote) return I18n.t('ui.no_release_note');
 
         const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
-        return lines.slice(0, 2).join('\n');
+        return lines.slice(0, 3).join('\n');
     }
 
     private getLocalizedReleaseNote(deployment: DeploymentEntry) {
@@ -399,7 +395,7 @@ export class UIManager {
     }
 
     private createGameTips(width: number, y: number) {
-        const panelWidth = Math.min(620, width - 40);
+        const panelWidth = Math.min(640, width - 40);
         const tipsContainer = this.scene.add.container(width / 2, y).setDepth(2001);
         const bg = this.scene.add.rectangle(0, 0, panelWidth, 115, 0x111111, 0.72)
             .setStrokeStyle(1, 0x444444);
@@ -409,7 +405,7 @@ export class UIManager {
         const body = this.scene.add.text(0, 15, I18n.t('ui.game_tips_body'), {
             fontSize: '16px', color: '#dddddd', align: 'left', lineSpacing: 4
         }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
-        Utils.adjustFontSize(body, panelWidth - 50, 8, 16);
+        Utils.adjustFontSize(body, panelWidth, 8, 16);
 
         tipsContainer.add([bg, title, body]);
         this.uiContainer.add(tipsContainer);

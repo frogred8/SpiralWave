@@ -6,8 +6,8 @@ export const SPAWN_BOUNDARY = {
 };
 
 export const INITIAL_STATS = {
-    ROCK: 0,
-    WOOD: 0,
+    ROCK: 50,
+    WOOD: 50,
     FORCE: 0.5,
     RADIUS: 200,
     HIGH_DIM_PROB: 0.0,
@@ -18,7 +18,7 @@ export const INITIAL_STATS = {
     RESEARCH_BONUS: 0,
     MOVE_SPEED: 0,
     MAX_RESEARCH_SLOTS: 1,
-    TIME_LIMIT: 60,
+    TIME_LIMIT: 6,
     NET_ANGLE: 45,
     SMALL_BLACK_HOLE_RADIUS: 150,
     NET_DISTANCE: 500,

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "main",
+    "type": "stable",
+    "title": "Stable Release",
+    "url": "https://spiralwave.frogred8.dev",
+    "branch": "main",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave:latest",
+    "container": "spiralwave",
+    "port": 3300,
+    "status": "active",
+    "released_at": "2026-04-28T06:11:16.121Z",
+    "release_note": {
+      "en": "Test Release Note",
+      "ko": "테스트 릴리즈 노트 (한국어)",
+      "zh": "测试发布说明（中文）",
+      "ja": "テストリリースノート（日本語）"
+    }
+  },
+  {
+    "id": "20260428_1511",
+    "type": "preview",
+    "title": "20260428_1511 Feedback Build",
+    "url": "http://134.185.103.3:3301",
+    "branch": "20260428_1511",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave:20260428_1511",
+    "container": "spiralwave",
+    "port": 3301,
+    "status": "active",
+    "released_at": "2026-04-28T06:11:16.121Z",
+    "release_note": {
+      "en": "Test Release Note",
+      "ko": "테스트 릴리즈 노트 (한국어)",
+      "zh": "测试发布说明（中文）",
+      "ja": "テストリリースノート（日本語）"
+    }
+  }
+]

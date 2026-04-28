@@ -80,15 +80,15 @@ async function run() {
 
     // 1. 데이터 API 호출
     console.log('[01] 데이터 API 호출');
-    const rawData = await getRawData();
-    if (rawData === '') {
+    const feedback = await getFeedback();
+    if (feedback === '') {
         console.error('데이터 API 호출 실패 또는 데이터 없음');
         return;
     }
 
-    // 2. rawData를 분석하여 플랜 생성
-    console.log('[02] rawData 분석 및 플랜 생성');
-    const prompt = await buildPromptFromRawData(rawData);
+    // 2. feedback을 분석하여 플랜 생성
+    console.log('[02] feedback 분석 및 플랜 생성');
+    const prompt = await buildPromptFromFeedback(feedback);
     if (!prompt.trim()) {
         console.error('Gemini 프롬프트 생성 실패');
         return;
@@ -117,7 +117,7 @@ async function run() {
 
 ## User Feedback
 \`\`\`
-${rawData.trim()}
+${feedback.trim()}
 \`\`\`
 
 ## Gemini AI Plan
@@ -125,7 +125,8 @@ ${prompt.trim()}
 
 ---
 `;
-        fs.appendFileSync(updatePath, updateContent);
+        const existingContent = fs.existsSync(updatePath) ? fs.readFileSync(updatePath, 'utf8') : '';
+        fs.writeFileSync(updatePath, updateContent + existingContent);
         await execAsync(`git add UPDATE.md`, { cwd: tempDir });
         await execAsync(`git commit -m "docs: Update UPDATE.md with user feedback and AI plan [${timestamp}]"`, { cwd: tempDir });
         await execAsync(`git push origin main`, { cwd: tempDir });
@@ -135,7 +136,7 @@ ${prompt.trim()}
         console.log(`[06] 날짜_시간 브랜치 생성: ${branchName}`);
         await execAsync(`git checkout -b ${branchName}`, { cwd: tempDir });
         
-        // 7. rawData와 plan을 README.md에 저장
+        // 7. feedback과 plan을 README.md에 저장
         console.log('[07] README.md 저장 및 커밋');
         const readmePath = path.join(tempDir, 'README.md');
         const readmeContent = `
@@ -143,11 +144,11 @@ ${prompt.trim()}
 
 ## User Feedback
 \`\`\`
-${rawData}
+${feedback.trim()}
 \`\`\`
 
 ## Gemini AI Plan
-${prompt}
+${prompt.trim()}
         `;
         fs.writeFileSync(readmePath, readmeContent);
         await execAsync(`git add README.md`, { cwd: tempDir });
@@ -273,17 +274,17 @@ async function runCodexCli(prompt: string, cwd: string): Promise<boolean> {
     }
 }
 
-async function getRawData(): Promise<string> {
+async function getFeedback(): Promise<string> {
     const res = await fetch(`${SERVER_URL}/leaderboard`);
     if (!res.ok) {
-        console.error('getRawData:', res.status, res.statusText);
+        console.error('getFeedback:', res.status, res.statusText);
         return '';
     }
 
     const data = await res.json() as { ranks: { msg: string }[] };
-    const rawData = data.ranks.map(rank => rank.msg).join('\n');
+    const feedback = data.ranks.map(rank => rank.msg).join('\n');
 
-    return rawData || '';
+    return feedback || '';
 }
 
 async function createDeploymentsJson(outputPath: string, options: { branchName: string; releaseNote: string }) {
@@ -296,6 +297,24 @@ async function createDeploymentsJson(outputPath: string, options: { branchName: 
     const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}:${ociVersion}`;
     const hostPort = Number(process.env.HOST_PORT || 3300);
     const maxDeployments = Number(process.env.MAX_DEPLOYMENTS || 10);
+
+    const res = await gemini.generateText(`
+영어로 된 릴리즈 노트를 한국어, 중국어, 일본어로 번역해. 
+출력은 markdown 문법없이 유효한 JSON 형식만 출력해: {ko: '한국어 릴리즈 노트', zh: '중국어 릴리즈 노트', ja: '일본어 릴리즈 노트'}
+릴리즈 노트는 다음과 같아:
+${options.releaseNote}
+        `);
+    let translatedReleaseNote: Partial<Record<'en' | 'ko' | 'zh' | 'ja', string>> = {};
+    if (res.ok) {
+        try {
+            translatedReleaseNote = JSON.parse(res.text);
+        } catch (error) {
+            console.error('릴리즈 노트 번역 결과 파싱 실패:', res.text, error);
+        }
+    } else {
+        console.error('릴리즈 노트 번역 실패:', res.text);
+    }
+    
     const next: DeploymentEntry = {
         id: deployId,
         type: (process.env.DEPLOY_TYPE as 'stable' | 'preview' | undefined) || 'preview',
@@ -309,9 +328,9 @@ async function createDeploymentsJson(outputPath: string, options: { branchName: 
         released_at: new Date().toISOString(),
         release_note: {
             en: options.releaseNote,
-            ko: options.releaseNote,
-            zh: options.releaseNote,
-            ja: options.releaseNote
+            ko: translatedReleaseNote?.ko || options.releaseNote,
+            zh: translatedReleaseNote?.zh || options.releaseNote,
+            ja: translatedReleaseNote?.ja || options.releaseNote
         }
     };
 
@@ -340,7 +359,7 @@ async function getCurrentDeployments(): Promise<DeploymentEntry[]> {
     }
 }
 
-async function buildPromptFromRawData(rawData: string): Promise<string> {
+async function buildPromptFromFeedback(rawData: string): Promise<string> {
     let retryCount = 3;
     for (let i = 0; i < retryCount; i++) {
         const res = await gemini.generateText(`

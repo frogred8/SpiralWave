@@ -16,6 +16,7 @@ const API_KEY = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-3-flash-preview' });
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const TESTMODE = true; // true면 실제 API 호출 대신 테스트용 더미 데이터 반환
 
 // Gemini 응답 인터페이스
 interface GeminiResponse {
@@ -76,11 +77,11 @@ await run();
 
 async function run() {
     const timestamp = convertDateFormat(new Date());
-    console.log(`크론 작업 시작... (${timestamp})`);
+    console.log(`=== 크론 작업 시작... (${timestamp}) ===`);
 
     // 1. 데이터 API 호출
     console.log('[01] 데이터 API 호출');
-    const feedback = await getFeedback();
+    const feedback = TESTMODE ? '테스트 피드백' : await getFeedback();
     if (feedback === '') {
         console.error('데이터 API 호출 실패 또는 데이터 없음');
         return;
@@ -88,7 +89,7 @@ async function run() {
 
     // 2. feedback을 분석하여 플랜 생성
     console.log('[02] feedback 분석 및 플랜 생성');
-    const prompt = await buildPromptFromFeedback(feedback);
+    const prompt = TESTMODE ? '테스트 프롬프트' : await buildPromptFromFeedback(feedback);
     if (!prompt.trim()) {
         console.error('Gemini 프롬프트 생성 실패');
         return;
@@ -156,7 +157,7 @@ ${prompt.trim()}
 
         // 8. 플랜 기반으로 코드 생성 및 커밋
         console.log('[08] 플랜 기반 코드 생성 및 커밋');
-        const succeed = await runCodexCli(prompt, tempDir);
+        const succeed = TESTMODE ? true : await runCodexCli(prompt, tempDir);
         if (!succeed) {
             console.error('codex-cli 실행 실패');
             return;
@@ -166,14 +167,16 @@ ${prompt.trim()}
         console.log(`[09] 브랜치 원격 저장소 푸시: ${branchName}`);
         await execAsync(`git push origin ${branchName}`, { cwd: tempDir });
 
-        // 10. deployments.json 생성 후 deploy.sh 실행
-        console.log('[10] deployments.json 생성 및 deploy.sh 실행');
+        // 10. deployments.json 구성
+        console.log('[10] deployments.json 구성');
         const deploymentsPath = path.join(tempDir, 'deployments.json');
         await createDeploymentsJson(deploymentsPath, {
             branchName,
             releaseNote: prompt.trim()
         });
 
+        // 11. deploy.sh 실행
+        console.log('[11] deploy.sh 실행');
         await execAsync(`sh deploy.sh`, {
             cwd: "../../",
             env: { 
@@ -187,8 +190,8 @@ ${prompt.trim()}
             }
         });
 
-        // 11. SERVER_URL로 reset API 호출하여 데이터 리셋
-        console.log('[11] SERVER_URL로 reset API 호출');
+        // 12. SERVER_URL로 reset API 호출하여 데이터 리셋
+        console.log('[12] SERVER_URL로 reset API 호출');
         const res = await fetch(`${SERVER_URL}/leaderboard/reset`, { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -287,22 +290,14 @@ async function getFeedback(): Promise<string> {
     return feedback || '';
 }
 
-async function createDeploymentsJson(outputPath: string, options: { branchName: string; releaseNote: string }) {
-    const deployments = await getCurrentDeployments();
-    const deployId = process.env.DEPLOY_ID || options.branchName;
-    const ociVersion = options.branchName;
-    const ociRegion = process.env.OCI_REGION || '';
-    const ociNamespace = process.env.OCI_NAMESPACE || '';
-    const ociRepo = process.env.OCI_REPO || 'spiralwave';
-    const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}:${ociVersion}`;
-    const hostPort = Number(process.env.HOST_PORT || 3300);
-
+async function getMultilingualReleaseNotes(releaseNote: string): Promise<Partial<Record<'en' | 'ko' | 'zh' | 'ja', string>>> {
     const res = await gemini.generateText(`
 영어로 된 릴리즈 노트를 한국어, 중국어, 일본어로 번역해. 
 출력은 markdown 문법없이 유효한 JSON 형식만 출력해: {ko: '한국어 릴리즈 노트', zh: '중국어 릴리즈 노트', ja: '일본어 릴리즈 노트'}
 릴리즈 노트는 다음과 같아:
-${options.releaseNote}
-        `);
+${releaseNote}
+    `);
+
     let translatedReleaseNote: Partial<Record<'en' | 'ko' | 'zh' | 'ja', string>> = {};
     if (res.ok) {
         try {
@@ -313,7 +308,31 @@ ${options.releaseNote}
     } else {
         console.error('릴리즈 노트 번역 실패:', res.text);
     }
-    
+
+    return {
+        en: releaseNote,
+        ko: translatedReleaseNote?.ko || '',
+        zh: translatedReleaseNote?.zh || '',
+        ja: translatedReleaseNote?.ja || ''
+    };
+}
+
+async function createDeploymentsJson(outputPath: string, options: { branchName: string; releaseNote: string }) {
+    const deployments = await getCurrentDeployments();
+    const deployId = process.env.DEPLOY_ID || options.branchName;
+    const ociVersion = options.branchName;
+    const ociRegion = process.env.OCI_REGION || '';
+    const ociNamespace = process.env.OCI_NAMESPACE || '';
+    const ociRepo = process.env.OCI_REPO || 'spiralwave';
+    const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}:${ociVersion}`;
+    const hostPort = Number(process.env.HOST_PORT || 3300);
+
+    const translatedReleaseNotes = TESTMODE ? {
+        en: options.releaseNote,
+        ko: '테스트 릴리즈 노트 (한국어)',
+        zh: '测试发布说明（中文）',
+        ja: 'テストリリースノート（日本語）'
+    } : await getMultilingualReleaseNotes(options.releaseNote);
     const next: DeploymentEntry = {
         id: deployId,
         type: (process.env.DEPLOY_TYPE as 'stable' | 'preview' | undefined) || 'preview',
@@ -325,12 +344,7 @@ ${options.releaseNote}
         port: hostPort,
         status: 'active',
         released_at: new Date().toISOString(),
-        release_note: {
-            en: options.releaseNote,
-            ko: translatedReleaseNote?.ko || options.releaseNote,
-            zh: translatedReleaseNote?.zh || options.releaseNote,
-            ja: translatedReleaseNote?.ja || options.releaseNote
-        }
+        release_note: translatedReleaseNotes
     };
 
     const activeDeployments = deployments

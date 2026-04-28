@@ -338,7 +338,9 @@ ${options.releaseNote}
         .filter((deployment) => deployment.status !== 'hidden');
     activeDeployments.push(next);
 
-    const stableDeployment = activeDeployments.find((deployment) => deployment.type === 'stable');
+    const stableDeployment = activeDeployments
+        .filter((deployment) => deployment.type === 'stable')
+        .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))[0];
     const previewDeployments = activeDeployments
         .filter((deployment) => deployment.type === 'preview')
         .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))

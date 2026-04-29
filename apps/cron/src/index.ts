@@ -1,8 +1,8 @@
+import './env';
 import './logger';
 import cron from 'node-cron';
 import * as fs from 'fs';
 import * as path from 'path';
-import 'dotenv/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -16,7 +16,7 @@ const API_KEY = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-3-flash-preview' });
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-const TESTMODE = true; // true면 실제 API 호출 대신 테스트용 더미 데이터 반환
+const TESTMODE = process.env.TESTMODE === 'true'; // true면 실제 API 호출 대신 테스트용 더미 데이터 반환
 
 // Gemini 응답 인터페이스
 interface GeminiResponse {
@@ -51,7 +51,7 @@ const gemini = {
     }
 };
 
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
+const SERVER_URL = process.env.OCI_SERVER_IP || 'http://localhost:3000';
 const REPO_URL = process.env.REPO_URL || 'https://github.com/frogred8/SpiralWave.git';
 const TEMP_BASE_DIR = process.env.TEMP_DIR || path.join(process.cwd(), '.tmp');
 
@@ -89,7 +89,7 @@ async function run() {
 
     // 2. feedback을 분석하여 플랜 생성
     console.log('[02] feedback 분석 및 플랜 생성');
-    const prompt = TESTMODE ? '테스트 프롬프트' : await buildPromptFromFeedback(feedback);
+    const prompt = TESTMODE ? 'Test release note' : await buildPromptFromFeedback(feedback);
     if (!prompt.trim()) {
         console.error('Gemini 프롬프트 생성 실패');
         return;
@@ -110,8 +110,17 @@ async function run() {
         }
         await execAsync(`git clone -b main ${REPO_URL} ${tempDir}`);
 
-        // 5. main 브랜치에 rawData와 plan을 UPDATE.md 파일에 append
-        console.log('[05] UPDATE.md 업데이트 및 main 브랜치 푸시');
+        // 5. deployments.json 구성
+        console.log('[05] deployments.json 구성');
+        const deploymentsPath = path.join(tempDir, 'deployments.json');
+        await updateDeploymentsJson(deploymentsPath, {
+            branchName,
+            releaseNote: prompt.trim()
+        });
+        await execAsync(`git add deployments.json`, { cwd: tempDir });
+
+        // 6. main 브랜치에 rawData와 plan을 UPDATE.md 파일에 append
+        console.log('[06] UPDATE.md 업데이트 및 main 브랜치 푸시');
         const updatePath = path.join(tempDir, 'UPDATE.md');
         const updateContent = `
 # Update - ${timestamp}
@@ -132,13 +141,13 @@ ${prompt.trim()}
         await execAsync(`git commit -m "docs: Update UPDATE.md with user feedback and AI plan [${timestamp}]"`, { cwd: tempDir });
         await execAsync(`git push origin main`, { cwd: tempDir });
         await execAsync(`git fetch origin`, { cwd: tempDir });
-        
-        // 6. 날짜_시간 이름으로 브랜치를 생성
-        console.log(`[06] 날짜_시간 브랜치 생성: ${branchName}`);
+                
+        // 7. 날짜_시간 이름으로 작업할 브랜치를 생성
+        console.log(`[07] 날짜_시간 브랜치 생성: ${branchName}`);
         await execAsync(`git checkout -b ${branchName}`, { cwd: tempDir });
         
-        // 7. feedback과 plan을 README.md에 저장
-        console.log('[07] README.md 저장 및 커밋');
+        // 8. feedback과 plan을 README.md에 저장
+        console.log('[08] README.md 저장 및 커밋');
         const readmePath = path.join(tempDir, 'README.md');
         const readmeContent = `
 # Automatic Update - ${timestamp}
@@ -155,25 +164,17 @@ ${prompt.trim()}
         await execAsync(`git add README.md`, { cwd: tempDir });
         await execAsync(`git commit -m "docs: Update README with user feedback and AI plan [${timestamp}]"`, { cwd: tempDir });
 
-        // 8. 플랜 기반으로 코드 생성 및 커밋
-        console.log('[08] 플랜 기반 코드 생성 및 커밋');
+        // 9. 플랜 기반으로 코드 생성 및 커밋
+        console.log('[09] 플랜 기반 코드 생성 및 커밋');
         const succeed = TESTMODE ? true : await runCodexCli(prompt, tempDir);
         if (!succeed) {
             console.error('codex-cli 실행 실패');
             return;
         }
 
-        // 9. 브랜치를 원격 저장소에 푸시
-        console.log(`[09] 브랜치 원격 저장소 푸시: ${branchName}`);
+        // 10. 브랜치를 원격 저장소에 푸시
+        console.log(`[10] 브랜치 원격 저장소 푸시: ${branchName}`);
         await execAsync(`git push origin ${branchName}`, { cwd: tempDir });
-
-        // 10. deployments.json 구성
-        console.log('[10] deployments.json 구성');
-        const deploymentsPath = path.join(tempDir, 'deployments.json');
-        await createDeploymentsJson(deploymentsPath, {
-            branchName,
-            releaseNote: prompt.trim()
-        });
 
         // 11. deploy.sh 실행
         console.log('[11] deploy.sh 실행');
@@ -182,9 +183,9 @@ ${prompt.trim()}
             env: { 
                 ...process.env, 
                 OCI_VERSION: branchName,
-                DEPLOY_ID: process.env.DEPLOY_ID || branchName,
-                DEPLOY_TYPE: process.env.DEPLOY_TYPE || 'preview',
-                DEPLOY_TITLE: process.env.DEPLOY_TITLE || `${branchName} Feedback Build`,
+                DEPLOY_ID: branchName,
+                DEPLOY_TYPE: 'preview',
+                DEPLOY_TITLE: `${branchName} Feedback Build`,
                 BRANCH_NAME: branchName,
                 DEPLOYMENTS_SOURCE_FILE: deploymentsPath
             }
@@ -212,7 +213,7 @@ ${prompt.trim()}
         console.error('작업 중 오류 발생:', error);
     } finally {
         // 임시 폴더 삭제
-        if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
+        if (!TESTMODE && fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
     }
 }
 
@@ -317,22 +318,39 @@ ${releaseNote}
     };
 }
 
-async function createDeploymentsJson(outputPath: string, options: { branchName: string; releaseNote: string }) {
-    const deployments = await getCurrentDeployments();
+async function updateDeploymentsJson(filePath: string, options: { branchName: string; releaseNote: string }) {
+    console.log('deployments.json 업데이트 중...', filePath, options);
+    const deployments = getCurrentDeployments(filePath);
     const deployId = process.env.DEPLOY_ID || options.branchName;
     const ociVersion = options.branchName;
     const ociRegion = process.env.OCI_REGION || '';
     const ociNamespace = process.env.OCI_NAMESPACE || '';
     const ociRepo = process.env.OCI_REPO || 'spiralwave';
     const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}:${ociVersion}`;
-    const hostPort = Number(process.env.HOST_PORT || 3300);
+    
+    let hostPort = Number(process.env.HOST_PORT || 3300);
+    const activeDeployments = deployments
+        .filter((deployment) => deployment.id !== deployId)
+        .filter((deployment) => deployment.status !== 'hidden');
+    const previewDeployments = activeDeployments
+        .filter((deployment) => deployment.type === 'preview')
+        .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))
+        .slice(0, 4);
+    if (previewDeployments.length >= 4) {
+        hostPort = previewDeployments[4].port || hostPort;
+    } else {
+        const usedPorts = activeDeployments.map(d => d.port).sort();
+        hostPort = (usedPorts.pop() || 3300) + 1;
+    }
 
+    console.log(`port: ${hostPort} 할당 (현재 active preview: ${previewDeployments})`);
     const translatedReleaseNotes = TESTMODE ? {
         en: options.releaseNote,
         ko: '테스트 릴리즈 노트 (한국어)',
         zh: '测试发布说明（中文）',
         ja: 'テストリリースノート（日本語）'
     } : await getMultilingualReleaseNotes(options.releaseNote);
+
     const next: DeploymentEntry = {
         id: deployId,
         type: (process.env.DEPLOY_TYPE as 'stable' | 'preview' | undefined) || 'preview',
@@ -347,39 +365,31 @@ async function createDeploymentsJson(outputPath: string, options: { branchName: 
         release_note: translatedReleaseNotes
     };
 
-    const activeDeployments = deployments
-        .filter((deployment) => deployment.id !== deployId)
-        .filter((deployment) => deployment.status !== 'hidden');
-    activeDeployments.push(next);
+    previewDeployments.unshift(next);
+    if (previewDeployments.length > 4) {
+        previewDeployments.pop();
+    }
 
     const stableDeployment = activeDeployments
         .filter((deployment) => deployment.type === 'stable')
         .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))[0];
-    const previewDeployments = activeDeployments
-        .filter((deployment) => deployment.type === 'preview')
-        .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))
-        .slice(0, 4);
 
     const nextDeployments = stableDeployment
         ? [stableDeployment, ...previewDeployments]
         : previewDeployments;
 
-    fs.writeFileSync(outputPath, JSON.stringify(nextDeployments, null, 2) + '\n');
-    console.log(`deployments.json 생성 완료: ${outputPath}`);
+    console.log('다음 deployments.json 내용:', stableDeployment, previewDeployments);
+    fs.writeFileSync(filePath, JSON.stringify(nextDeployments, null, 2) + '\n');
+    console.log(`deployments.json 갱신 완료: ${filePath}`);
 }
 
-async function getCurrentDeployments(): Promise<DeploymentEntry[]> {
+function getCurrentDeployments(filePath: string): DeploymentEntry[] {
     try {
-        const res = await fetch(`${SERVER_URL}/api/deployments`);
-        if (!res.ok) {
-            console.error('getCurrentDeployments:', res.status, res.statusText);
-            return [];
-        }
-
-        const data = await res.json() as { deployments?: DeploymentEntry[] };
-        return Array.isArray(data.deployments) ? data.deployments : [];
+        const existingContent = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+        const deployments = JSON.parse(existingContent) as DeploymentEntry[];
+        return Array.isArray(deployments) ? deployments : [];
     } catch (error) {
-        console.error('deployments.json 기존 데이터 조회 실패:', error);
+        console.error('deployments.json 파일 조회 실패:', error);
         return [];
     }
 }

@@ -23,6 +23,7 @@ DEPLOYMENTS_FILE="${DEPLOYMENTS_FILE:-${DEPLOYMENTS_DIR}/deployments.json}"
 BRANCH_NAME="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
 DEPLOYMENTS_SOURCE_FILE="${DEPLOYMENTS_SOURCE_FILE:-deployments.json}"
 
+echo ""
 echo "OCI Container:$OLD_CONTAINER_NAME -> $NEW_CONTAINER_NAME"
 echo "OCI Image: $FULL_IMAGE"
 echo "OCI Port: $HOST_PORT -> $CONTAINER_PORT"
@@ -44,7 +45,7 @@ echo "📤 [3/5] 원격 서버 deployments.json 업로드"
 ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVER_IP} "mkdir -p '${DEPLOYMENTS_DIR}'"
 scp -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no "${DEPLOYMENTS_SOURCE_FILE}" "${OCI_SERVER_USER}@${OCI_SERVER_IP}:${DEPLOYMENTS_FILE}"
 
-echo "🚚 [4/5] 기존 버전 정지 및 배포된 버전 실행"
+echo "🚚 [4/5] 기존 버전 정지 및 배포된 버전 실행과 health check"
 ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVER_IP} << EOF
     # 서버 환경에서도 레지스트리 로그인
     echo "${OCI_TOKEN}" | docker login ${OCI_REGION}.ocir.io -u "${OCI_NAMESPACE}/${OCI_EMAIL}" --password-stdin
@@ -54,12 +55,15 @@ ssh -i ${OCI_SSH_KEY} -o StrictHostKeyChecking=no ${OCI_SERVER_USER}@${OCI_SERVE
     DEPLOYMENTS_DIR="${DEPLOYMENTS_DIR}"
     DEPLOYMENTS_FILE="${DEPLOYMENTS_FILE}"
 
-    # 컨테이너 이름이 동일하면 main 브랜치로 간주하여 기존 컨테이너 정지
-    # 혹은 버전이 명시적으로 존재한다면 old 컨테이너 정지
-    if [[ "${OLD_CONTAINER_NAME}" == "${NEW_CONTAINER_NAME}" || -n "${OLD_VERSION}" ]]; then
-        echo "Stopping old container... ${OLD_CONTAINER_NAME}"
-        docker stop ${OLD_CONTAINER_NAME} || true
-        docker rm ${OLD_CONTAINER_NAME} || true
+    # HOST_PORT를 사용 중인 컨테이너 ID 찾기
+    EXISTING_CONTAINER=\$(docker ps -q --filter "publish=${HOST_PORT}")
+
+    if [ -n "\$EXISTING_CONTAINER" ]; then
+        echo "📍 포트 ${HOST_PORT}를 사용 중인 기존 컨테이너(\$EXISTING_CONTAINER)를 발견했습니다. 정리 중..."
+        docker stop \$EXISTING_CONTAINER || true
+        docker rm \$EXISTING_CONTAINER || true
+    else
+        echo "📍 포트 ${HOST_PORT}를 사용 중인 기존 컨테이너가 없습니다."
     fi
 
     echo "Pulling new image and starting..."

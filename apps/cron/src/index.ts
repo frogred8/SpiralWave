@@ -329,7 +329,7 @@ async function updateDeploymentsJson(filePath: string, options: { branchName: st
     const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}_${options.branchName}:latest`;
     
     let oldVersion = '';
-    let hostPort = Number(process.env.HOST_PORT || 3300);
+    let hostPort = 3300;
     const activeDeployments = deployments
         .filter((deployment) => deployment.id !== deployId)
         .filter((deployment) => deployment.status !== 'hidden');
@@ -337,11 +337,14 @@ async function updateDeploymentsJson(filePath: string, options: { branchName: st
         .filter((deployment) => deployment.type === 'preview')
         .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))
         .slice(0, 4);
-    if (previewDeployments.length >= 4) {
-        hostPort = previewDeployments[4].port || hostPort;
-        oldVersion = previewDeployments[4].branch || '';
+
+    if (options.branchName === 'main') {
+        hostPort = Number(process.env.OCI_SERVER_PORT) || hostPort;
+    } else if (previewDeployments.length === 4) {
+        hostPort = previewDeployments[3].port || hostPort;
+        oldVersion = previewDeployments[3].branch || '';
     } else {
-        const usedPorts = activeDeployments.map(d => d.port).sort();
+        const usedPorts = previewDeployments.map(d => d.port).sort();
         hostPort = (usedPorts.pop() || 3300) + 1;
     }
 

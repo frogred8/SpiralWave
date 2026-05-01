@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260501_1637",
+    "type": "preview",
+    "title": "20260501_1637 Feedback Build",
+    "url": "http://134.185.103.3:3301",
+    "branch": "20260501_1637",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260501_1637:latest",
+    "container": "spiralwave",
+    "port": 3301,
+    "status": "active",
+    "released_at": "2026-05-01T07:37:52.855Z",
+    "release_note": {
+      "en": "Test release note",
+      "ko": "테스트 릴리즈 노트 (한국어)",
+      "zh": "测试发布说明（中文）",
+      "ja": "テストリリースノート（日本語）"
+    }
+  },
+  {
     "id": "20260501_1618",
     "type": "preview",
     "title": "20260501_1618 Feedback Build",
@@ -66,24 +84,6 @@
     "released_at": "2026-05-01T05:03:31.721Z",
     "release_note": {
       "en": "Test release note",
-      "ko": "테스트 릴리즈 노트 (한국어)",
-      "zh": "测试发布说明（中文）",
-      "ja": "テストリリースノート（日本語）"
-    }
-  },
-  {
-    "id": "20260428_1511",
-    "type": "preview",
-    "title": "20260428_1511 Feedback Build",
-    "url": "http://134.185.103.3:3301",
-    "branch": "20260428_1511",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave:20260428_1511",
-    "container": "spiralwave",
-    "port": 3301,
-    "status": "active",
-    "released_at": "2026-04-28T06:11:16.121Z",
-    "release_note": {
-      "en": "Test Release Note",
       "ko": "테스트 릴리즈 노트 (한국어)",
       "zh": "测试发布说明（中文）",
       "ja": "テストリリースノート（日本語）"

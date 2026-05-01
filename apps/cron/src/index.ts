@@ -51,7 +51,7 @@ const gemini = {
     }
 };
 
-const SERVER_URL = process.env.OCI_SERVER_IP || 'http://localhost:3000';
+const SERVER_URL = `http://${process.env.OCI_SERVER_IP}:${process.env.OCI_SERVER_PORT}`;
 const REPO_URL = process.env.REPO_URL || 'https://github.com/frogred8/SpiralWave.git';
 const TEMP_BASE_DIR = process.env.TEMP_DIR || path.join(process.cwd(), '.tmp');
 
@@ -113,7 +113,7 @@ async function run() {
         // 5. deployments.json 구성
         console.log('[05] deployments.json 구성');
         const deploymentsPath = path.join(tempDir, 'deployments.json');
-        await updateDeploymentsJson(deploymentsPath, {
+        const { oldVersion, hostPort } = await updateDeploymentsJson(deploymentsPath, {
             branchName,
             releaseNote: prompt.trim()
         });
@@ -178,18 +178,19 @@ ${prompt.trim()}
 
         // 11. deploy.sh 실행
         console.log('[11] deploy.sh 실행');
-        await execAsync(`sh deploy.sh`, {
+        const { stdout, stderr } = await execAsync(`sh deploy.sh`, {
             cwd: "../../",
             env: { 
-                ...process.env, 
-                OCI_VERSION: branchName,
-                DEPLOY_ID: branchName,
-                DEPLOY_TYPE: 'preview',
-                DEPLOY_TITLE: `${branchName} Feedback Build`,
+                ...process.env,
+                NEW_VERSION: branchName,
+                OLD_VERSION: oldVersion,
+                HOST_PORT: hostPort.toString(),
                 BRANCH_NAME: branchName,
                 DEPLOYMENTS_SOURCE_FILE: deploymentsPath
             }
         });
+        console.log('deploy.sh 결과:', stdout);
+        if (stderr) console.error('deploy.sh 에러 출력:', stderr);
 
         // 12. SERVER_URL로 reset API 호출하여 데이터 리셋
         console.log('[12] SERVER_URL로 reset API 호출');
@@ -318,16 +319,16 @@ ${releaseNote}
     };
 }
 
-async function updateDeploymentsJson(filePath: string, options: { branchName: string; releaseNote: string }) {
+async function updateDeploymentsJson(filePath: string, options: { branchName: string; releaseNote: string }): Promise<{ oldVersion: string; hostPort: number }> {
     console.log('deployments.json 업데이트 중...', filePath, options);
     const deployments = getCurrentDeployments(filePath);
-    const deployId = process.env.DEPLOY_ID || options.branchName;
-    const ociVersion = options.branchName;
+    const deployId = options.branchName;
     const ociRegion = process.env.OCI_REGION || '';
     const ociNamespace = process.env.OCI_NAMESPACE || '';
     const ociRepo = process.env.OCI_REPO || 'spiralwave';
-    const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}:${ociVersion}`;
+    const fullImage = `${ociRegion}.ocir.io/${ociNamespace}/${ociRepo}_${options.branchName}:latest`;
     
+    let oldVersion = '';
     let hostPort = Number(process.env.HOST_PORT || 3300);
     const activeDeployments = deployments
         .filter((deployment) => deployment.id !== deployId)
@@ -338,6 +339,7 @@ async function updateDeploymentsJson(filePath: string, options: { branchName: st
         .slice(0, 4);
     if (previewDeployments.length >= 4) {
         hostPort = previewDeployments[4].port || hostPort;
+        oldVersion = previewDeployments[4].branch || '';
     } else {
         const usedPorts = activeDeployments.map(d => d.port).sort();
         hostPort = (usedPorts.pop() || 3300) + 1;
@@ -381,6 +383,7 @@ async function updateDeploymentsJson(filePath: string, options: { branchName: st
     console.log('다음 deployments.json 내용:', stableDeployment, previewDeployments);
     fs.writeFileSync(filePath, JSON.stringify(nextDeployments, null, 2) + '\n');
     console.log(`deployments.json 갱신 완료: ${filePath}`);
+    return { oldVersion, hostPort };
 }
 
 function getCurrentDeployments(filePath: string): DeploymentEntry[] {

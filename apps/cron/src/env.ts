@@ -13,3 +13,4 @@ const rootEnvPath = envPathCandidates.find((candidate) => fs.existsSync(candidat
 if (rootEnvPath) {
   dotenv.config({ path: rootEnvPath });
 }
+dotenv.config({ path: '.env' });

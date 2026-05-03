@@ -661,7 +661,7 @@ export class GameScene extends Phaser.Scene {
 
     private async fetchDeploymentsData(): Promise<DeploymentEntry[]> {
         try {
-            const response = await fetch(`/api/deployments`);
+            const response = await fetch(`/deployments`);
             const data: DeploymentsResponse = await response.json();
             return data.deployments || [];
         } catch (err) {

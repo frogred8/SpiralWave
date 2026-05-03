@@ -62,7 +62,7 @@ fastify.get('/api/metrics', async (request, reply) => {
   return data;
 });
 
-fastify.get('/api/deployments', async () => {
+fastify.get('/deployments', async () => {
   return await DeploymentsService.getDeployments();
 });
 

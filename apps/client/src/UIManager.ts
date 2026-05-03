@@ -242,9 +242,9 @@ export class UIManager {
 
         if (visibleDeployments.length === 0) return;
 
-        const panelWidth = Math.min(340, Math.max(260, width * 0.28));
+        const panelWidth = Math.min(340, Math.max(200, width * 0.23));
         const panelX = Math.max(20, width - panelWidth - 24);
-        const panelY = Math.min(Math.max(120, height / 2 - 185), Math.max(120, height - 390));
+        const panelY = Math.min(Math.max(120, height / 2 - 238), Math.max(120, height - 390));
 
         this.deploymentsElement = this.scene.add.container(panelX, panelY).setDepth(2002);
         this.deploymentsElement.setScrollFactor(0);
@@ -277,7 +277,8 @@ export class UIManager {
         const branch = this.getCurrentBranch();
         const version = this.getCurrentVersionLabel();
 
-        if (branch === 'main') {
+        console.log('isCurrentDeployment check:', { deployment, branch, version });
+        if (branch === 'main' || branch === 'local') {
             return deployment.branch === 'main' || deployment.type === 'stable' || deployment.id === 'stable';
         }
 
@@ -287,7 +288,7 @@ export class UIManager {
     private buildDeploymentsPanel(container: Phaser.GameObjects.Container, deployments: DeploymentEntry[], panelWidth: number) {
         const headerHeight = 44;
         const itemHeight = 82;
-        const panelHeight = headerHeight + deployments.length * itemHeight + 16;
+        const panelHeight = headerHeight + deployments.length * itemHeight + 6;
 
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x121212, 0.9)
             .setOrigin(0)

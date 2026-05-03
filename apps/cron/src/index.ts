@@ -359,7 +359,7 @@ async function updateDeploymentsJson(filePath: string, options: { branchName: st
     const next: DeploymentEntry = {
         id: deployId,
         type: (process.env.DEPLOY_TYPE as 'stable' | 'preview' | undefined) || 'preview',
-        title: process.env.DEPLOY_TITLE || `${options.branchName} Feedback Build`,
+        title: process.env.DEPLOY_TITLE || `${options.branchName} Build`,
         url: process.env.PUBLIC_URL || `http://${process.env.OCI_SERVER_IP || 'localhost'}:${hostPort}`,
         branch: options.branchName,
         image: fullImage,

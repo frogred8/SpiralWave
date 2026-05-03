@@ -44,7 +44,7 @@ export interface LeaderboardResetResponse {
     deleted_count: number;
 }
 
-// GET /api/deployments
+// GET /deployments
 export type ReleaseNoteByLanguage = Partial<Record<'en' | 'ko' | 'zh' | 'ja', string>>;
 
 export interface DeploymentEntry {

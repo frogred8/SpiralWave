@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DeploymentEntry, DeploymentsResponse } from '@repo/shared';
 
 function getDeploymentsFilePath() {
-  return process.env.DEPLOYMENTS_FILE || path.resolve(process.cwd(), 'deployments.json');
+  return process.env.DEPLOYMENTS_FILE || path.resolve(process.cwd()+'../../../', 'deployments.json');
 }
 
 function isDeploymentEntry(value: unknown): value is DeploymentEntry {
@@ -28,8 +28,6 @@ export const DeploymentsService = {
 
       return {
         deployments: deployments
-          .filter((deployment) => deployment.status === 'active')
-          .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))
       };
     } catch (err: any) {
       if (err?.code !== 'ENOENT') {

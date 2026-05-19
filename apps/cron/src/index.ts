@@ -77,7 +77,7 @@ await run();
 
 async function run() {
     const timestamp = convertDateFormat(new Date());
-    console.log(`=== 크론 작업 시작... (${timestamp}) ===`);
+    console.log(`\n=== 크론 작업 시작... (${timestamp}) ===\n`);
 
     // 1. 데이터 API 호출
     console.log('[01] 데이터 API 호출');
@@ -192,9 +192,9 @@ ${prompt.trim()}
         console.log('deploy.sh 결과:', stdout);
         if (stderr) console.error('deploy.sh 에러 출력:', stderr);
 
-        // 12. SERVER_URL로 reset API 호출하여 데이터 리셋
+        // 12. SERVER_URL로 reset API 호출하여 데이터 리셋 (leaderboard, deployments 캐시)
         console.log('[12] SERVER_URL로 reset API 호출');
-        const res = await fetch(`${SERVER_URL}/leaderboard/reset`, { 
+        const res1 = await fetch(`${SERVER_URL}/leaderboard/reset`, { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -202,13 +202,22 @@ ${prompt.trim()}
                 all: true
             })
         });
-        if (res.ok) {
-            console.log('데이터 리셋 성공');
+        if (res1.ok) {
+            console.log('leaderboard 데이터 리셋 성공');
         } else {
-            console.error('데이터 리셋 실패:', res.status, res.statusText);
+            console.error('leaderboard 데이터 리셋 실패:', res1.status, res1.statusText);
         }
 
-        console.log('크론 작업 완료');
+        const res2 = await fetch(`${SERVER_URL}/deployments/cache`, { 
+            method: 'DELETE',
+        });
+        if (res2.ok) {
+            console.log('deployments 캐시 리셋 성공');
+        } else {
+            console.error('deployments 캐시 리셋 실패:', res2.status, res2.statusText);
+        }
+
+        console.log(`\n=== 크론 작업 완료 (${timestamp}) ===\n`);
 
     } catch (error) {
         console.error('작업 중 오류 발생:', error);

@@ -17,24 +17,40 @@ function isDeploymentEntry(value: unknown): value is DeploymentEntry {
     && typeof entry.released_at === 'string';
 }
 
+let cachedDeployments: DeploymentsResponse | null = null;
+let lastCacheTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export const DeploymentsService = {
   async getDeployments(): Promise<DeploymentsResponse> {
+    if (cachedDeployments && Date.now() - lastCacheTime < CACHE_DURATION) {
+      return cachedDeployments;
+    }
     try {
-      const raw = await fs.readFile(getDeploymentsFilePath(), 'utf8');
-      const parsed = JSON.parse(raw);
-      const deployments = Array.isArray(parsed)
-        ? parsed.filter(isDeploymentEntry)
-        : [];
-
-      return {
-        deployments: deployments
-      };
+      const deployments = await this.readDeployments();
+      cachedDeployments = { deployments: deployments };
+      lastCacheTime = Date.now();
+      return cachedDeployments;
     } catch (err: any) {
       if (err?.code !== 'ENOENT') {
         console.error('Failed to read deployments:', err);
       }
-
       return { deployments: [] };
     }
+  },
+
+  async readDeployments(): Promise<DeploymentEntry[]> {
+    const raw = await fs.readFile(getDeploymentsFilePath(), 'utf8');
+    const parsed = JSON.parse(raw);
+    const deployments = Array.isArray(parsed)
+      ? parsed.filter(isDeploymentEntry)
+      : [];
+    return deployments;
+  },
+
+  clearDeploymentsCache() {
+    cachedDeployments = null;
+    lastCacheTime = 0;
   }
+
 };

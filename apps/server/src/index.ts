@@ -65,6 +65,9 @@ fastify.get('/api/metrics', async (request, reply) => {
 fastify.get('/deployments', async () => {
   return await DeploymentsService.getDeployments();
 });
+fastify.delete('/deployments/cache', async () => {
+  DeploymentsService.clearDeploymentsCache();
+});
 
 // Metrics Dashboard HTML
 fastify.get('/metrics', async (request, reply) => {

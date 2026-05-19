@@ -478,10 +478,10 @@ export class GameScene extends Phaser.Scene {
         }, this);
     }
 
-    private findBestArmTarget(originX: number, originY: number, searchRadius: number): Collectible | null {
+    private findBestArmTarget(originX: number, originY: number, minRadius: number, maxRadius: number): Collectible | null {
         let bestTarget: Collectible | null = null;
         let bestPriority = -1; // 2: Special, 1: HighDim, 0: Normal
-        let minDistance = searchRadius;
+        let minDistance = maxRadius;
 
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as Collectible;
@@ -498,7 +498,7 @@ export class GameScene extends Phaser.Scene {
                 bestPriority = priority;
                 minDistance = dist;
                 bestTarget = res;
-            } else if (priority === bestPriority && dist < minDistance) {
+            } else if (priority === bestPriority && dist >= minRadius && dist < minDistance) {
                 minDistance = dist;
                 bestTarget = res;
             }
@@ -513,7 +513,7 @@ export class GameScene extends Phaser.Scene {
         const arm = this.arms.find(a => a.state === 'idle');
         if (!arm) return;
 
-        const bestTarget = this.findBestArmTarget(pointer.worldX, pointer.worldY, 300);
+        const bestTarget = this.findBestArmTarget(pointer.worldX, pointer.worldY, 0, 300);
         if (bestTarget) arm.fire(bestTarget, this.time.now);
     }
 
@@ -535,7 +535,7 @@ export class GameScene extends Phaser.Scene {
         this.updateAutoNet(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);
         this.orbitSystem.update(cappedDelta);
-        this.updateArms(cappedDelta);
+        this.updateArms(time, cappedDelta);
         this.updateAutoArms(time);
 
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
@@ -579,17 +579,18 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private updateArms(delta: number) {
+    private updateArms(time: number, delta: number) {
         this.gameRenderer.clearArmGraphics();
-        this.arms.forEach(arm => arm.update(delta, this.gameRenderer, this.collectResource.bind(this)));
+        this.arms.forEach(arm => arm.update(time, delta, this.gameRenderer, this.collectResource.bind(this)));
     }
 
     private updateAutoArms(time: number) {
         if (!this.gameStats.isAutoArmEnabled) return;
-        const idleArms = this.arms.filter(a => a.state === 'idle' && time > a.lastFireTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN);
+        const idleArms = this.arms.filter(a => a.state === 'idle' && time > a.idleBeginTime + DURATIONS.ARM_AUTO_FIRE_COOLDOWN);
+        const currRadius = this.getCurrentRadius();
         for (const arm of idleArms) {
             if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) break;
-            const bestTarget = this.findBestArmTarget(this.spiralCenter.x, this.spiralCenter.y, 600);
+            const bestTarget = this.findBestArmTarget(this.spiralCenter.x, this.spiralCenter.y, currRadius, currRadius + DURATIONS.ARM_AUTO_FIRE_SEARCH_RADIUS);
             if (bestTarget) arm.fire(bestTarget, time);
         }
     }

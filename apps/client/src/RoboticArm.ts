@@ -11,6 +11,7 @@ export class RoboticArm {
     public grabbedResource: Collectible | null = null;
     public extensionProgress: number = 0;
     public lastFireTime: number = 0;
+    public idleBeginTime: number = 0;
 
     private scene: Phaser.Scene;
     private stats: GameStats;
@@ -23,11 +24,11 @@ export class RoboticArm {
         this.target = new Phaser.Math.Vector2(spiralCenter.x, spiralCenter.y);
     }
 
-    public update(delta: number, renderer: GameRenderer, collectCallback: (res: Collectible, byArm: boolean) => void) {
+    public update(time: number, delta: number, renderer: GameRenderer, collectCallback: (res: Collectible, byArm: boolean) => void) {
         if (this.state === 'extending') {
             this.handleExtending(delta, collectCallback, renderer);
         } else if (this.state === 'retracting') {
-            this.handleRetracting(delta, collectCallback);
+            this.handleRetracting(time, delta, collectCallback);
         }
 
         if (this.state === 'idle') return;
@@ -59,7 +60,7 @@ export class RoboticArm {
         }
     }
 
-    private handleRetracting(delta: number, collectCallback: (res: Collectible, byArm: boolean) => void) {
+    private handleRetracting(time: number, delta: number, collectCallback: (res: Collectible, byArm: boolean) => void) {
         const factor = this.stats.armSpeedFactor;
         const isHighDim = this.grabbedResource?.isHighDim || false;
         const baseRetractSpeed = DURATIONS.ARM_RETRACT_BASE;
@@ -76,6 +77,7 @@ export class RoboticArm {
                 this.grabbedResource = null;
             }
             this.state = 'idle';
+            this.idleBeginTime = time;
             this.extensionProgress = 0;
         } else {
             const dirX = (this.spiralCenter.x - this.target.x) / distance;
@@ -110,6 +112,7 @@ export class RoboticArm {
         this.grabbedResource = null;
         this.extensionProgress = 0;
         this.lastFireTime = 0;
+        this.idleBeginTime = 0;
         this.target.copy(this.spiralCenter);
     }
 }

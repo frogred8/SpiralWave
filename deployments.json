@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260522_1538",
+    "type": "preview",
+    "title": "20260522_1538 Build",
+    "url": "http://134.185.103.3:3301",
+    "branch": "20260522_1538",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260522_1538:latest",
+    "container": "spiralwave",
+    "port": 3301,
+    "status": "active",
+    "released_at": "2026-05-22T06:38:41.020Z",
+    "release_note": {
+      "en": "Please implement the following features and improvements in @apps/client and @apps/server:\n\n1. **Adjust Object Spawning Logic**: Increase the spawn rate and frequency of meteor objects to enhance gameplay engagement.\n2. **Audio Update**: Integrate Christmas-themed background music (carols) into the audio management system.\n3. **New Game Mechanic (Bomb Item)**: Implement a new 'Bomb' entity that triggers a resource deduction penalty when collected or triggered by the player.\n4. **Visual Enhancement**: Add background animations of flying seagulls to improve the environmental aesthetics.",
+      "ko": "@apps/client 및 @apps/server에서 다음 기능 및 개선 사항을 구현해 주세요:\n\n1. 오브젝트 생성 로직 조정: 운석 오브젝트의 생성 확률과 빈도를 높여 게임의 몰입도를 향상시킵니다.\n2. 오디오 업데이트: 오디오 관리 시스템에 크리스마스 테마 배경 음악(캐럴)을 통합합니다.\n3. 새로운 게임 메커니즘 (폭탄 아이템): 플레이어가 획득하거나 트리거할 때 리소스 차감 페널티를 주는 새로운 '폭탄' 엔티티를 구현합니다.\n4. 시각적 개선: 환경 미관 개선을 위해 날아다니는 갈매기 배경 애니메이션을 추가합니다.",
+      "zh": "请在 @apps/client 和 @apps/server 中实现以下功能和改进：\n\n1. 调整物体生成逻辑：提高陨石物体的生成率和频率，以增强游戏参与度。\n2. 音频更新：在音频管理系统中集成圣诞主题背景音乐（颂歌）。\n3. 新游戏机制（炸弹道具）：实现新的“炸弹”实体，当玩家收集或触发时会扣除资源。\n4. 视觉增强：增加飞翔海鸥的背景动画，以提升环境美学。",
+      "ja": "@apps/client および @apps/server で以下の機能と改善を実装してください：\n\n1. オブジェクト生成ロジックの調整：メテオ（隕石）の出現率と頻度を上げ、ゲームの没入感を向上させます。\n2. オーディオの更新：オーディオ管理システムにクリスマスをテーマにした背景音楽（キャロル）を統合します。\n3. 新しいゲームメカニズム（爆弾アイテム）：プレイヤーが獲得または作動させた際にリソース減少ペナルティを課す新しい「爆弾」エンティティを実装します。\n4. 視覚効果の向上：環境の美観を向上させるため、空飛ぶカモメの背景アニメーションを追加します。"
+    }
+  },
+  {
     "id": "20260501_1700",
     "type": "preview",
     "title": "20260501_1700 Feedback Build",
@@ -64,24 +82,6 @@
     "port": 3302,
     "status": "active",
     "released_at": "2026-05-01T07:45:57.506Z",
-    "release_note": {
-      "en": "Test release note",
-      "ko": "테스트 릴리즈 노트 (한국어)",
-      "zh": "测试发布说明（中文）",
-      "ja": "テストリリースノート（日本語）"
-    }
-  },
-  {
-    "id": "20260501_1637",
-    "type": "preview",
-    "title": "20260501_1637 Feedback Build",
-    "url": "http://134.185.103.3:3301",
-    "branch": "20260501_1637",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260501_1637:latest",
-    "container": "spiralwave",
-    "port": 3301,
-    "status": "active",
-    "released_at": "2026-05-01T07:37:52.855Z",
     "release_note": {
       "en": "Test release note",
       "ko": "테스트 릴리즈 노트 (한국어)",

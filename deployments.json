@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260522_1557",
+    "type": "preview",
+    "title": "20260522_1557 Build",
+    "url": "http://134.185.103.3:3303",
+    "branch": "20260522_1557",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260522_1557:latest",
+    "container": "spiralwave",
+    "port": 3303,
+    "status": "active",
+    "released_at": "2026-05-22T06:57:14.352Z",
+    "release_note": {
+      "en": "@apps/client @apps/server\n- Increase the spawn frequency of meteor objects to make them appear more often during gameplay.\n- Implement a new 'Bomb' entity that reduces the player's resources upon collision. This includes adding the logic for the resource penalty and integrating the bomb into the existing spawning system.",
+      "ko": "@apps/client @apps/server\n- 게임 플레이 중 메테오 오브젝트가 더 자주 등장하도록 스폰 빈도를 높였습니다.\n- 충돌 시 플레이어의 자원을 감소시키는 새로운 '폭탄(Bomb)' 엔티티를 구현했습니다. 여기에는 자원 페널티 로직 추가 및 기존 스폰 시스템에 폭탄을 통합하는 작업이 포함됩니다.",
+      "zh": "@apps/client @apps/server\n- 提高流星物体的生成频率，使其在游戏过程中更频繁地出现。\n- 实现全新的“炸弹 (Bomb)”实体，玩家碰撞时将减少资源。这包括添加资源扣除逻辑，并将炸弹整合到现有的生成系统中。",
+      "ja": "@apps/client @apps/server\n- ゲームプレイ中にメテオオブジェクトがより頻繁に出現するよう、出現頻度を上げました。\n- 衝突時にプレイヤーのリソースを減少させる新しい「爆弾 (Bomb)」エンティティを実装しました。これには、リソース減少ロジックの追加と、既存のスポーンシステムへの爆弾の統合が含まれます。"
+    }
+  },
+  {
     "id": "20260522_1547",
     "type": "preview",
     "title": "20260522_1547 Build",
@@ -64,24 +82,6 @@
     "port": 3304,
     "status": "active",
     "released_at": "2026-05-01T08:00:42.874Z",
-    "release_note": {
-      "en": "Test release note",
-      "ko": "테스트 릴리즈 노트 (한국어)",
-      "zh": "测试发布说明（中文）",
-      "ja": "テストリリースノート（日本語）"
-    }
-  },
-  {
-    "id": "20260501_1659",
-    "type": "preview",
-    "title": "20260501_1659 Feedback Build",
-    "url": "http://134.185.103.3:3303",
-    "branch": "20260501_1659",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260501_1659:latest",
-    "container": "spiralwave",
-    "port": 3303,
-    "status": "active",
-    "released_at": "2026-05-01T07:59:16.208Z",
     "release_note": {
       "en": "Test release note",
       "ko": "테스트 릴리즈 노트 (한국어)",

@@ -329,6 +329,7 @@ export class UIManager {
             fontSize: '11px',
             color: '#d1d5db',
             lineSpacing: 2,
+            maxLines: 3,
             wordWrap: { width: panelWidth - 28 }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
 

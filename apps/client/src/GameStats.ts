@@ -69,7 +69,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
         SPECIAL_ITEM_INTERVAL_CHANGED: 'specialItemIntervalChanged',
         CALCULATE_BOOSTER: 'calculateBooster',
         FEVER_START: 'feverStart',
-        FEVER_END: 'feverEnd'
+        FEVER_END: 'feverEnd',
+        RESOURCE_PENALTY_APPLIED: 'resourcePenaltyApplied'
     };
 
     constructor(skillTreeData: SkillData[]) {
@@ -447,6 +448,25 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
         this.emit('worldResourceCollected', { type, amount, x, y });
     }
 }/**
+ * 자원 차감 처리 (폭탄 등 위험 요소)
+ */
+deductResources(costs: SkillCosts, x?: number, y?: number): SkillCosts {
+    const deducted: SkillCosts = {};
+
+    if (costs.rock) {
+        deducted.rock = Math.min(this.collected.rock, costs.rock);
+        this.collected.rock -= deducted.rock;
+    }
+    if (costs.wood) {
+        deducted.wood = Math.min(this.collected.wood, costs.wood);
+        this.collected.wood -= deducted.wood;
+    }
+
+    this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    this.emit(GameStats.EVENTS.RESOURCE_PENALTY_APPLIED, { costs: deducted, x, y });
+    return deducted;
+}
+/**
  * 최근 10초간의 자원 획득량 합계 반환
  */
 getRecentCollectionAmount(): number {

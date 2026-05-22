@@ -10,6 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "paths": {
+      "@repo/shared": ["../../packages/shared/src/index.ts"],
       "@shared/*": ["../../packages/shared/src/*"]
     }
   },

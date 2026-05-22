@@ -11,6 +11,11 @@ export type ResourceType = 'rock' | 'wood';
 export type SpecialItemType = 'whitehole' | 'boost';
 
 /**
+ * 위험 요소 종류 정의
+ */
+export type HazardItemType = 'bomb';
+
+/**
  * 수집 가능한 객체 인터페이스
  */
 export interface Collectible extends Phaser.GameObjects.GameObject {
@@ -20,8 +25,9 @@ export interface Collectible extends Phaser.GameObjects.GameObject {
     body: Phaser.Physics.Arcade.Body;
     resourceType?: ResourceType;
     isHighDim?: boolean;
-    itemType?: 'special';
+    itemType?: 'special' | 'hazard';
     specialType?: SpecialItemType;
+    hazardType?: HazardItemType;
 }
 
 /**
@@ -39,6 +45,15 @@ export interface Resource extends Phaser.GameObjects.Text {
 export interface SpecialItem extends Phaser.GameObjects.Text {
     itemType: 'special';
     specialType: SpecialItemType;
+    body: Phaser.Physics.Arcade.Body;
+}
+
+/**
+ * 위험 요소 객체 인터페이스
+ */
+export interface HazardItem extends Phaser.GameObjects.Text {
+    itemType: 'hazard';
+    hazardType: HazardItemType;
     body: Phaser.Physics.Arcade.Body;
 }
 

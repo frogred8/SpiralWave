@@ -1,6 +1,6 @@
-import { ResourceType, SpecialItemType } from './Types';
+import { HazardItemType, ResourceType, SpecialItemType } from './Types';
 
-export type ResourceRegistryKey = ResourceType | SpecialItemType | 'satellite';
+export type ResourceRegistryKey = ResourceType | SpecialItemType | HazardItemType | 'satellite';
 
 export interface ResourceMetadata {
     key: ResourceRegistryKey;
@@ -38,6 +38,13 @@ export const RESOURCE_METADATA: Record<ResourceRegistryKey, ResourceMetadata> = 
         description: 'A temporary radius amplifier that expands the black hole collection boundary.',
         icon: '⚡',
         tint: 0x00ffff
+    },
+    bomb: {
+        key: 'bomb',
+        name: 'Bomb',
+        description: 'A volatile hazard that consumes stored resources when it reaches player-owned collectors.',
+        icon: '💣',
+        tint: 0xff3333
     },
     satellite: {
         key: 'satellite',

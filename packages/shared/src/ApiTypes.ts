@@ -14,6 +14,10 @@ export interface EndRequest {
     select_skill_id: number;
     name: string;
     score: number;
+    resources: {
+        rock: number;
+        wood: number;
+    };
     msg: string;
     emoji: string;
     ip: string;

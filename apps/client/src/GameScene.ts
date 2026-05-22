@@ -5,7 +5,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Constants';
 import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
-import { SpecialItem, Collectible } from './Types';
+import { HazardItem, SpecialItem, Collectible } from './Types';
 import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
@@ -231,6 +231,13 @@ export class GameScene extends Phaser.Scene {
             loop: true 
         });
 
+        this.time.addEvent({
+            delay: DURATIONS.BOMB_INTERVAL,
+            callback: () => this.resourceManager.spawnBomb(),
+            callbackScope: this,
+            loop: true
+        });
+
         this.scheduleSmallBlackHoleSpawn();
     }
 
@@ -298,6 +305,7 @@ export class GameScene extends Phaser.Scene {
                 select_skill_id: this.currentSelectSkillId,
                 name: name,
                 score: this.gameStats.totalAll,
+                resources: { ...this.gameStats.collected },
                 msg: msg,
                 emoji: this.userInfo.emoji,
                 ip: this.userInfo.ip
@@ -424,6 +432,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.removeAllListeners(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
         this.gameStats.removeAllListeners('resourceCollected');
         this.gameStats.removeAllListeners('worldResourceCollected');
+        this.gameStats.removeAllListeners(GameStats.EVENTS.RESOURCE_PENALTY_APPLIED);
 
         this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, () => {
             this.updateSpawnTimer();
@@ -467,6 +476,15 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.on('worldResourceCollected', (data: { type: string, amount: number, x: number, y: number }) => {
             const fontSize = data.amount > 1 ? '21px' : '14px';
             this.uiManager.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize, this.worldContainer);
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.RESOURCE_PENALTY_APPLIED, (data: { costs: { rock?: number; wood?: number }, x?: number, y?: number }) => {
+            if (data.x === undefined || data.y === undefined) return;
+            const parts = Object.entries(data.costs)
+                .filter(([, amount]) => (amount || 0) > 0)
+                .map(([type, amount]) => `-${amount} ${type}`);
+            if (parts.length === 0) return;
+            this.uiManager.showFloatingText(data.x, data.y - 24, parts.join(' '), '#ff4444', true, '18px', this.worldContainer);
         }, this);
     }
 
@@ -612,6 +630,19 @@ export class GameScene extends Phaser.Scene {
             if (this.orbitSystem.handleResourceGravity(res)) return;
 
             const dist = Utils.getDistance(res.x, res.y, centerX, centerY);
+            if (res.itemType === 'hazard') {
+                if (dist < effectiveRadius) {
+                    Utils.applyGravityToPoint(res, dist, effectiveRadius, centerX, centerY, this.gameStats.force, PHYSICS_CONFIG.ACCEL_BASE, PHYSICS_CONFIG.DRAG_BASE);
+                }
+                if (dist < RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL) {
+                    this.collectResource(res);
+                    return;
+                }
+                if (dist > screenLimit) res.destroy();
+                else Utils.limitSpeed(res, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
+                return;
+            }
+
             if (res.itemType === 'special') {
                 if (dist > screenLimit) res.destroy();
                 return;
@@ -676,6 +707,11 @@ export class GameScene extends Phaser.Scene {
 
         if (collectible.itemType === 'special') {
             this.handleSpecialItem(collectible, byArm, byNet, silent);
+            return;
+        }
+
+        if (collectible.itemType === 'hazard') {
+            this.handleHazardItem(collectible, silent);
             return;
         }
 
@@ -757,6 +793,19 @@ export class GameScene extends Phaser.Scene {
         
         item.destroy();
         this.cameras.main.shake(100, 0.005);
+    }
+
+    private handleHazardItem(item: HazardItem, silent: boolean = false) {
+        if (item.hazardType !== 'bomb') {
+            item.destroy();
+            return;
+        }
+
+        this.gameStats.deductResources(RESOURCE_CONFIG.BOMB.PENALTY, item.x, item.y);
+        this.gameRenderer.emitCollisionSpark(item.x, item.y);
+        if (!silent) SoundManager.getInstance().play('specialitem');
+        item.destroy();
+        this.cameras.main.shake(220, 0.01);
     }
 
     private triggerRadiusBoost() {

@@ -135,8 +135,12 @@ export const GameService = {
     }
   },
 
-  async endGame(gameId: string, selectSkillId: number, name: string, score: number, msg: string, emoji: string, ip: string, endAt: Date) {
+  async endGame(gameId: string, selectSkillId: number, name: string, score: number, resources: { rock: number; wood: number }, msg: string, emoji: string, ip: string, endAt: Date) {
     try {
+      if (!resources || !Number.isFinite(resources.rock) || !Number.isFinite(resources.wood) || resources.rock < 0 || resources.wood < 0) {
+        throw new Error('Invalid resource state');
+      }
+
       const gameRecord = await validateGameSession(gameId, selectSkillId, ip, endAt);
       if (gameRecord) {
         // 모든 검증이 통과하면 game 테이블에서 해당 레코드를 삭제

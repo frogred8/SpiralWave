@@ -44,7 +44,8 @@ export const DURATIONS = {
     RADIUS_BOOST: 5000,
     RADIUS_BOOST_SHRINK: 2000,
     SPECIAL_ITEM_SPAWN: 15000,
-    METEOR_INTERVAL: 30000,
+    METEOR_INTERVAL: 15000,
+    BOMB_INTERVAL: 12000,
     NET_COOLDOWN: 5000,
     NET_DISTANCE: 600,
     NET_ANIMATION: 600,
@@ -77,6 +78,14 @@ export const RESOURCE_CONFIG = {
         HIGH_DIM: 45
     },
     HIGH_DIM_MULTIPLIER: 5,
+    BOMB: {
+        PENALTY: {
+            rock: 50,
+            wood: 50
+        },
+        MIN_DIST_OFFSET: 180,
+        MAX_DIST: 700
+    },
     WHITE_HOLE: {
         MIN_DIST_OFFSET: 100,
         MAX_DIST: 500

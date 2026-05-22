@@ -3,7 +3,7 @@ import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
-import { Resource, SpecialItem, Collectible } from './Types';
+import { HazardItem, Resource, SpecialItem } from './Types';
 import { getResourceMetadata } from './ResourceRegistry';
 
 export class ResourceManager {
@@ -150,6 +150,41 @@ export class ResourceManager {
             }
         });
         (this.scene.tweens.getTweensOf(meteor)[0] as any).lastResourceProgress = 0;
+    }
+
+    public spawnBomb() {
+        if (this.resources.getLength() >= INITIAL_STATS.MAX_RESOURCES) return;
+
+        const { x, y } = this.getRandomPositionAroundCenter(
+            this.stats.radius + RESOURCE_CONFIG.BOMB.MIN_DIST_OFFSET,
+            RESOURCE_CONFIG.BOMB.MAX_DIST
+        );
+
+        const bomb = this.scene.add.text(x, y, this.getIcon('bomb'), {
+            fontSize: '44px'
+        }).setOrigin(0.5) as HazardItem;
+
+        bomb.itemType = 'hazard';
+        bomb.hazardType = 'bomb';
+
+        this.scene.physics.add.existing(bomb);
+        this.resources.add(bomb);
+        this.worldContainer.add(bomb);
+        bomb.body.setCircle(22, (bomb.width - 44) / 2, (bomb.height - 44) / 2);
+
+        const angle = Utils.getAngle(x, y, this.spiralCenter.x, this.spiralCenter.y) + Phaser.Math.FloatBetween(-0.65, 0.65);
+        const speed = Phaser.Math.Between(70, 120);
+        bomb.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+        bomb.body.setAngularVelocity(Phaser.Math.Between(-180, 180));
+
+        this.scene.tweens.add({
+            targets: bomb,
+            scale: 1.18,
+            alpha: 0.75,
+            duration: 600,
+            yoyo: true,
+            loop: -1
+        });
     }
 
     public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {
@@ -319,6 +354,10 @@ export class ResourceManager {
     }
 
     public getParticleTint(res: any): number {
+        if (res.itemType === 'hazard' && res.hazardType) {
+            return getResourceMetadata(res.hazardType).tint;
+        }
+
         if (res.itemType === 'special' && res.specialType) {
             return getResourceMetadata(res.specialType).tint;
         }

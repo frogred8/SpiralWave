@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260522_1641",
+    "type": "preview",
+    "title": "20260522_1641 Build",
+    "url": "http://134.185.103.3:3304",
+    "branch": "20260522_1641",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260522_1641:latest",
+    "container": "spiralwave",
+    "port": 3304,
+    "status": "active",
+    "released_at": "2026-05-22T07:41:42.819Z",
+    "release_note": {
+      "en": "Update the game logic in @apps/client and @apps/server to implement the following features:\n\n1. Increase the spawn frequency of meteor objects to enhance gameplay intensity.\n2. Implement a new 'Bomb' entity that spawns within the game world. Add collision detection logic so that when a player interacts with a Bomb, a specific amount of the player's resources is deducted. Ensure the resource state is synchronized between the client and the server.",
+      "ko": "@apps/client 및 @apps/server의 게임 로직을 업데이트하여 다음 기능을 구현했습니다:\n\n1. 게임 플레이의 긴장감을 높이기 위해 운석 오브젝트의 생성 빈도를 높였습니다.\n2. 게임 월드 내에 생성되는 새로운 '폭탄(Bomb)' 엔티티를 구현했습니다. 플레이어가 폭탄과 충돌할 때 일정량의 자원이 차감되도록 충돌 감지 로직을 추가했습니다. 클라이언트와 서버 간의 자원 상태 동기화를 보장합니다.",
+      "zh": "更新 @apps/client 和 @apps/server 中的游戏逻辑以实现以下功能：\n\n1. 增加陨石物体的生成频率，以增强游戏强度。\n2. 实现一个在游戏世界中生成的新“炸弹 (Bomb)”实体。添加碰撞检测逻辑，当玩家与炸弹交互时，扣除特定数量的玩家资源。确保客户端和服务器之间的资源状态同步。",
+      "ja": "@apps/client および @apps/server のゲームロジックを更新し、以下の機能を実装しました：\n\n1. ゲームプレイの緊張感を高めるため、メテオオブジェクトの出現頻度を上げました。\n2. ゲームワールド内に生成される新しい「爆弾 (Bomb)」エンティティを実装しました。プレイヤーが爆弾と接触した際に、一定量のリソースが差し引かれる衝突判定ロジックを追加しました。クライアントとサーバー間でリソース状態が同期されるようにしました。"
+    }
+  },
+  {
     "id": "20260522_1557",
     "type": "preview",
     "title": "20260522_1557 Build",
@@ -69,24 +87,6 @@
       "ko": "@apps/client 및 @apps/server에서 다음 기능 및 개선 사항을 구현해 주세요:\n\n1. 오브젝트 생성 로직 조정: 운석 오브젝트의 생성 확률과 빈도를 높여 게임의 몰입도를 향상시킵니다.\n2. 오디오 업데이트: 오디오 관리 시스템에 크리스마스 테마 배경 음악(캐럴)을 통합합니다.\n3. 새로운 게임 메커니즘 (폭탄 아이템): 플레이어가 획득하거나 트리거할 때 리소스 차감 페널티를 주는 새로운 '폭탄' 엔티티를 구현합니다.\n4. 시각적 개선: 환경 미관 개선을 위해 날아다니는 갈매기 배경 애니메이션을 추가합니다.",
       "zh": "请在 @apps/client 和 @apps/server 中实现以下功能和改进：\n\n1. 调整物体生成逻辑：提高陨石物体的生成率和频率，以增强游戏参与度。\n2. 音频更新：在音频管理系统中集成圣诞主题背景音乐（颂歌）。\n3. 新游戏机制（炸弹道具）：实现新的“炸弹”实体，当玩家收集或触发时会扣除资源。\n4. 视觉增强：增加飞翔海鸥的背景动画，以提升环境美学。",
       "ja": "@apps/client および @apps/server で以下の機能と改善を実装してください：\n\n1. オブジェクト生成ロジックの調整：メテオ（隕石）の出現率と頻度を上げ、ゲームの没入感を向上させます。\n2. オーディオの更新：オーディオ管理システムにクリスマスをテーマにした背景音楽（キャロル）を統合します。\n3. 新しいゲームメカニズム（爆弾アイテム）：プレイヤーが獲得または作動させた際にリソース減少ペナルティを課す新しい「爆弾」エンティティを実装します。\n4. 視覚効果の向上：環境の美観を向上させるため、空飛ぶカモメの背景アニメーションを追加します。"
-    }
-  },
-  {
-    "id": "20260501_1700",
-    "type": "preview",
-    "title": "20260501_1700 Feedback Build",
-    "url": "http://134.185.103.3:3304",
-    "branch": "20260501_1700",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260501_1700:latest",
-    "container": "spiralwave",
-    "port": 3304,
-    "status": "active",
-    "released_at": "2026-05-01T08:00:42.874Z",
-    "release_note": {
-      "en": "Test release note",
-      "ko": "테스트 릴리즈 노트 (한국어)",
-      "zh": "测试发布说明（中文）",
-      "ja": "テストリリースノート（日本語）"
     }
   }
 ]

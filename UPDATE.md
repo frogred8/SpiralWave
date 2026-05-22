@@ -1,4 +1,23 @@
 
+# Update - 20260522_1547
+
+## User Feedback
+```
+유성이 더 자주 나오면 좋겠어요
+배경 음악으로 캐롤을 틀어주세요
+ネットの色を黄色に変えてください
+먹으면 자원이 깎이는 폭탄도 만들어주세요!
+배경 화면에 갈매기가 날아다니게 해줘
+```
+
+## Gemini AI Plan
+Modify the game mechanics to increase the meteor spawn frequency and implement a new 'bomb' item that decreases the player's resources upon collection.
+
+- @apps/client: Update the spawning logic to increase the frequency of meteors and implement the visual/collision logic for the 'bomb' entity.
+- @apps/server: Update the resource management logic to handle state changes when a 'bomb' collection event occurs, ensuring the player's resource count is appropriately deducted.
+
+---
+
 # Update - 20260522_1538
 
 ## User Feedback

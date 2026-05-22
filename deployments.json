@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260522_1547",
+    "type": "preview",
+    "title": "20260522_1547 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260522_1547",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260522_1547:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-05-22T06:47:32.922Z",
+    "release_note": {
+      "en": "Modify the game mechanics to increase the meteor spawn frequency and implement a new 'bomb' item that decreases the player's resources upon collection.\n\n- @apps/client: Update the spawning logic to increase the frequency of meteors and implement the visual/collision logic for the 'bomb' entity.\n- @apps/server: Update the resource management logic to handle state changes when a 'bomb' collection event occurs, ensuring the player's resource count is appropriately deducted.",
+      "ko": "게임 메커니즘을 수정하여 유성 생성 빈도를 높이고, 획득 시 플레이어의 자원을 감소시키는 새로운 '폭탄' 아이템을 구현했습니다.\n\n- @apps/client: 유성 생성 빈도를 높이기 위해 생성 로직을 업데이트하고 '폭탄' 엔티티의 시각 효과 및 충돌 로직을 구현했습니다.\n- @apps/server: '폭탄' 획득 이벤트 발생 시 상태 변경을 처리하도록 자원 관리 로직을 업데이트하여 플레이어의 자원 수가 적절히 차감되도록 했습니다.",
+      "zh": "修改游戏机制以增加陨石出现频率，并新增“炸弹”道具，玩家获取后将减少资源。\n\n- @apps/client: 更新生成逻辑以增加陨石频率，并实现“炸弹”实体的视觉与碰撞逻辑。\n- @apps/server: 更新资源管理逻辑，以处理触发“炸弹”收集事件时的状态变化，确保准确扣除玩家资源。",
+      "ja": "ゲームメカニクスを修正し、メテオの出現頻度を上げるとともに、獲得時にプレイヤーのリソースを減少させる新しい「爆弾」アイテムを実装しました。\n\n- @apps/client: メテオの出現頻度を上げるために生成ロジックを更新し、「爆弾」エンティティのビジュアルおよび衝突ロジックを実装しました。\n- @apps/server: 「爆弾」獲得イベント発生時の状態変化を処理するためにリソース管理ロジックを更新し、プレイヤーのリソース数が適切に差し引かれるようにしました。"
+    }
+  },
+  {
     "id": "20260522_1538",
     "type": "preview",
     "title": "20260522_1538 Build",
@@ -64,24 +82,6 @@
     "port": 3303,
     "status": "active",
     "released_at": "2026-05-01T07:59:16.208Z",
-    "release_note": {
-      "en": "Test release note",
-      "ko": "테스트 릴리즈 노트 (한국어)",
-      "zh": "测试发布说明（中文）",
-      "ja": "テストリリースノート（日本語）"
-    }
-  },
-  {
-    "id": "20260501_1645",
-    "type": "preview",
-    "title": "20260501_1645 Feedback Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260501_1645",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260501_1645:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-05-01T07:45:57.506Z",
     "release_note": {
       "en": "Test release note",
       "ko": "테스트 릴리즈 노트 (한국어)",

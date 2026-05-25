@@ -353,12 +353,12 @@ export class UIManager {
 
         const note = this.getLocalizedReleaseNote(deployment) || I18n.t('ui.no_release_note');
         const maxLines = Math.max(5, Math.floor((panelHeight - 64 - footerHeight) / 17));
-        const noteText = this.scene.add.text(14, 48, this.getReleaseNotePreviewByLines(note, maxLines), {
+        const noteText = this.scene.add.text(14, 48, this.getTextWithCjkBreaks(this.getReleaseNotePreviewByLines(note, maxLines)), {
             fontSize: '12px',
             color: '#d1d5db',
             lineSpacing: 3,
             maxLines,
-            wordWrap: { width: panelWidth - 28 }
+            wordWrap: { width: panelWidth - 28, useAdvancedWrap: true }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
 
         if (note) {
@@ -411,12 +411,12 @@ export class UIManager {
             wordWrap: { width: panelWidth - 110 }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
         const releaseNote = isStable ? '' : this.getLocalizedReleaseNote(deployment);
-        const note = this.scene.add.text(14, y + 32, this.getReleaseNotePreview(releaseNote), {
+        const note = this.scene.add.text(14, y + 32, this.getTextWithCjkBreaks(this.getReleaseNotePreview(releaseNote)), {
             fontSize: '11px',
             color: '#d1d5db',
             lineSpacing: 2,
             maxLines: 3,
-            wordWrap: { width: panelWidth - 28 }
+            wordWrap: { width: panelWidth - 28, useAdvancedWrap: true }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
 
         const entryItems: Phaser.GameObjects.GameObject[] = [divider, title, note];
@@ -468,6 +468,10 @@ export class UIManager {
     private getReleaseNotePreviewByLines(releaseNote: string, maxLines: number) {
         const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
         return lines.slice(0, maxLines).join('\n');
+    }
+
+    private getTextWithCjkBreaks(text: string) {
+        return text.replace(/([\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff])(?!\u200b)/g, '$1\u200b');
     }
 
     private getLocalizedReleaseNote(deployment: DeploymentEntry) {
@@ -818,11 +822,11 @@ export class UIManager {
     private showTooltip(x: number, y: number, text: string, side: 'top' | 'left' = 'top') {
         this.hideTooltip();
 
-        const tooltipText = this.scene.add.text(0, 0, text, {
+        const tooltipText = this.scene.add.text(0, 0, this.getTextWithCjkBreaks(text), {
             fontSize: '14px',
             color: '#ffffff',
             align: 'left',
-            wordWrap: { width: 300 },
+            wordWrap: { width: 300, useAdvancedWrap: true },
             padding: { x: 10, y: 10 }
         }).setOrigin(0.5);
 

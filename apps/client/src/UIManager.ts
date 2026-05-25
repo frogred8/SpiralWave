@@ -43,6 +43,7 @@ export class UIManager {
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
+    private stableReleaseElement: Phaser.GameObjects.Container | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
 
     private statsUpdateListener: (() => void) | null = null;
@@ -229,6 +230,7 @@ export class UIManager {
 
     private async createDeploymentsPanel(width: number, height: number) {
         this.destroyDeploymentsPanel();
+        this.destroyStableReleasePanel();
 
         let deployments = this.currentUIState.deployments;
         if (!deployments) {
@@ -242,14 +244,35 @@ export class UIManager {
 
         if (visibleDeployments.length === 0) return;
 
-        const panelWidth = Math.min(340, Math.max(200, width * 0.23));
-        const panelX = Math.max(20, width - panelWidth - 24);
-        const panelY = Math.min(Math.max(120, height / 2 - 238), Math.max(120, height - 390));
+        const metrics = this.getDeploymentPanelMetrics(width, height, visibleDeployments.length);
+        const stableDeployment = deployments.find((deployment) => deployment.status === 'active' && this.isStableDeployment(deployment));
 
-        this.deploymentsElement = this.scene.add.container(panelX, panelY).setDepth(2002);
+        if (stableDeployment) {
+            this.stableReleaseElement = this.scene.add.container(metrics.leftX, metrics.panelY).setDepth(2002);
+            this.stableReleaseElement.setScrollFactor(0);
+            this.buildStableReleasePanel(this.stableReleaseElement, stableDeployment, metrics.panelWidth, metrics.panelHeight);
+            this.uiContainer.add(this.stableReleaseElement);
+        }
+
+        this.deploymentsElement = this.scene.add.container(metrics.rightX, metrics.panelY).setDepth(2002);
         this.deploymentsElement.setScrollFactor(0);
-        this.buildDeploymentsPanel(this.deploymentsElement, visibleDeployments, panelWidth);
+        this.buildDeploymentsPanel(this.deploymentsElement, visibleDeployments, metrics.panelWidth, metrics.panelHeight);
         this.uiContainer.add(this.deploymentsElement);
+    }
+
+    private getDeploymentPanelMetrics(width: number, height: number, deploymentCount: number) {
+        const headerHeight = 44;
+        const itemHeight = 82;
+        const panelWidth = Math.min(340, Math.max(200, width * 0.23));
+        const panelHeight = headerHeight + deploymentCount * itemHeight + 6;
+
+        return {
+            panelWidth,
+            panelHeight,
+            panelY: Math.min(Math.max(120, height / 2 - 238), Math.max(120, height - 390)),
+            leftX: 24,
+            rightX: Math.max(20, width - panelWidth - 24)
+        };
     }
 
     private createCurrentVersionLabel(width: number, y: number) {
@@ -289,10 +312,9 @@ export class UIManager {
         return deployment.type === 'stable' || deployment.id === 'main';
     }
 
-    private buildDeploymentsPanel(container: Phaser.GameObjects.Container, deployments: DeploymentEntry[], panelWidth: number) {
+    private buildDeploymentsPanel(container: Phaser.GameObjects.Container, deployments: DeploymentEntry[], panelWidth: number, panelHeight: number) {
         const headerHeight = 44;
         const itemHeight = 82;
-        const panelHeight = headerHeight + deployments.length * itemHeight + 6;
 
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x121212, 0.9)
             .setOrigin(0)
@@ -312,6 +334,65 @@ export class UIManager {
         deployments.forEach((deployment, index) => {
             this.addDeploymentEntry(container, deployment, panelWidth, headerHeight + index * itemHeight);
         });
+    }
+
+    private buildStableReleasePanel(container: Phaser.GameObjects.Container, deployment: DeploymentEntry, panelWidth: number, panelHeight: number) {
+        const footerHeight = 54;
+        const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x121212, 0.9)
+            .setOrigin(0)
+            .setStrokeStyle(1, 0x444444);
+        const title = this.scene.add.text(14, 12, I18n.t('ui.stable_release'), {
+            fontSize: '15px',
+            color: '#22c55e',
+            fontStyle: 'bold'
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+        const subtitle = this.scene.add.text(panelWidth - 14, 14, I18n.t('ui.release_notes'), {
+            fontSize: '11px',
+            color: '#9ca3af'
+        }).setOrigin(1, 0).setPadding({ top: 2, bottom: 2 });
+
+        const note = this.getLocalizedReleaseNote(deployment) || I18n.t('ui.no_release_note');
+        const maxLines = Math.max(5, Math.floor((panelHeight - 64 - footerHeight) / 17));
+        const noteText = this.scene.add.text(14, 48, this.getReleaseNotePreviewByLines(note, maxLines), {
+            fontSize: '12px',
+            color: '#d1d5db',
+            lineSpacing: 3,
+            maxLines,
+            wordWrap: { width: panelWidth - 28 }
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+
+        if (note) {
+            noteText.setInteractive({ useHandCursor: true });
+            noteText.on('pointerover', (pointer: Phaser.Input.Pointer) => this.showTooltip(pointer.x, pointer.y, note));
+            noteText.on('pointerout', () => this.hideTooltip());
+        }
+
+        const buttonY = panelHeight - 28;
+        const buttonWidth = Math.max(78, (panelWidth - 38) / 2);
+        const blogButton = this.createExternalLinkButton(14, buttonY, buttonWidth, I18n.t('ui.blog'), 'https://frogred8.dev');
+        const githubButton = this.createExternalLinkButton(24 + buttonWidth, buttonY, buttonWidth, I18n.t('ui.github'), 'https://github.com/frogred8/SpiralWave');
+
+        container.add([bg, title, subtitle, noteText, blogButton, githubButton]);
+    }
+
+    private createExternalLinkButton(x: number, y: number, width: number, label: string, url: string) {
+        const button = this.scene.add.container(x + width / 2, y);
+        const bg = this.scene.add.rectangle(0, 0, width, 28, 0x22c55e, 1)
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, label, {
+            fontSize: '12px',
+            color: '#101010',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => bg.setFillStyle(0x4ade80));
+        bg.on('pointerout', () => bg.setFillStyle(0x22c55e));
+        bg.on('pointerdown', () => {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        });
+        return button;
     }
 
     private addDeploymentEntry(container: Phaser.GameObjects.Container, deployment: DeploymentEntry, panelWidth: number, y: number) {
@@ -382,6 +463,11 @@ export class UIManager {
 
         const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
         return lines.slice(0, 3).join('\n');
+    }
+
+    private getReleaseNotePreviewByLines(releaseNote: string, maxLines: number) {
+        const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
+        return lines.slice(0, maxLines).join('\n');
     }
 
     private getLocalizedReleaseNote(deployment: DeploymentEntry) {
@@ -983,12 +1069,17 @@ export class UIManager {
         if (this.deploymentsElement && this.deploymentsElement.depth >= minDepth) {
             this.destroyDeploymentsPanel();
         }
+
+        if (this.stableReleaseElement && this.stableReleaseElement.depth >= minDepth) {
+            this.destroyStableReleasePanel();
+        }
     }
 
     public destroy() {
         this.hideTooltip();
         this.destroyCoffeeBanner();
         this.destroyDeploymentsPanel();
+        this.destroyStableReleasePanel();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);
@@ -999,6 +1090,13 @@ export class UIManager {
         if (this.deploymentsElement) {
             this.deploymentsElement.destroy();
             this.deploymentsElement = null;
+        }
+    }
+
+    private destroyStableReleasePanel() {
+        if (this.stableReleaseElement) {
+            this.stableReleaseElement.destroy();
+            this.stableReleaseElement = null;
         }
     }
 }

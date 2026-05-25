@@ -384,15 +384,15 @@ async function updateDeploymentsJson(filePath: string, options: { branchName: st
         previewDeployments.pop();
     }
 
-    const stableDeployment = activeDeployments
-        .filter((deployment) => deployment.type === 'stable')
+    const mainDeployment = activeDeployments
+        .filter((deployment) => deployment.id === 'main')
         .sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at))[0];
 
-    const nextDeployments = stableDeployment
-        ? [stableDeployment, ...previewDeployments]
+    const nextDeployments = mainDeployment
+        ? [mainDeployment, ...previewDeployments]
         : previewDeployments;
 
-    console.log('다음 deployments.json 내용:', stableDeployment, previewDeployments);
+    console.log('다음 deployments.json 내용:', mainDeployment, previewDeployments);
     fs.writeFileSync(filePath, JSON.stringify(nextDeployments, null, 2) + '\n');
     console.log(`deployments.json 갱신 완료: ${filePath}`);
     return { oldVersion, hostPort };

@@ -279,10 +279,14 @@ export class UIManager {
 
         console.log('isCurrentDeployment check:', { deployment, branch, version });
         if (branch === 'main' || branch === 'local') {
-            return deployment.branch === 'main' || deployment.type === 'stable' || deployment.id === 'stable';
+            return deployment.branch === 'main' || deployment.id === 'main';
         }
 
         return deployment.branch === branch || deployment.id === version;
+    }
+
+    private isStableDeployment(deployment: DeploymentEntry) {
+        return deployment.type === 'stable' || deployment.id === 'main';
     }
 
     private buildDeploymentsPanel(container: Phaser.GameObjects.Container, deployments: DeploymentEntry[], panelWidth: number) {
@@ -312,6 +316,7 @@ export class UIManager {
 
     private addDeploymentEntry(container: Phaser.GameObjects.Container, deployment: DeploymentEntry, panelWidth: number, y: number) {
         const isCurrent = this.isCurrentDeployment(deployment);
+        const isStable = this.isStableDeployment(deployment);
         const divider = this.scene.add.rectangle(12, y, panelWidth - 24, 1, 0x3a3a3a, 1).setOrigin(0);
         const selectedBg = isCurrent
             ? this.scene.add.rectangle(8, y + 7, panelWidth - 16, 68, 0x12331f, 0.72)
@@ -324,7 +329,7 @@ export class UIManager {
             fontStyle: 'bold',
             wordWrap: { width: panelWidth - 110 }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
-        const releaseNote = this.getLocalizedReleaseNote(deployment);
+        const releaseNote = isStable ? '' : this.getLocalizedReleaseNote(deployment);
         const note = this.scene.add.text(14, y + 32, this.getReleaseNotePreview(releaseNote), {
             fontSize: '11px',
             color: '#d1d5db',
@@ -344,8 +349,8 @@ export class UIManager {
             }).setOrigin(1, 0.5).setPadding({ top: 2, bottom: 2 });
             entryItems.push(currentText);
         } else {
-            const openButton = this.scene.add.container(panelWidth - 58, y + 22);
-            const openBg = this.scene.add.rectangle(0, 0, 72, 26, 0x22c55e, 1)
+            const openButton = this.scene.add.container(panelWidth - 44, y + 18);
+            const openBg = this.scene.add.rectangle(0, 0, 60, 22, 0x22c55e, 1)
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true });
             const openText = this.scene.add.text(0, 0, I18n.t('ui.open_build'), {
@@ -373,7 +378,7 @@ export class UIManager {
     }
 
     private getReleaseNotePreview(releaseNote?: string) {
-        if (!releaseNote) return I18n.t('ui.no_release_note');
+        if (!releaseNote) return '';
 
         const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
         return lines.slice(0, 3).join('\n');

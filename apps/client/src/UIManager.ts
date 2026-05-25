@@ -44,6 +44,7 @@ export class UIManager {
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
+    private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
 
     private statsUpdateListener: (() => void) | null = null;
@@ -338,6 +339,10 @@ export class UIManager {
 
     private buildStableReleasePanel(container: Phaser.GameObjects.Container, deployment: DeploymentEntry, panelWidth: number, panelHeight: number) {
         const footerHeight = 54;
+        const noteX = 14;
+        const noteY = 48;
+        const noteWidth = panelWidth - 28;
+        const noteHeight = Math.max(40, panelHeight - noteY - footerHeight - 10);
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x121212, 0.9)
             .setOrigin(0)
             .setStrokeStyle(1, 0x444444);
@@ -352,27 +357,58 @@ export class UIManager {
         }).setOrigin(1, 0).setPadding({ top: 2, bottom: 2 });
 
         const note = this.getLocalizedReleaseNote(deployment) || I18n.t('ui.no_release_note');
-        const maxLines = Math.max(5, Math.floor((panelHeight - 64 - footerHeight) / 17));
-        const noteText = this.scene.add.text(14, 48, this.getTextWithCjkBreaks(this.getReleaseNotePreviewByLines(note, maxLines)), {
+        const noteText = this.scene.add.text(noteX, noteY, this.getTextWithCjkBreaks(note), {
             fontSize: '12px',
             color: '#d1d5db',
             lineSpacing: 3,
-            maxLines,
-            wordWrap: { width: panelWidth - 28, useAdvancedWrap: true }
+            wordWrap: { width: noteWidth - 12, useAdvancedWrap: true }
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
 
-        if (note) {
-            noteText.setInteractive({ useHandCursor: true });
-            noteText.on('pointerover', (pointer: Phaser.Input.Pointer) => this.showTooltip(pointer.x, pointer.y, note));
-            noteText.on('pointerout', () => this.hideTooltip());
-        }
+        const noteMask = this.scene.add.graphics();
+        noteMask.fillStyle(0xffffff, 1);
+        noteMask.fillRect(noteX, noteY, noteWidth, noteHeight);
+        noteMask.setVisible(false);
+        noteText.setMask(noteMask.createGeometryMask());
 
         const buttonY = panelHeight - 28;
         const buttonWidth = Math.max(78, (panelWidth - 38) / 2);
         const blogButton = this.createExternalLinkButton(14, buttonY, buttonWidth, I18n.t('ui.blog'), 'https://frogred8.dev');
         const githubButton = this.createExternalLinkButton(24 + buttonWidth, buttonY, buttonWidth, I18n.t('ui.github'), 'https://github.com/frogred8/SpiralWave');
 
-        container.add([bg, title, subtitle, noteText, blogButton, githubButton]);
+        const entryItems: Phaser.GameObjects.GameObject[] = [bg, title, subtitle, noteMask, noteText, blogButton, githubButton];
+        const maxScroll = Math.max(0, noteText.height - noteHeight);
+        if (maxScroll > 0) {
+            const scrollbarX = panelWidth - 12;
+            const scrollbarBg = this.scene.add.rectangle(scrollbarX, noteY, 4, noteHeight, 0x2f2f2f, 1).setOrigin(0.5, 0);
+            const thumbHeight = Math.max(18, noteHeight * (noteHeight / noteText.height));
+            const scrollbarThumb = this.scene.add.rectangle(scrollbarX, noteY, 4, thumbHeight, 0x9ca3af, 1).setOrigin(0.5, 0);
+            const hitArea = this.scene.add.zone(noteX, noteY, noteWidth, noteHeight)
+                .setOrigin(0)
+                .setInteractive();
+            let scrollY = 0;
+
+            const applyScroll = (delta: number) => {
+                scrollY = Phaser.Math.Clamp(scrollY + delta, 0, maxScroll);
+                noteText.setY(noteY - scrollY);
+                scrollbarThumb.setY(noteY + (noteHeight - thumbHeight) * (scrollY / maxScroll));
+            };
+
+            this.stableReleaseWheelHandler = (pointer, _gameObjects, _deltaX, deltaY) => {
+                const localX = pointer.x - container.x;
+                const localY = pointer.y - container.y;
+                const isInsideNote = localX >= noteX && localX <= noteX + noteWidth && localY >= noteY && localY <= noteY + noteHeight;
+                if (isInsideNote) applyScroll(deltaY * 0.4);
+            };
+            this.scene.input.on('wheel', this.stableReleaseWheelHandler);
+
+            hitArea.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+                applyScroll((pointer.y - container.y - noteY) / noteHeight * maxScroll - scrollY);
+            });
+
+            entryItems.push(scrollbarBg, scrollbarThumb, hitArea);
+        }
+
+        container.add(entryItems);
     }
 
     private createExternalLinkButton(x: number, y: number, width: number, label: string, url: string) {
@@ -1098,6 +1134,11 @@ export class UIManager {
     }
 
     private destroyStableReleasePanel() {
+        if (this.stableReleaseWheelHandler) {
+            this.scene.input.off('wheel', this.stableReleaseWheelHandler);
+            this.stableReleaseWheelHandler = null;
+        }
+
         if (this.stableReleaseElement) {
             this.stableReleaseElement.destroy();
             this.stableReleaseElement = null;

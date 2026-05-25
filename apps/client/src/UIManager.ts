@@ -461,12 +461,12 @@ export class UIManager {
     private getReleaseNotePreview(releaseNote?: string) {
         if (!releaseNote) return '';
 
-        const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
+        const lines = releaseNote.replace(/\r\n/g, '\n').split('\n');
         return lines.slice(0, 3).join('\n');
     }
 
     private getReleaseNotePreviewByLines(releaseNote: string, maxLines: number) {
-        const lines = releaseNote.split('\n').filter((line) => line.trim().length > 0);
+        const lines = releaseNote.replace(/\r\n/g, '\n').split('\n');
         return lines.slice(0, maxLines).join('\n');
     }
 

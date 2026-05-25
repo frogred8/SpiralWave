@@ -44,6 +44,7 @@ export class UIManager {
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
+    private stableReleaseNoteMask: Phaser.GameObjects.Graphics | null = null;
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
 
@@ -365,8 +366,9 @@ export class UIManager {
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
 
         const noteMask = this.scene.add.graphics();
+        this.stableReleaseNoteMask = noteMask;
         noteMask.fillStyle(0xffffff, 1);
-        noteMask.fillRect(noteX, noteY, noteWidth, noteHeight);
+        noteMask.fillRect(container.x + noteX, container.y + noteY, noteWidth, noteHeight);
         noteMask.setVisible(false);
         noteText.setMask(noteMask.createGeometryMask());
 
@@ -375,7 +377,7 @@ export class UIManager {
         const blogButton = this.createExternalLinkButton(14, buttonY, buttonWidth, I18n.t('ui.blog'), 'https://frogred8.dev');
         const githubButton = this.createExternalLinkButton(24 + buttonWidth, buttonY, buttonWidth, I18n.t('ui.github'), 'https://github.com/frogred8/SpiralWave');
 
-        const entryItems: Phaser.GameObjects.GameObject[] = [bg, title, subtitle, noteMask, noteText, blogButton, githubButton];
+        const entryItems: Phaser.GameObjects.GameObject[] = [bg, title, subtitle, noteText, blogButton, githubButton];
         const maxScroll = Math.max(0, noteText.height - noteHeight);
         if (maxScroll > 0) {
             const scrollbarX = panelWidth - 12;
@@ -1137,6 +1139,11 @@ export class UIManager {
         if (this.stableReleaseWheelHandler) {
             this.scene.input.off('wheel', this.stableReleaseWheelHandler);
             this.stableReleaseWheelHandler = null;
+        }
+
+        if (this.stableReleaseNoteMask) {
+            this.stableReleaseNoteMask.destroy();
+            this.stableReleaseNoteMask = null;
         }
 
         if (this.stableReleaseElement) {

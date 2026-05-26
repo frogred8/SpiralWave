@@ -47,6 +47,7 @@ export class UIManager {
     private stableReleaseNoteMask: Phaser.GameObjects.Graphics | null = null;
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
+    private gameOverRenderId: number = 0;
 
     private statsUpdateListener: (() => void) | null = null;
 
@@ -752,17 +753,27 @@ export class UIManager {
     }
 
     public async showGameOverScreen() {
+        const renderId = ++this.gameOverRenderId;
+        const wasGameOverVisible = this.currentUIState.overlay === 'gameOver';
         this.currentUIState.overlay = 'gameOver';
         const { width, height } = this.scene.scale;
 
-        SoundManager.getInstance().play('winning');
+        if (wasGameOverVisible) {
+            this.clearUIByDepth(3000);
+        } else {
+            SoundManager.getInstance().play('winning');
+        }
+
         this.timerText.setAlpha(1);
+
+        const ranks = await this.fetchLeaderboardRanks();
+        if (renderId !== this.gameOverRenderId || this.currentUIState.overlay !== 'gameOver') return;
 
         const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(3000);
         this.uiContainer.add(overlay);
 
         this.createGameOverText(width);
-        const leaderBoardContainer = await this.createLeaderboardUI(width, height);
+        const leaderBoardContainer = this.createLeaderboardUI(width, height, ranks);
         const actionY = height - 100;
         const coffeeBanner = this.createCoffeeBanner(width / 2 - 145, actionY - 30);
         const restartBtn = this.createRestartButton(width / 2 + 145, actionY, overlay);
@@ -774,6 +785,16 @@ export class UIManager {
             targets: [leaderBoardContainer, coffeeBanner, restartBtn],
             scale: 1, duration: 500, ease: 'Back.easeOut', delay: 500
         });
+    }
+
+    private async fetchLeaderboardRanks() {
+        const ranks = await this.callbacks.onFetchLeaderboard();
+        if (ranks) {
+            this.currentUIState.leaderBoardRanks = ranks;
+            return ranks;
+        }
+
+        return this.currentUIState.leaderBoardRanks || [];
     }
 
     private createGameOverText(width: number) {
@@ -788,7 +809,7 @@ export class UIManager {
         this.uiContainer.add([title, resourceInfo]);
     }
 
-    private async createLeaderboardUI(width: number, height: number): Promise<Phaser.GameObjects.Container> {
+    private createLeaderboardUI(width: number, height: number, ranks: RankEntry[]): Phaser.GameObjects.Container {
         const container = this.scene.add.container(width / 2, height / 2).setDepth(3001);
         this.uiContainer.add(container);
 
@@ -805,12 +826,6 @@ export class UIManager {
         const playerHeader = this.scene.add.text(-185, headerY, I18n.t('ui.rank_player'), headerStyle).setOrigin(0, 0.5);
         const msgHeader = this.scene.add.text(-20, headerY, I18n.t('ui.rank_message'), headerStyle).setOrigin(0, 0.5);
         container.add([scoreHeader, playerHeader, msgHeader]);
-
-        let ranks = await this.callbacks.onFetchLeaderboard();
-        if (!ranks) {
-            ranks = this.currentUIState.leaderBoardRanks || [];
-        }
-        this.currentUIState.leaderBoardRanks = ranks;
 
         const displayRanks = ranks.slice(0, 10);
         if (displayRanks.length === 0) {

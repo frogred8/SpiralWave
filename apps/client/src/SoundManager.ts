@@ -48,10 +48,10 @@ export class SoundManager {
         this.loadSound('reroll', '/sounds/reroll.mp3');
         this.loadSound('gamestart', '/sounds/gamestart.mp3');
         this.loadSound('restart', '/sounds/restart.mp3');
-        this.loadSound('winning', '/sounds/winning.mp3', false, 0.1);
+        this.loadSound('winning', '/sounds/winning.mp3', false, 0.04);
         this.loadSound('specialitem', '/sounds/specialitem.mp3', false, 0.3);
         this.loadSound('fever', '/sounds/fever.mp3', false, 0.2);
-        this.loadSound('background', '/sounds/background.mp3', true, 0.2);
+        this.loadSound('background', '/sounds/background.mp3', true, 0.1);
         this.initialized = true;
     }
 
@@ -104,6 +104,11 @@ export class SoundManager {
             if (key === 'gather') {
                 const count = this.playingCounts.get(key) || 0;
                 if (count >= 4) return;
+            } else if (key === 'background') {
+                // 배경음악은 중복 재생 방지
+                if (this.playingCounts.get(key) && this.playingCounts.get(key)! > 0) {
+                    return;
+                }
             }
             sound.play();
         } else {

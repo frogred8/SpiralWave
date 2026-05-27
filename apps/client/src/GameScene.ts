@@ -118,6 +118,8 @@ export class GameScene extends Phaser.Scene {
             SoundManager.getInstance().play('fever');
         });
         this.gameStats.on(GameStats.EVENTS.FEVER_END, () => {
+            this.collectVisibleResourcesAtFeverEnd();
+
             if (this.feverOverlay) {
                 this.tweens.killTweensOf(this.feverOverlay);
                 this.tweens.add({
@@ -505,6 +507,47 @@ export class GameScene extends Phaser.Scene {
         });
 
         return bestTarget;
+    }
+
+    private collectVisibleResourcesAtFeverEnd() {
+        if (!this.resourceManager) return;
+
+        const targetX = this.spiralCenter.x;
+        const targetY = this.spiralCenter.y;
+        let hasPlayedSound = false;
+
+        this.resourceManager.getGroup().getChildren().forEach((child) => {
+            const res = child as Collectible & { isBeingPulled?: boolean };
+            if (!this.isFeverEndCollectible(res)) return;
+
+            if (res.body) {
+                res.body.setEnable(false);
+            }
+            res.isBeingPulled = true;
+
+            this.tweens.add({
+                targets: res,
+                x: targetX,
+                y: targetY,
+                duration: 500,
+                ease: 'Power2',
+                onComplete: () => {
+                    if (!res.active) return;
+
+                    const silent = hasPlayedSound;
+                    if (!silent) hasPlayedSound = true;
+                    this.collectResource(res, false, false, targetX, targetY, silent);
+                }
+            });
+        });
+    }
+
+    private isFeverEndCollectible(res: Collectible & { isBeingPulled?: boolean }): boolean {
+        if (!res.active || res.itemType === 'special' || res.isBeingPulled) return false;
+        if (this.arms.some((arm) => arm.grabbedResource === res)) return false;
+        if (typeof res.resourceType === 'undefined') return false;
+
+        return res.x >= 0 && res.x <= this.scale.width && res.y >= 0 && res.y <= this.scale.height;
     }
 
     private handleInput(pointer: Phaser.Input.Pointer) {

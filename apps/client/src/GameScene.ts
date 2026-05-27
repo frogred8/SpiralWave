@@ -130,6 +130,7 @@ export class GameScene extends Phaser.Scene {
                     }
                 });
             }
+            this.collectRemainingResourcesToBlackHole();
         });
 
         return skillData;
@@ -645,6 +646,53 @@ export class GameScene extends Phaser.Scene {
             if (!collectedBySBH) {
                 if (dist > screenLimit) res.destroy();
                 else Utils.limitSpeed(res, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
+            }
+        });
+    }
+
+    private collectRemainingResourcesToBlackHole() {
+        if (!this.resourceManager) return;
+
+        this.resourceManager.getGroup().getChildren().forEach(child => {
+            const res = child as any;
+            if (!res.active || res.isBeingPulled || this.arms.some(arm => arm.grabbedResource === res)) return;
+            this.pullResourceToBlackHole(res);
+        });
+    }
+
+    private pullResourceToBlackHole(res: any) {
+        if (res.body) {
+            res.body.setVelocity(0, 0);
+            res.body.setAngularVelocity(0);
+            res.body.setEnable(false);
+        }
+        res.isBeingPulled = true;
+
+        const startX = res.x;
+        const startY = res.y;
+        const startScale = res.scale;
+        const distance = Utils.getDistance(startX, startY, this.spiralCenter.x, this.spiralCenter.y);
+        const duration = Phaser.Math.Clamp(distance * 1.2, 350, 1200);
+
+        this.tweens.addCounter({
+            from: 0,
+            to: 1,
+            duration,
+            ease: 'Cubic.easeIn',
+            onUpdate: (tween) => {
+                if (!res.active) return;
+
+                const progress = (tween as any).getValue() ?? 0;
+                res.setPosition(
+                    startX + (this.spiralCenter.x - startX) * progress,
+                    startY + (this.spiralCenter.y - startY) * progress
+                );
+                res.setScale(startScale * (1 - progress * 0.35));
+            },
+            onComplete: () => {
+                if (!res.active) return;
+
+                this.collectResource(res, false, false, this.spiralCenter.x, this.spiralCenter.y);
             }
         });
     }

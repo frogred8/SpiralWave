@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260528_0021",
+    "type": "preview",
+    "title": "20260528_0021 Build",
+    "url": "http://134.185.103.3:3304",
+    "branch": "20260528_0021",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260528_0021:latest",
+    "container": "spiralwave",
+    "port": 3304,
+    "status": "active",
+    "released_at": "2026-05-27T15:21:21.264Z",
+    "release_note": {
+      "en": "Implement a logic to trigger a resource collection event when 'Fever Mode' ends. Upon the expiration of Fever Mode, identify all active resource objects currently present on the screen and move them toward the black hole entity's coordinates to be processed as collected.",
+      "ko": "'피버 모드' 종료 시 자원 수집 이벤트가 발생하도록 로직을 구현했습니다. 피버 모드가 만료되면 현재 화면에 있는 모든 활성 자원 오브젝트를 식별하여 블랙홀 엔티티의 좌표로 이동시키고 수집 처리합니다.",
+      "zh": "实现了在“狂热模式”结束时触发资源收集事件的逻辑。当狂热模式结束时，识别当前屏幕上存在的所有活动资源对象，并将它们移动到黑洞实体的坐标处以进行收集处理。",
+      "ja": "「フィーバーモード」終了時にリソース回収イベントをトリガーするロジックを実装しました。フィーバーモードの終了時に、現在画面上に存在するすべてのアクティブなリソースオブジェクトを特定し、ブラックホールエンティティの座標に移動させて回収処理を行います。"
+    }
+  },
+  {
     "id": "20260527_2335",
     "type": "preview",
     "title": "20260527_2335 Build",

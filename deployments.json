@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260527_2335",
+    "type": "preview",
+    "title": "20260527_2335 Build",
+    "url": "http://134.185.103.3:3303",
+    "branch": "20260527_2335",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260527_2335:latest",
+    "container": "spiralwave",
+    "port": 3303,
+    "status": "active",
+    "released_at": "2026-05-27T14:35:35.960Z",
+    "release_note": {
+      "en": "Implement a feature where a \"black hole\" effect occurs at the end of Fever Mode. \n- Trigger: Execute the function immediately upon the termination of the \"Fever Mode\" state.\n- Logic: Identify all active resource entities (e.g., items, currency, drops) currently present on the game field.\n- Animation: Programmatically move these entities toward a central coordinates point (the black hole) using a suction-like interpolation (e.g., exponential move or gravitational pull effect).\n- Resolution: Upon reaching the center or after a short duration, trigger the collection event for each resource and remove the entities from the scene.",
+      "ko": "피버 모드 종료 시 '블랙홀' 효과가 발생하는 기능을 구현했습니다.\n- 트리거: '피버 모드' 상태가 종료되는 즉시 함수를 실행합니다.\n- 로직: 현재 게임 필드에 존재하는 모든 활성 리소스 엔티티(예: 아이템, 재화, 드롭 아이템)를 식별합니다.\n- 애니메이션: 흡입과 유사한 보간법(예: 지수 이동 또는 중력 끌림 효과)을 사용하여 이러한 엔티티를 중앙 좌표 지점(블랙홀)으로 프로그래밍 방식으로 이동시킵니다.\n- 결과: 중앙에 도달하거나 짧은 시간이 지난 후, 각 리소스에 대한 수집 이벤트를 트리거하고 씬에서 엔티티를 제거합니다.",
+      "zh": "实现了在狂热模式（Fever Mode）结束时出现“黑洞”效果的功能。\n- 触发条件：在“狂热模式”状态结束时立即执行该函数。\n- 逻辑：识别当前游戏场景中存在的所有活动资源实体（如道具、货币、掉落物）。\n- 动画：使用类似吸力的插值算法（如指数移动或重力牵引效果），通过编程方式将这些实体移向中心坐标点（黑洞）。\n- 结算：到达中心点或经过短时间后，触发每个资源的收集事件，并将实体从场景中移除。",
+      "ja": "フィーバーモード終了時に「ブラックホール」エフェクトが発生する機能を実装しました。\n- トリガー：「フィーバーモード」状態の終了直後に関数を実行します。\n- ロジック：現在ゲームフィールド上に存在するすべての有効なリソースエンティティ（アイテム、通貨、ドロップアイテムなど）を特定します。\n- アニメーション：吸引のような補間（指数移動や重力牽引効果など）を使用して、これらのエンティティを中心座標点（ブラックホール）に向かってプログラム的に移動させます。\n- 処理：中心に到達するか一定時間経過後、各リソースの回収イベントをトリガーし、シーンからエンティティを削除します。"
+    }
+  },
+  {
     "id": "20260527_2330",
     "type": "preview",
     "title": "20260527_2330 Build",

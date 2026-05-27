@@ -247,16 +247,16 @@ export class UIManager {
 
         if (visibleDeployments.length === 0) return;
 
-        const metrics = this.getDeploymentPanelMetrics(width, height, visibleDeployments.length);
         const stableDeployment = deployments.find((deployment) => deployment.status === 'active' && this.isStableDeployment(deployment));
-
         if (stableDeployment) {
-            this.stableReleaseElement = this.scene.add.container(metrics.leftX, metrics.panelY).setDepth(2002);
+            const stableMetrics = this.getDeploymentPanelMetrics(width, height, 5);
+            this.stableReleaseElement = this.scene.add.container(stableMetrics.leftX, stableMetrics.panelY).setDepth(2002);
             this.stableReleaseElement.setScrollFactor(0);
-            this.buildStableReleasePanel(this.stableReleaseElement, stableDeployment, metrics.panelWidth, metrics.panelHeight);
+            this.buildStableReleasePanel(this.stableReleaseElement, stableDeployment, stableMetrics.panelWidth, stableMetrics.panelHeight);
             this.uiContainer.add(this.stableReleaseElement);
         }
 
+        const metrics = this.getDeploymentPanelMetrics(width, height, visibleDeployments.length);
         this.deploymentsElement = this.scene.add.container(metrics.rightX, metrics.panelY).setDepth(2002);
         this.deploymentsElement.setScrollFactor(0);
         this.buildDeploymentsPanel(this.deploymentsElement, visibleDeployments, metrics.panelWidth, metrics.panelHeight);

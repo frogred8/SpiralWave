@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260528_0039",
+    "type": "preview",
+    "title": "20260528_0039 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260528_0039",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260528_0039:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-05-27T15:40:02.310Z",
+    "release_note": {
+      "en": "Implement a logic where the Black Hole automatically collects all remaining resource objects on the screen once Fever Mode expires. \n\n1. Create a trigger or event listener that detects the end of the Fever Mode state.\n2. Upon termination, query all active resource/item entities currently present in the game world.\n3. For each identified resource, initiate a collection sequence directed towards the Black Hole entity's coordinates.\n4. Ensure the resources are properly processed (added to score/inventory) and despawned once they reach the Black Hole.",
+      "ko": "피버 모드 종료 시 블랙홀이 화면에 남아 있는 모든 리소스 오브젝트를 자동으로 수집하는 로직을 구현했습니다.\n\n1. 피버 모드 상태의 종료를 감지하는 트리거 또는 이벤트 리스너를 생성합니다.\n2. 종료 시, 현재 게임 월드에 존재하는 모든 활성 리소스/아이템 엔티티를 조회합니다.\n3. 식별된 각 리소스에 대해 블랙홀 엔티티의 좌표를 향한 수집 시퀀스를 시작합니다.\n4. 리소스가 블랙홀에 도달하면 적절히 처리(점수/인벤토리에 추가)되고 소멸되는지 확인합니다.",
+      "zh": "实现了当狂热模式（Fever Mode）结束时，黑洞自动收集屏幕上所有剩余资源对象的逻辑。\n\n1. 创建一个用于检测狂热模式状态结束的触发器或事件监听器。\n2. 结束时，查询当前游戏世界中存在的所有活动资源/物品实体。\n3. 对于每个识别出的资源，启动指向黑洞实体坐标的收集序列。\n4. 确保资源到达黑洞后得到正确处理（添加到分数/库存）并被移除。",
+      "ja": "フィーバーモード終了時に、ブラックホールが画面上の残りのリソースオブジェクトをすべて自動的に回収するロジックを実装しました。\n\n1. フィーバーモード状態の終了を検知するトリガーまたはイベントリスナーを作成します。\n2. 終了時、現在ゲームワールドに存在するすべてのアクティブなリソース/アイテムエンティティを照会します。\n3. 特定された各リソースについて、ブラックホールエンティティの座標に向けた回収シーケンスを開始します。\n4. リソースがブラックホールに到達した後、適切に処理（スコア/インベントリへの追加）され、消滅することを確認します。"
+    }
+  },
+  {
     "id": "20260528_0032",
     "type": "preview",
     "title": "20260528_0032 Build",
@@ -69,24 +87,6 @@
       "ko": "피버 모드 종료 시 '블랙홀' 효과가 발생하는 기능을 구현했습니다.\n- 트리거: '피버 모드' 상태가 종료되는 즉시 함수를 실행합니다.\n- 로직: 현재 게임 필드에 존재하는 모든 활성 리소스 엔티티(예: 아이템, 재화, 드롭 아이템)를 식별합니다.\n- 애니메이션: 흡입과 유사한 보간법(예: 지수 이동 또는 중력 끌림 효과)을 사용하여 이러한 엔티티를 중앙 좌표 지점(블랙홀)으로 프로그래밍 방식으로 이동시킵니다.\n- 결과: 중앙에 도달하거나 짧은 시간이 지난 후, 각 리소스에 대한 수집 이벤트를 트리거하고 씬에서 엔티티를 제거합니다.",
       "zh": "实现了在狂热模式（Fever Mode）结束时出现“黑洞”效果的功能。\n- 触发条件：在“狂热模式”状态结束时立即执行该函数。\n- 逻辑：识别当前游戏场景中存在的所有活动资源实体（如道具、货币、掉落物）。\n- 动画：使用类似吸力的插值算法（如指数移动或重力牵引效果），通过编程方式将这些实体移向中心坐标点（黑洞）。\n- 结算：到达中心点或经过短时间后，触发每个资源的收集事件，并将实体从场景中移除。",
       "ja": "フィーバーモード終了時に「ブラックホール」エフェクトが発生する機能を実装しました。\n- トリガー：「フィーバーモード」状態の終了直後に関数を実行します。\n- ロジック：現在ゲームフィールド上に存在するすべての有効なリソースエンティティ（アイテム、通貨、ドロップアイテムなど）を特定します。\n- アニメーション：吸引のような補間（指数移動や重力牽引効果など）を使用して、これらのエンティティを中心座標点（ブラックホール）に向かってプログラム的に移動させます。\n- 処理：中心に到達するか一定時間経過後、各リソースの回収イベントをトリガーし、シーンからエンティティを削除します。"
-    }
-  },
-  {
-    "id": "20260527_2330",
-    "type": "preview",
-    "title": "20260527_2330 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260527_2330",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260527_2330:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-05-27T14:30:53.860Z",
-    "release_note": {
-      "en": "Implement a 'Black Hole' mechanic that activates immediately upon the conclusion of 'Fever Mode'. This feature should identify all remaining resource objects on the screen and animate them towards a central point to be collected and cleared from the game state. Update the game state manager to trigger this sequence when the Fever Mode timer reaches zero, ensuring all resource values are correctly added to the player's total before destruction.",
-      "ko": "'피버 모드' 종료 즉시 활성화되는 '블랙홀' 기능을 구현했습니다. 이 기능은 화면에 남은 모든 자원 오브젝트를 식별하고 이를 중심점으로 모으는 애니메이션을 통해 수집한 뒤 게임 상태에서 제거합니다. 피버 모드 타이머가 0이 될 때 이 시퀀스가 트리거되도록 게임 상태 관리자를 업데이트했으며, 오브젝트가 파괴되기 전 모든 자원 값이 플레이어의 총합에 정확히 합산되도록 처리했습니다.",
-      "zh": "实现了在“狂热模式”结束时立即激活的“黑洞”机制。该功能会识别屏幕上所有剩余的资源对象，并通过动画将其吸引至中心点进行收集，随后从游戏状态中清除。更新了游戏状态管理器，以便在狂热模式计时器归零时触发此序列，并确保在销毁前所有资源值都已正确计入玩家的总计中。",
-      "ja": "「フィーバーモード」終了直後に発動する「ブラックホール」メカニクスを実装しました。この機能は画面上に残っているすべてのリソースオブジェクトを特定し、中心点に向かって移動するアニメーションとともに回収し、ゲームの状態から削除します。フィーバーモードのタイマーがゼロになったときにこのシーケンスが開始されるようゲーム状態マネージャーを更新し、オブジェクトが破棄される前にすべてのリソース値がプレイヤーの合計に正しく加算されるようにしました。"
     }
   }
 ]

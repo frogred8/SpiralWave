@@ -179,9 +179,10 @@ ${prompt.trim()}
         // 11. deploy.sh 실행
         console.log('[11] deploy.sh 실행');
         const { stdout, stderr } = await execAsync(`sh deploy.sh`, {
-            cwd: "../../",
-            env: { 
+            cwd: tempDir,
+            env: {
                 ...process.env,
+                BUILD_ENV: '../../.env',
                 NEW_VERSION: branchName,
                 OLD_VERSION: oldVersion,
                 HOST_PORT: hostPort.toString(),

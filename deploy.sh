@@ -1,10 +1,19 @@
 #!/bin/bash
 
-# .env 파일 로드
-if [ -f .env ]; then
-    source .env
+if [ -n "$BUILD_ENV" ]; then
+    TARGET_ENV="$BUILD_ENV"
+    echo "ℹ️ BUILD_ENV 변수가 감지되었습니다. '$TARGET_ENV' 파일을 로드합니다."
 else
-    echo "❌ .env 파일을 찾을 수 없습니다."
+    TARGET_ENV=".env"
+    echo "ℹ️ BUILD_ENV 변수가 없습니다. 기본 '$TARGET_ENV' 파일을 로드합니다."
+fi
+
+# .env 파일 로드
+if [ -f "$TARGET_ENV" ]; then
+    source "$TARGET_ENV"
+    echo "✅ '$TARGET_ENV' 파일 로드 완료."
+else
+    echo "❌ $TARGET_ENV 파일을 찾을 수 없습니다."
     exit 1
 fi
 

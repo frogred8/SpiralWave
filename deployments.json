@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260527_2330",
+    "type": "preview",
+    "title": "20260527_2330 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260527_2330",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260527_2330:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-05-27T14:30:53.860Z",
+    "release_note": {
+      "en": "Implement a 'Black Hole' mechanic that activates immediately upon the conclusion of 'Fever Mode'. This feature should identify all remaining resource objects on the screen and animate them towards a central point to be collected and cleared from the game state. Update the game state manager to trigger this sequence when the Fever Mode timer reaches zero, ensuring all resource values are correctly added to the player's total before destruction.",
+      "ko": "'피버 모드' 종료 즉시 활성화되는 '블랙홀' 기능을 구현했습니다. 이 기능은 화면에 남은 모든 자원 오브젝트를 식별하고 이를 중심점으로 모으는 애니메이션을 통해 수집한 뒤 게임 상태에서 제거합니다. 피버 모드 타이머가 0이 될 때 이 시퀀스가 트리거되도록 게임 상태 관리자를 업데이트했으며, 오브젝트가 파괴되기 전 모든 자원 값이 플레이어의 총합에 정확히 합산되도록 처리했습니다.",
+      "zh": "实现了在“狂热模式”结束时立即激活的“黑洞”机制。该功能会识别屏幕上所有剩余的资源对象，并通过动画将其吸引至中心点进行收集，随后从游戏状态中清除。更新了游戏状态管理器，以便在狂热模式计时器归零时触发此序列，并确保在销毁前所有资源值都已正确计入玩家的总计中。",
+      "ja": "「フィーバーモード」終了直後に発動する「ブラックホール」メカニクスを実装しました。この機能は画面上に残っているすべてのリソースオブジェクトを特定し、中心点に向かって移動するアニメーションとともに回収し、ゲームの状態から削除します。フィーバーモードのタイマーがゼロになったときにこのシーケンスが開始されるようゲーム状態マネージャーを更新し、オブジェクトが破棄される前にすべてのリソース値がプレイヤーの合計に正しく加算されるようにしました。"
+    }
+  },
+  {
     "id": "20260527_1703",
     "type": "preview",
     "title": "20260527_1703 Build",

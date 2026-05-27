@@ -155,7 +155,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         // 피버 모드 처리
         if (this.isFeverMode) {
             this.feverTimer -= cappedDt;
-            this.feverGauge = Math.max(0, (this.feverTimer / DURATIONS.FEVER_MODE) * INITIAL_STATS.MAX_FEVER_GAUGE);
+            this.feverGauge = Math.max(0, (this.feverTimer / DURATIONS.FEVER_MODE_DURATION) * INITIAL_STATS.MAX_FEVER_GAUGE);
             
             if (this.feverTimer <= 0) {
                 this.isFeverMode = false;
@@ -433,10 +433,10 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
     
     // 피버 게이지 상승
     if (!this.isFeverMode) {
-        this.feverGauge = Math.min(INITIAL_STATS.MAX_FEVER_GAUGE, this.feverGauge + 0.5);
+        this.feverGauge = Math.min(INITIAL_STATS.MAX_FEVER_GAUGE, this.feverGauge + INITIAL_STATS.FEVER_MODE_GAUGE_PER_RESOURCE);
         if (this.feverGauge >= INITIAL_STATS.MAX_FEVER_GAUGE) {
             this.isFeverMode = true;
-            this.feverTimer = DURATIONS.FEVER_MODE;
+            this.feverTimer = DURATIONS.FEVER_MODE_DURATION;
             this.emit(GameStats.EVENTS.FEVER_START);
         }
     }

@@ -424,7 +424,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
 /**
  * 자원 획득 처리 (위치 정보 포함)
  */
-addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
+addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number, suppressFeverGauge: boolean = false) {
     if (amount < 0) return;
     this.collected[type] += amount;
     this.totalCollected[type] += amount;
@@ -432,7 +432,7 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
     this.collectionHistory.push({ timestamp: Date.now(), amount });
     
     // 피버 게이지 상승
-    if (!this.isFeverMode) {
+    if (!this.isFeverMode && !suppressFeverGauge) {
         this.feverGauge = Math.min(INITIAL_STATS.MAX_FEVER_GAUGE, this.feverGauge + INITIAL_STATS.FEVER_MODE_GAUGE_PER_RESOURCE);
         if (this.feverGauge >= INITIAL_STATS.MAX_FEVER_GAUGE) {
             this.isFeverMode = true;

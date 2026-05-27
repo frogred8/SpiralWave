@@ -118,6 +118,7 @@ export class GameScene extends Phaser.Scene {
             SoundManager.getInstance().play('fever');
         });
         this.gameStats.on(GameStats.EVENTS.FEVER_END, () => {
+            this.triggerFeverEndBlackHole();
             if (this.feverOverlay) {
                 this.tweens.killTweensOf(this.feverOverlay);
                 this.tweens.add({
@@ -649,6 +650,103 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
+    private triggerFeverEndBlackHole() {
+        if (!this.resourceManager) return;
+
+        const centerX = this.spiralCenter.x;
+        const centerY = this.spiralCenter.y;
+        const pullDuration = 700;
+        const targets = this.resourceManager.getGroup().getChildren()
+            .filter((child): child is Collectible => {
+                const collectible = child as Collectible;
+                return collectible.active && Boolean(collectible.body);
+            });
+
+        this.emitFeverEndBlackHolePulse(centerX, centerY, pullDuration);
+        if (targets.length === 0) return;
+
+        this.arms.forEach((arm) => {
+            if (arm.grabbedResource && targets.includes(arm.grabbedResource)) {
+                arm.reset();
+            }
+        });
+
+        let hasPlayedCollectSound = false;
+        targets.forEach((collectible, index) => {
+            const resource = collectible as Collectible & { isBeingPulled?: boolean };
+            const body = resource.body;
+            const startX = resource.x;
+            const startY = resource.y;
+            const startDistance = Utils.getDistance(startX, startY, centerX, centerY);
+            const startAngle = Phaser.Math.Angle.Between(centerX, centerY, startX, startY);
+            const spiralDirection = index % 2 === 0 ? 1 : -1;
+            const displayResource = resource as unknown as {
+                setAlpha: (value: number) => unknown;
+                setScale: (value: number) => unknown;
+            };
+
+            resource.isBeingPulled = true;
+            this.tweens.killTweensOf(resource);
+            body.setVelocity(0, 0);
+            body.setAngularVelocity(0);
+            body.setEnable(false);
+
+            this.tweens.addCounter({
+                from: 0,
+                to: 1,
+                duration: pullDuration,
+                ease: 'Quad.In',
+                onUpdate: (tween) => {
+                    if (!resource.active) return;
+
+                    const progress = (tween as any).getValue() ?? 0;
+                    const easedProgress = Math.pow(progress, 2.4);
+                    const radius = startDistance * (1 - easedProgress);
+                    const angle = startAngle + spiralDirection * progress * Math.PI * 1.8;
+                    resource.x = centerX + Math.cos(angle) * radius;
+                    resource.y = centerY + Math.sin(angle) * radius;
+                    displayResource.setScale(Math.max(0.2, 1 - progress * 0.55));
+                    displayResource.setAlpha(Math.max(0.35, 1 - progress * 0.45));
+                },
+                onComplete: () => {
+                    if (!resource.active) return;
+
+                    resource.x = centerX;
+                    resource.y = centerY;
+                    const silent = hasPlayedCollectSound;
+                    if (!resource.itemType && !hasPlayedCollectSound) {
+                        hasPlayedCollectSound = true;
+                    }
+                    this.collectResource(resource, false, false, centerX, centerY, silent, true);
+                }
+            });
+        });
+    }
+
+    private emitFeverEndBlackHolePulse(centerX: number, centerY: number, duration: number) {
+        const core = this.add.circle(centerX, centerY, 18, 0x000000, 0.95);
+        const ring = this.add.circle(centerX, centerY, 36, 0x6600ff, 0.14).setStrokeStyle(2, 0xffffff, 0.55);
+        this.worldContainer.add([ring, core]);
+
+        this.tweens.add({
+            targets: ring,
+            scale: 3.4,
+            alpha: 0,
+            duration,
+            ease: 'Quad.Out',
+            onComplete: () => ring.destroy()
+        });
+
+        this.tweens.add({
+            targets: core,
+            scale: 2.2,
+            alpha: 0,
+            duration,
+            ease: 'Quad.In',
+            onComplete: () => core.destroy()
+        });
+    }
+
     private async fetchLeaderboardData(): Promise<RankEntry[]> {
         try {
             const response = await fetch(`/leaderboard`);
@@ -671,7 +769,7 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number, silent: boolean = false) {
+    private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number, silent: boolean = false, suppressFeverGauge: boolean = false) {
         if (!collectible.active) return;
 
         if (collectible.itemType === 'special') {
@@ -685,7 +783,7 @@ export class GameScene extends Phaser.Scene {
         if (!silent) SoundManager.getInstance().play('gather');
         
         const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
-        this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);
+        this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y, suppressFeverGauge);
         
         if (byArm && this.gameStats.researchReduction > 0) {
             this.gameStats.reduceResearchTime(this.gameStats.researchReduction);

@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260528_0032",
+    "type": "preview",
+    "title": "20260528_0032 Build",
+    "url": "http://134.185.103.3:3301",
+    "branch": "20260528_0032",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260528_0032:latest",
+    "container": "spiralwave",
+    "port": 3301,
+    "status": "active",
+    "released_at": "2026-05-27T15:32:16.277Z",
+    "release_note": {
+      "en": "Test release note",
+      "ko": "테스트 릴리즈 노트 (한국어)",
+      "zh": "测试发布说明（中文）",
+      "ja": "テストリリースノート（日本語）"
+    }
+  },
+  {
     "id": "20260528_0021",
     "type": "preview",
     "title": "20260528_0021 Build",
@@ -69,24 +87,6 @@
       "ko": "'피버 모드' 종료 즉시 활성화되는 '블랙홀' 기능을 구현했습니다. 이 기능은 화면에 남은 모든 자원 오브젝트를 식별하고 이를 중심점으로 모으는 애니메이션을 통해 수집한 뒤 게임 상태에서 제거합니다. 피버 모드 타이머가 0이 될 때 이 시퀀스가 트리거되도록 게임 상태 관리자를 업데이트했으며, 오브젝트가 파괴되기 전 모든 자원 값이 플레이어의 총합에 정확히 합산되도록 처리했습니다.",
       "zh": "实现了在“狂热模式”结束时立即激活的“黑洞”机制。该功能会识别屏幕上所有剩余的资源对象，并通过动画将其吸引至中心点进行收集，随后从游戏状态中清除。更新了游戏状态管理器，以便在狂热模式计时器归零时触发此序列，并确保在销毁前所有资源值都已正确计入玩家的总计中。",
       "ja": "「フィーバーモード」終了直後に発動する「ブラックホール」メカニクスを実装しました。この機能は画面上に残っているすべてのリソースオブジェクトを特定し、中心点に向かって移動するアニメーションとともに回収し、ゲームの状態から削除します。フィーバーモードのタイマーがゼロになったときにこのシーケンスが開始されるようゲーム状態マネージャーを更新し、オブジェクトが破棄される前にすべてのリソース値がプレイヤーの合計に正しく加算されるようにしました。"
-    }
-  },
-  {
-    "id": "20260527_1703",
-    "type": "preview",
-    "title": "20260527_1703 Build",
-    "url": "http://134.185.103.3:3301",
-    "branch": "20260527_1703",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260527_1703:latest",
-    "container": "spiralwave",
-    "port": 3301,
-    "status": "active",
-    "released_at": "2026-05-27T08:03:37.199Z",
-    "release_note": {
-      "en": "Implement the following game features and logic adjustments:\n\n1. **Increase Meteor Spawn Rate**: Modify the spawning logic to decrease the time interval between meteor appearances, ensuring they occur more frequently during gameplay.\n2. **Add 'Bomb' Obstacle**: Create a new interactive object labeled 'Bomb'. Implement a collision detection system where, upon contact with the player, the current resource count is subtracted. Ensure the spawning logic for this object is integrated into the existing game loop.",
-      "ko": "다음과 같은 게임 기능 및 로직 조정을 구현했습니다:\n\n1. 운석 생성 빈도 증가: 운석이 나타나는 시간 간격을 줄여 게임 플레이 중 더 자주 나타나도록 생성 로직을 수정했습니다.\n2. '폭탄' 장애물 추가: '폭탄'이라는 새로운 상호작용 오브젝트를 추가했습니다. 플레이어와 충돌 시 현재 보유한 자원이 차감되는 충돌 감지 시스템을 구현했습니다. 해당 오브젝트의 생성 로직이 기존 게임 루프에 통합되었습니다.",
-      "zh": "实现了以下游戏功能和逻辑调整：\n\n1. 提高陨石生成率：修改生成逻辑以缩短陨石出现的时间间隔，确保在游戏过程中更频繁地出现。\n2. 添加“炸弹”障碍物：创建名为“炸弹”的新交互对象。实现碰撞检测系统，在与玩家接触时扣除当前资源。确保该对象的生成逻辑已集成到现有的游戏循环中。",
-      "ja": "以下のゲーム機能の実装およびロジックの調整を行いました：\n\n1. メテオ出現率の増加：出現間隔を短縮するように生成ロジックを修正し、プレイ中により頻繁に出現するようにしました。\n2. 障害物「爆弾」の追加：「爆弾」という新しいインタラクティブオブジェクトを追加しました。プレイヤーとの接触時に現在のリソース数が減算される衝突判定システムを実装しました。このオブジェクトの生成ロジックを既存のゲームループに統合しました。"
     }
   }
 ]

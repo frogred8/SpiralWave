@@ -54,6 +54,17 @@ export class ResourceManager {
         };
     }
 
+    private getMeteorRotationOffset() {
+        const defaultOffset = 3 * Math.PI / 4;
+        const userAgent = navigator.userAgent.toLowerCase();
+
+        if (userAgent.includes('android')) {
+            return defaultOffset + Math.PI / 2;
+        }
+
+        return defaultOffset;
+    }
+
     private getRandomPositionAroundCenter(minDist: number, maxDist: number) {
         const angle = Math.random() * Math.PI * 2;
         const dist = Phaser.Math.Between(minDist, maxDist);
@@ -115,7 +126,7 @@ export class ResourceManager {
 
         // 진행 방향으로 회전 (기존 대비 180도 반전하여 머리가 앞으로 오게 수정)
         const angle = Phaser.Math.Angle.Between(startX, startY, endX, endY);
-        meteor.setRotation(angle + 3 * Math.PI / 4); 
+        meteor.setRotation(angle + this.getMeteorRotationOffset()); 
 
         // 파티클 효과 (꼬리)
         const emitter = this.scene.add.particles(0, 0, 'spark', {

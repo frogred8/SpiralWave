@@ -65,6 +65,7 @@ export const RESOURCE_CONFIG = {
         wood: '🪵',
         whitehole: '🌀',
         boost: '⚡',
+        meteor: '☄️',
         default: '✨'
     },
     COLORS: {

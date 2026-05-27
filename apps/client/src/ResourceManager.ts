@@ -120,7 +120,7 @@ export class ResourceManager {
         startX -= offsetX; startY -= offsetY;
         endX -= offsetX; endY -= offsetY;
 
-        const meteor = this.scene.add.text(startX, startY, '☄️', { fontSize: '80px' }).setOrigin(0.5);
+        const meteor = this.scene.add.text(startX, startY, RESOURCE_CONFIG.ICONS.meteor, { fontSize: '70px' }).setOrigin(0.5);
         this.worldContainer.add(meteor);
         this.meteors.push(meteor);
 

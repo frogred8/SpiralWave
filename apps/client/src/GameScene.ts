@@ -5,7 +5,7 @@ import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Constants';
 import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
-import { SpecialItem, Collectible } from './Types';
+import { ObstacleItem, SpecialItem, Collectible } from './Types';
 import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
@@ -231,6 +231,13 @@ export class GameScene extends Phaser.Scene {
             loop: true 
         });
 
+        this.time.addEvent({
+            delay: DURATIONS.BOMB_INTERVAL,
+            callback: () => this.resourceManager.spawnBomb(),
+            callbackScope: this,
+            loop: true
+        });
+
         this.scheduleSmallBlackHoleSpawn();
     }
 
@@ -424,6 +431,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.removeAllListeners(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
         this.gameStats.removeAllListeners('resourceCollected');
         this.gameStats.removeAllListeners('worldResourceCollected');
+        this.gameStats.removeAllListeners('resourcePenalty');
 
         this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, () => {
             this.updateSpawnTimer();
@@ -468,6 +476,12 @@ export class GameScene extends Phaser.Scene {
             const fontSize = data.amount > 1 ? '21px' : '14px';
             this.uiManager.showFloatingText(data.x, data.y - 20, `+${data.amount}`, '#00ff00', true, fontSize, this.worldContainer);
         }, this);
+
+        this.gameStats.on('resourcePenalty', (data: { amount: number, x?: number, y?: number }) => {
+            if (data.x === undefined || data.y === undefined) return;
+            const fontSize = data.amount > 1 ? '24px' : '16px';
+            this.uiManager.showFloatingText(data.x, data.y - 24, `-${data.amount}`, '#ff3333', true, fontSize, this.worldContainer);
+        }, this);
     }
 
     private setupInputListeners() {
@@ -486,6 +500,7 @@ export class GameScene extends Phaser.Scene {
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as Collectible;
             if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
+            if (res.itemType === 'obstacle') return;
             
             const dist = Utils.getDistance(originX, originY, res.x, res.y);
             if (dist > minDistance) return;
@@ -607,11 +622,21 @@ export class GameScene extends Phaser.Scene {
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as any;
             if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
-            
+
+            const dist = Utils.getDistance(res.x, res.y, centerX, centerY);
+            if (res.itemType === 'obstacle') {
+                if (dist < RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL) {
+                    this.handleObstacleItem(res);
+                    return;
+                }
+                if (dist > screenLimit) res.destroy();
+                else Utils.limitSpeed(res, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
+                return;
+            }
+
             // 위성 중력 처리 통합
             if (this.orbitSystem.handleResourceGravity(res)) return;
 
-            const dist = Utils.getDistance(res.x, res.y, centerX, centerY);
             if (res.itemType === 'special') {
                 if (dist > screenLimit) res.destroy();
                 return;
@@ -694,6 +719,15 @@ export class GameScene extends Phaser.Scene {
         collectible.destroy();
     }
 
+    private handleObstacleItem(item: ObstacleItem) {
+        if (item.obstacleType !== 'bomb') return;
+
+        const penalty = this.gameStats.subtractCurrentResources(item.x, item.y);
+        this.gameRenderer.emitCollectionParticles(item.x, item.y, false, this.resourceManager.getParticleTint(item), item.x, item.y);
+        item.destroy();
+        this.cameras.main.shake(180, penalty > 0 ? 0.01 : 0.004);
+    }
+
     private fireNet(targetX: number, targetY: number, distance: number) {
         this.gameRenderer.drawNet(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY, distance);
 
@@ -704,6 +738,7 @@ export class GameScene extends Phaser.Scene {
         this.resourceManager.getGroup().getChildren().forEach((child) => {
             const res = child as any;
             if (!res.active) return;
+            if (res.itemType === 'obstacle') return;
 
             const dist = Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y);
             if (dist > distance) return;

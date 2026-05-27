@@ -11,6 +11,11 @@ export type ResourceType = 'rock' | 'wood';
 export type SpecialItemType = 'whitehole' | 'boost';
 
 /**
+ * 장애물 종류 정의
+ */
+export type ObstacleItemType = 'bomb';
+
+/**
  * 수집 가능한 객체 인터페이스
  */
 export interface Collectible extends Phaser.GameObjects.GameObject {
@@ -20,8 +25,9 @@ export interface Collectible extends Phaser.GameObjects.GameObject {
     body: Phaser.Physics.Arcade.Body;
     resourceType?: ResourceType;
     isHighDim?: boolean;
-    itemType?: 'special';
+    itemType?: 'special' | 'obstacle';
     specialType?: SpecialItemType;
+    obstacleType?: ObstacleItemType;
 }
 
 /**
@@ -39,6 +45,15 @@ export interface Resource extends Phaser.GameObjects.Text {
 export interface SpecialItem extends Phaser.GameObjects.Text {
     itemType: 'special';
     specialType: SpecialItemType;
+    body: Phaser.Physics.Arcade.Body;
+}
+
+/**
+ * 장애물 아이콘 객체 인터페이스
+ */
+export interface ObstacleItem extends Phaser.GameObjects.Text {
+    itemType: 'obstacle';
+    obstacleType: ObstacleItemType;
     body: Phaser.Physics.Arcade.Body;
 }
 

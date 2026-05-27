@@ -447,6 +447,19 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
         this.emit('worldResourceCollected', { type, amount, x, y });
     }
 }/**
+ * 현재 보유 중인 자원을 차감합니다.
+ */
+subtractCurrentResources(x?: number, y?: number): number {
+    const amount = this.collected.rock + this.collected.wood;
+    if (amount <= 0) return 0;
+
+    this.collected.rock = 0;
+    this.collected.wood = 0;
+    this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    this.emit('resourcePenalty', { amount, x, y });
+    return amount;
+}
+/**
  * 최근 10초간의 자원 획득량 합계 반환
  */
 getRecentCollectionAmount(): number {

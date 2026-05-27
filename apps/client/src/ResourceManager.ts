@@ -3,7 +3,7 @@ import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
-import { Resource, SpecialItem, Collectible } from './Types';
+import { ObstacleItem, Resource, SpecialItem } from './Types';
 import { getResourceMetadata } from './ResourceRegistry';
 
 export class ResourceManager {
@@ -212,6 +212,35 @@ export class ResourceManager {
         this.scene.tweens.add({ targets: item, scale: 1.3, alpha: 0.7, duration: 800, yoyo: true, loop: -1 });
     }
 
+    public spawnBomb() {
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
+        const { x: rawX, y: rawY } = Utils.getRandomEdgePosition(width, height);
+        const x = rawX - offsetX;
+        const y = rawY - offsetY;
+
+        const bomb = this.scene.add.text(x, y, `${this.getIcon('bomb')} Bomb`, {
+            fontSize: '28px',
+            color: '#ffdddd',
+            stroke: '#330000',
+            strokeThickness: 4
+        }).setOrigin(0.5) as ObstacleItem;
+        bomb.itemType = 'obstacle';
+        bomb.obstacleType = 'bomb';
+
+        this.scene.physics.add.existing(bomb);
+        this.resources.add(bomb);
+        this.worldContainer.add(bomb);
+        bomb.body.setCircle(24, 4, Math.max(0, (bomb.height - 48) / 2));
+
+        const dir = new Phaser.Math.Vector2(this.spiralCenter.x - x, this.spiralCenter.y - y).normalize();
+        bomb.body.setVelocity(dir.x * RESOURCE_CONFIG.BOMB_SPEED, dir.y * RESOURCE_CONFIG.BOMB_SPEED);
+        bomb.body.setAngularVelocity(60);
+
+        this.scene.tweens.add({ targets: bomb, scale: 1.15, duration: 500, yoyo: true, loop: -1 });
+    }
+
     public spawnWhiteHole(x?: number, y?: number, isEnhanced: boolean = false) {
         let targetX = x;
         let targetY = y;
@@ -319,6 +348,10 @@ export class ResourceManager {
     }
 
     public getParticleTint(res: any): number {
+        if (res.itemType === 'obstacle' && res.obstacleType) {
+            return getResourceMetadata(res.obstacleType).tint;
+        }
+
         if (res.itemType === 'special' && res.specialType) {
             return getResourceMetadata(res.specialType).tint;
         }

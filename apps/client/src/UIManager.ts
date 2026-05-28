@@ -48,6 +48,7 @@ export class UIManager {
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
     private gameOverRenderId: number = 0;
+    private isInitialSkillSelectionLocked: boolean = false;
 
     private statsUpdateListener: (() => void) | null = null;
 
@@ -186,6 +187,7 @@ export class UIManager {
     }
 
     public showInitialSkillSelection(skillData: any[], excludeSkillIds: string[] = [], preservedSkills: any[] | null = null, isRestarted: boolean, canReroll: boolean) {
+        this.isInitialSkillSelectionLocked = false;
         this.currentUIState.overlay = 'initialSkill';
         this.currentUIState.initialSkillData = skillData;
         this.currentUIState.excludeSkillIds = excludeSkillIds;
@@ -614,6 +616,10 @@ export class UIManager {
     }
 
     private handleInitialSkillSelection(skill: any, btn: Phaser.GameObjects.Container, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
+        if (this.isInitialSkillSelectionLocked) return;
+        this.isInitialSkillSelectionLocked = true;
+        this.currentUIState.overlay = null;
+
         this.stats.grantSkill(skill);
         const soundManager = SoundManager.getInstance();
         soundManager.initializeSounds();

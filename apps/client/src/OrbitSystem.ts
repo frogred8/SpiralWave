@@ -166,7 +166,7 @@ export class OrbitSystem {
         satellite.collectionRadius = options.collectionRadius;
 
         const boundary = this.scene.add.circle(0, 0, satellite.gravityRadius, 0x333333, 0.15)
-            .setStrokeStyle(1, 0x666666, 0.35);
+            .setStrokeStyle(1, 0x666666, 0.6);
         const swirl = this.scene.add.circle(0, 0, 16, metadata.tint, 0.14)
             .setStrokeStyle(1, metadata.tint, 0.45);
         const core = this.scene.add.circle(0, 0, 7, 0x000000, 1);

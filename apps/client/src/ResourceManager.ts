@@ -294,7 +294,7 @@ export class ResourceManager {
         if (!isValid) return; 
 
         const sbh = this.scene.add.container(targetX, targetY);
-        const boundary = this.scene.add.circle(0, 0, 150, 0x333333, 0.15).setStrokeStyle(1, 0x666666, 0.4);
+        const boundary = this.scene.add.circle(0, 0, 150, 0x333333, 0.15).setStrokeStyle(1, 0x666666, 0.6);
         const core = this.scene.add.circle(0, 0, 8, 0x000000, 1);
         const swirl = this.scene.add.circle(0, 0, 18, 0xffffff, 0.2);
 

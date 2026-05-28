@@ -49,6 +49,7 @@ export class UIManager {
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
     private gameOverRenderId: number = 0;
     private isInitialSkillSelectionLocked: boolean = false;
+    private leaderboardFetchPromise: Promise<RankEntry[]> | null = null;
 
     private statsUpdateListener: (() => void) | null = null;
 
@@ -748,7 +749,7 @@ export class UIManager {
             const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
             await this.callbacks.onSendEndSignal(name, msg);
             closeCallback();
-            this.showGameOverScreen();
+            this.showGameOverScreen(undefined, true);
         });
 
         const skipBtn = this.scene.add.container(75, 0);
@@ -767,7 +768,7 @@ export class UIManager {
         return group;
     }
 
-    public async showGameOverScreen() {
+    public async showGameOverScreen(initialRanks?: RankEntry[], refreshLeaderboard: boolean = false) {
         const renderId = ++this.gameOverRenderId;
         const wasGameOverVisible = this.currentUIState.overlay === 'gameOver';
         this.currentUIState.overlay = 'gameOver';
@@ -781,7 +782,7 @@ export class UIManager {
 
         this.timerText.setAlpha(1);
 
-        const ranks = await this.fetchLeaderboardRanks();
+        const ranks = initialRanks ?? await this.fetchLeaderboardRanks(refreshLeaderboard);
         if (renderId !== this.gameOverRenderId || this.currentUIState.overlay !== 'gameOver') return;
 
         const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.85).setOrigin(0).setInteractive().setDepth(3000);
@@ -802,8 +803,19 @@ export class UIManager {
         });
     }
 
-    private async fetchLeaderboardRanks() {
-        const ranks = await this.callbacks.onFetchLeaderboard();
+    public async fetchLeaderboardRanks(forceRefresh: boolean = false) {
+        if (!forceRefresh && this.currentUIState.leaderBoardRanks) {
+            return this.currentUIState.leaderBoardRanks;
+        }
+
+        if (this.leaderboardFetchPromise) {
+            return this.leaderboardFetchPromise;
+        }
+
+        this.leaderboardFetchPromise = this.callbacks.onFetchLeaderboard();
+        const ranks = await this.leaderboardFetchPromise;
+        this.leaderboardFetchPromise = null;
+
         if (ranks) {
             this.currentUIState.leaderBoardRanks = ranks;
             return ranks;

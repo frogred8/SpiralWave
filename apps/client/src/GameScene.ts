@@ -432,9 +432,10 @@ export class GameScene extends Phaser.Scene {
             SoundManager.getInstance().play('skilllevelup');
         }, this);
         
-        this.gameStats.on(GameStats.EVENTS.GAME_OVER, () => {
-            if (this.gameStats.totalAll > 1) this.uiManager.showInputForm();
-            else this.uiManager.showGameOverScreen();
+        this.gameStats.on(GameStats.EVENTS.GAME_OVER, async () => {
+            const ranks = await this.uiManager.fetchLeaderboardRanks(true);
+            if (this.shouldSubmitScore(this.gameStats.totalAll, ranks)) this.uiManager.showInputForm();
+            else this.uiManager.showGameOverScreen(ranks);
             // Fever Overlay 초기화
             if (this.feverOverlay) {
                 this.feverOverlay.setVisible(false).setAlpha(0);
@@ -658,6 +659,15 @@ export class GameScene extends Phaser.Scene {
             console.error('Failed to fetch leaderboard:', err);
             return [];
         }
+    }
+
+    private shouldSubmitScore(score: number, ranks: RankEntry[]) {
+        if (score <= 0) return false;
+
+        const topRanks = ranks.slice(0, 10);
+        if (topRanks.length < 10) return true;
+
+        return score > topRanks[9].score;
     }
 
     private async fetchDeploymentsData(): Promise<DeploymentEntry[]> {

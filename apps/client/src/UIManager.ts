@@ -375,8 +375,8 @@ export class UIManager {
 
         const buttonY = panelHeight - 28;
         const buttonWidth = Math.max(78, (panelWidth - 38) / 2);
-        const blogButton = this.createExternalLinkButton(14, buttonY, buttonWidth, I18n.t('ui.blog'), 'https://blog.frogred8.dev');
-        const githubButton = this.createExternalLinkButton(24 + buttonWidth, buttonY, buttonWidth, I18n.t('ui.github'), 'https://github.com/frogred8/SpiralWave');
+        const blogButton = this.createExternalLinkButton(14, buttonY, buttonWidth, 'Blog', 'https://blog.frogred8.dev/docs/044_automatic_daily_release_game');
+        const githubButton = this.createExternalLinkButton(24 + buttonWidth, buttonY, buttonWidth, 'Github', 'https://github.com/frogred8/SpiralWave');
 
         const entryItems: Phaser.GameObjects.GameObject[] = [bg, title, subtitle, noteText, blogButton, githubButton];
         const maxScroll = Math.max(0, noteText.height - noteHeight);

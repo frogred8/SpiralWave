@@ -202,7 +202,16 @@ export class UIManager {
             .setOrigin(0).setInteractive().setDepth(2000);
         this.uiContainer.add(overlay);
 
-        const titleY = Math.max(60, height / 2 - 280);
+        const titleY = Math.max(126, height / 2 - 274);
+        const gameTitle = this.scene.add.text(width / 2, 48, 'SpiralWave', {
+            fontSize: '52px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 8
+        }).setOrigin(0.5).setDepth(2001);
+        this.uiContainer.add(gameTitle);
+
         const title = this.scene.add.text(width / 2, titleY, I18n.t('ui.choose_starting_skill'), {
             fontSize: '32px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 6
         }).setOrigin(0.5).setDepth(2001);

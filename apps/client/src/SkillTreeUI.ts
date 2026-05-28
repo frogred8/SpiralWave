@@ -311,6 +311,13 @@ export class SkillTreeUI {
                 nameTxt.setColor('#aaaaaa');
                 lvTxt.setColor(UI_CONFIG.BUTTON.DISABLED_TEXT_COLOR);
                 btn.setInteractive({ useHandCursor: true }); 
+            } else if (!canAfford) {
+                btn.setAlpha(0.7);
+                bg.setFillStyle(UI_CONFIG.BUTTON.BG_COLOR);
+                bg.setStrokeStyle(3, 0x880000); 
+                nameTxt.setColor('#ffffff');
+                lvTxt.setColor('#ff8888');
+                btn.setInteractive({ useHandCursor: true }); 
             } else if (isUnlockedByResearch) {
                 // 연구 중인 스킬로 인해 배울 수 있는 상태 (노란색 강조)
                 btn.setAlpha(0.8);
@@ -319,13 +326,6 @@ export class SkillTreeUI {
                 nameTxt.setColor('#ffffff');
                 lvTxt.setColor('#ffff00');
                 btn.setInteractive({ useHandCursor: true });
-            } else if (!canAfford) {
-                btn.setAlpha(0.7);
-                bg.setFillStyle(UI_CONFIG.BUTTON.BG_COLOR);
-                bg.setStrokeStyle(3, 0x880000); 
-                nameTxt.setColor('#ffffff');
-                lvTxt.setColor('#ff8888');
-                btn.setInteractive({ useHandCursor: true }); 
             } else {
                 btn.setAlpha(1);
                 bg.setFillStyle(UI_CONFIG.BUTTON.BG_COLOR);

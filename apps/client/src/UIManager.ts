@@ -202,10 +202,10 @@ export class UIManager {
             .setOrigin(0).setInteractive().setDepth(2000);
         this.uiContainer.add(overlay);
 
-        const titleY = Math.max(126, height / 2 - 274);
+        const titleY = Math.max(156, height / 2 - 274);
         const gameTitle = this.scene.add.text(width / 2, 48, 'SpiralWave', {
-            fontSize: '52px',
-            color: '#ffffff',
+            fontSize: '64px',
+            color: '#00ff00',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 8
@@ -213,12 +213,12 @@ export class UIManager {
         this.uiContainer.add(gameTitle);
 
         const title = this.scene.add.text(width / 2, titleY, I18n.t('ui.choose_starting_skill'), {
-            fontSize: '32px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 6
+            fontSize: '28px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 6
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
         this.createCurrentVersionLabel(width, titleY - 32);
         this.createGameTips(width, titleY + 100);
-        void this.createDeploymentsPanel(width, height);
+        void this.createDeploymentsPanel(width, height + 72);
 
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {
@@ -235,7 +235,7 @@ export class UIManager {
 
         selectedSkills.forEach((skill, index) => {
             const x = width / 2 + (index === 0 ? -180 : 180);
-            const y = height / 2 + 60;
+            const y = height / 2 + 100;
             this.createSkillCard(x, y, skill, overlay, title);
         });
     }
@@ -336,12 +336,12 @@ export class UIManager {
             color: '#22c55e',
             fontStyle: 'bold'
         }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
-        const subtitle = this.scene.add.text(panelWidth - 14, 14, I18n.t('ui.release_notes'), {
-            fontSize: '11px',
-            color: '#9ca3af'
-        }).setOrigin(1, 0).setPadding({ top: 2, bottom: 2 });
+        // const subtitle = this.scene.add.text(panelWidth - 14, 14, I18n.t('ui.release_notes'), {
+        //     fontSize: '11px',
+        //     color: '#9ca3af'
+        // }).setOrigin(1, 0).setPadding({ top: 2, bottom: 2 });
 
-        container.add([bg, title, subtitle]);
+        container.add([bg, title/*, subtitle*/]);
 
         deployments.forEach((deployment, index) => {
             this.addDeploymentEntry(container, deployment, panelWidth, headerHeight + index * itemHeight);
@@ -557,7 +557,7 @@ export class UIManager {
     }
 
     private createRerollButton(width: number, height: number, skillData: any[], currentSelectionIds: string[]) {
-        const rerollBtn = this.scene.add.container(width / 2, height / 2 + 300).setDepth(2001);
+        const rerollBtn = this.scene.add.container(width / 2, height / 2 + 330).setDepth(2001);
         const rerollBg = this.scene.add.rectangle(0, 0, 160, 45, 0x333333, 0.9)
             .setStrokeStyle(2, 0x00ff00)
             .setInteractive({ useHandCursor: true });

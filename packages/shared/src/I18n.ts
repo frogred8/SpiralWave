@@ -183,7 +183,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.rank_message': '메시지',
         'ui.no_rankings': '순위가 없습니다.',
         'ui.bonus_time': '보너스 시간!',
-        'ui.preview_builds': '실험 버전',
+        'ui.preview_builds': '서버 목록',
         'ui.release_notes': '릴리즈 노트',
         'ui.stable_release': '안정 버전',
         'ui.blog': '블로그',

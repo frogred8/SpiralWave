@@ -263,7 +263,8 @@ async function runCodexCli(prompt: string, cwd: string): Promise<boolean> {
                     cwd,
                     stdio: ['ignore', 'ignore', 'ignore'],
                     env: {
-                        ...process.env
+                        ...process.env,
+                        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
                     },
                 }
             );

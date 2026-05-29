@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260529_1340",
+    "type": "preview",
+    "title": "20260529_1340 Build",
+    "url": "http://134.185.103.3:3305",
+    "branch": "20260529_1340",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260529_1340:latest",
+    "container": "spiralwave",
+    "port": 3305,
+    "status": "active",
+    "released_at": "2026-05-29T04:40:41.837Z",
+    "release_note": {
+      "en": "### Code Generation Plan: Implementation of Game Pause Functionality\n\n**Objective:** Integrate a robust pause system to allow players to suspend and resume gameplay.\n\n**Functional Requirements:**\n1.  **State Management:**\n    *   Implement a global state or flag (e.g., `isPaused`) to track the current game status.\n    *   Create a toggle mechanism that switches the `isPaused` state upon a specific user trigger.\n\n2.  **Logic Suspension:**\n    *   Modify the main game loop to ensure that physics calculations, character movements, enemy AI updates, and game timers are halted when `isPaused` is true.\n    *   Ensure that the rendering loop continues to execute to maintain the visual display or show a pause overlay.\n\n3.  **Input Handling:**\n    *   Map a specific key (e.g., 'Escape' or 'P') or a UI button to the pause toggle function.\n    *   Ensure the toggle input remains responsive even when the rest of the game logic is suspended.\n\n4.  **User Interface:**\n    *   Implement a simple \"Paused\" overlay or menu that appears when the game is suspended.\n    *   Include a \"Resume\" button within the overlay to return to the active game state.\n\n**Technical Constraints:**\n*   Prevent any background processes related to gameplay (e.g., score accumulation, cooldowns) from advancing during the pause state.\n*   Ensure smooth transition between paused and active states without frame skips or logic errors.",
+      "ko": "",
+      "zh": "",
+      "ja": ""
+    }
+  },
+  {
     "id": "20260529_1246",
     "type": "preview",
     "title": "20260529_1246 Build",

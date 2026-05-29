@@ -8,7 +8,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { spawn } from 'child_process';
 import process from 'process';
-import { startDeploymentMetricsJob } from './metrics';
+import { startDeploymentMetricsJob, collectDeploymentMetrics } from './metrics';
 
 const execAsync = promisify(exec);
 
@@ -58,24 +58,23 @@ const TEMP_BASE_DIR = process.env.TEMP_DIR || path.join(process.cwd(), '.tmp');
 
 console.log(`Start Cron (${new Date().toISOString()})`);
 console.log(`SERVER_URL: ${SERVER_URL}`);
-startDeploymentMetricsJob();
+
 
 function convertDateFormat(date: Date): string {
     const pad = (n: any) => n.toString().padStart(2, '0');
     return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}`;
 };
 
+await collectDeploymentMetrics();
 
-await run();
-
-// 매시 정각마다 실행 (초 분 시 일 월 요일)
-// cron.schedule('0 0 * * * *', async () => {
-//     try {
-//         await run();
-//     } catch (error) {
-//         console.error('오류 발생:', error);
-//     }
-// });
+// 매일 실행 (초 분 시 일 월 요일)
+cron.schedule('0 0 0 * * *', async () => {
+    try {
+        await run();
+    } catch (error) {
+        console.error('오류 발생:', error);
+    }
+});
 
 async function run() {
     const timestamp = convertDateFormat(new Date());

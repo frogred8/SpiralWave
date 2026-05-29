@@ -42,6 +42,7 @@ export default defineConfig({
       '/leaderboard': createProxyEntry(),
       '/health': createProxyEntry(),
       '/deployments': createProxyEntry(),
+      '/metrics': createProxyEntry(),
     },
   },
   server: {
@@ -51,6 +52,7 @@ export default defineConfig({
       '/leaderboard': createProxyEntry(),
       '/health': createProxyEntry(),
       '/deployments': createProxyEntry(),
+      '/metrics': createProxyEntry(),
     },
     watch: {
       usePolling: true,

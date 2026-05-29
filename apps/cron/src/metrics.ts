@@ -183,7 +183,6 @@ async function commitMetricsFileToMain(metricsFilePath: string) {
             relativeMetricsPath,
         ]);
         if (lastCommitResult.stdout.trim() === `chore: Update metrics [${dateKey}]`) {
-            console.log(`오늘 metrics 커밋이 이미 있어 건너뜁니다: ${dateKey}`);
             return;
         }
 

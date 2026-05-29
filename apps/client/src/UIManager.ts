@@ -21,6 +21,8 @@ export interface UIState {
 export interface UICallbacks {
     onStartGame: () => void;
     onRestartGame: (canReroll: boolean) => void;
+    onTogglePause: () => void;
+    onToggleSpeed: () => void;
     onSendStartSignal: (skillId: number) => void;
     onSendEndSignal: (name: string, msg: string) => void;
     onFetchLeaderboard: () => Promise<RankEntry[]>;
@@ -40,6 +42,12 @@ export class UIManager {
     private langSelectorContainer!: Phaser.GameObjects.Container;
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
+    private pauseBtnContainer!: Phaser.GameObjects.Container;
+    private speedBtnContainer!: Phaser.GameObjects.Container;
+    private pauseBtnText!: Phaser.GameObjects.Text;
+    private speedBtnText!: Phaser.GameObjects.Text;
+    private pauseBtnBg!: Phaser.GameObjects.Rectangle;
+    private speedBtnBg!: Phaser.GameObjects.Rectangle;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
@@ -94,6 +102,7 @@ export class UIManager {
 
         this.createStatsPanel();
         this.setupLanguageSelector();
+        this.setupGameplayControlButtons();
     }
 
     public updateTimerDisplay(time: number, isGameStarted: boolean) {
@@ -1132,6 +1141,57 @@ export class UIManager {
         this.setupSoundButton(startX, startY + btnHeight + 5, btnWidth, btnHeight);
     }
 
+    private setupGameplayControlButtons() {
+        const btnWidth = 48;
+        const btnHeight = 25;
+        const gap = 6;
+        const rightEdge = this.scene.scale.width - 20 - 70 - 10;
+        const y = 15;
+
+        this.pauseBtnContainer = this.createTopControlButton(rightEdge - (btnWidth * 2 + gap), y, btnWidth, btnHeight, 'Ⅱ', 0x444444, () => this.callbacks.onTogglePause());
+        this.speedBtnContainer = this.createTopControlButton(rightEdge - btnWidth, y, btnWidth, btnHeight, '1x', 0x444444, () => this.callbacks.onToggleSpeed());
+
+        this.pauseBtnBg = this.pauseBtnContainer.getAt(0) as Phaser.GameObjects.Rectangle;
+        this.pauseBtnText = this.pauseBtnContainer.getAt(1) as Phaser.GameObjects.Text;
+        this.speedBtnBg = this.speedBtnContainer.getAt(0) as Phaser.GameObjects.Rectangle;
+        this.speedBtnText = this.speedBtnContainer.getAt(1) as Phaser.GameObjects.Text;
+    }
+
+    private createTopControlButton(x: number, y: number, width: number, height: number, label: string, strokeColor: number, onClick: () => void) {
+        const container = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95)
+            .setStrokeStyle(1, strokeColor)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(width / 2, height / 2, label, {
+            fontSize: '12px',
+            color: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        container.add([bg, text]);
+        container.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+        this.topUiContainer.add(container);
+
+        container.on('pointerdown', onClick);
+        container.on('pointerover', () => bg.setStrokeStyle(1, 0xaaaaaa));
+        container.on('pointerout', () => bg.setStrokeStyle(1, strokeColor));
+        return container;
+    }
+
+    public setPauseButtonState(isPaused: boolean) {
+        if (!this.pauseBtnText || !this.pauseBtnBg) return;
+        this.pauseBtnText.setText(isPaused ? '▶' : 'Ⅱ');
+        this.pauseBtnBg.setStrokeStyle(1, isPaused ? 0x00ff00 : 0x444444);
+    }
+
+    public setSpeedButtonState(speed: number) {
+        if (!this.speedBtnText || !this.speedBtnBg) return;
+        const isFast = speed > 1;
+        this.speedBtnText.setText(isFast ? '2x' : '1x');
+        this.speedBtnBg.setStrokeStyle(1, isFast ? 0x00ffff : 0x444444);
+    }
+
     private createLanguageMenuItem(lang: any, index: number, width: number, height: number, arrow: Phaser.GameObjects.Text) {
         const itemY = index * (height + 1);
         const item = this.scene.add.container(0, itemY);
@@ -1215,6 +1275,13 @@ export class UIManager {
         if (this.soundBtnContainer) {
             const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
             this.soundBtnContainer.setPosition(startX, startY + btnHeight + 5 + menuOffset);
+        }
+        if (this.pauseBtnContainer && this.speedBtnContainer) {
+            const controlWidth = 48;
+            const gap = 6;
+            const rightEdge = startX - 10;
+            this.pauseBtnContainer.setPosition(rightEdge - (controlWidth * 2 + gap), startY);
+            this.speedBtnContainer.setPosition(rightEdge - controlWidth, startY);
         }
     }
 

@@ -33,6 +33,7 @@ export class GameScene extends Phaser.Scene {
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
+    private gameSpeed: number = 1;
 
     private getServerUrl() {
         return (import.meta.env.VITE_SERVER_URL || '127.0.0.1:3001').replace(/\/$/, '');
@@ -62,6 +63,8 @@ export class GameScene extends Phaser.Scene {
         this.uiManager = new UIManager(this, this.uiContainer, this.topUiContainer, this.gameStats, {
             onStartGame: () => this.startGame(),
             onRestartGame: (canReroll) => this.restartGame(canReroll),
+            onTogglePause: () => this.togglePause(),
+            onToggleSpeed: () => this.toggleGameSpeed(),
             onSendStartSignal: (id) => this.sendStartGameSignal(id),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
@@ -271,6 +274,8 @@ export class GameScene extends Phaser.Scene {
 
     private startGame() {
         this.gameStats.startGame();
+        this.setGameplayPaused(false);
+        this.setGameSpeed(1);
         this.isGameStarted = true;
         this.setupTimers();
         this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
@@ -346,6 +351,8 @@ export class GameScene extends Phaser.Scene {
 
     private cleanupForRestart() {
         this.resourceManager.clear();
+        this.setGameplayPaused(false);
+        this.setGameSpeed(1);
         this.time.removeAllEvents();
         this.tweens.killAll();
         this.arms.forEach(arm => arm.reset());
@@ -436,6 +443,9 @@ export class GameScene extends Phaser.Scene {
     private setupGameStatsListeners() {
         this.gameStats.removeAllListeners(GameStats.EVENTS.SKILL_UPGRADED);
         this.gameStats.removeAllListeners(GameStats.EVENTS.GAME_OVER);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.GAME_PAUSED);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.GAME_RESUMED);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.RESEARCH_COMPLETED);
         this.gameStats.removeAllListeners(GameStats.EVENTS.CALCULATE_BOOSTER);
         this.gameStats.removeAllListeners(GameStats.EVENTS.SPAWN_RATE_CHANGED);
         this.gameStats.removeAllListeners(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
@@ -454,6 +464,18 @@ export class GameScene extends Phaser.Scene {
             }
 
             SoundManager.getInstance().play('skilllevelup');
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.RESEARCH_COMPLETED, () => {
+            this.cameras.main.flash(180, 120, 255, 180, true);
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.GAME_PAUSED, () => {
+            this.uiManager.setPauseButtonState(true);
+        }, this);
+
+        this.gameStats.on(GameStats.EVENTS.GAME_RESUMED, () => {
+            this.uiManager.setPauseButtonState(false);
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, async () => {
@@ -501,6 +523,13 @@ export class GameScene extends Phaser.Scene {
             if (gameObjects.length > 0) return;
             this.handleInput(pointer);
         }, this);
+
+        if (this.input.keyboard) {
+            this.input.keyboard.off('keydown-P');
+            this.input.keyboard.off('keydown-T');
+            this.input.keyboard.on('keydown-P', () => this.togglePause(), this);
+            this.input.keyboard.on('keydown-T', () => this.toggleGameSpeed(), this);
+        }
     }
 
     private findBestArmTarget(originX: number, originY: number, minRadius: number, maxRadius: number): Collectible | null {
@@ -533,6 +562,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private handleInput(pointer: Phaser.Input.Pointer) {
+        if (this.gameStats.isPaused) return;
         if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) return;
 
         const arm = this.arms.find(a => a.state === 'idle');
@@ -543,7 +573,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
+        if (!this.isGameStarted || this.gameStats.isPaused || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
             if (this.gameStats.isGameOver) {
                 this.gameRenderer.clearArmGraphics();
                 this.uiManager.setGameOverTimerStyle();
@@ -551,7 +581,7 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        const cappedDelta = Math.min(delta, 1000);
+        const cappedDelta = Math.min(delta * this.gameSpeed, 1000);
         this.gameStats.update(cappedDelta);
         
         this.uiManager.updateTimerDisplay(time, this.isGameStarted);
@@ -802,5 +832,38 @@ export class GameScene extends Phaser.Scene {
             this.tweens.add({ targets: this, radiusMultiplier: 1.0, duration: DURATIONS.RADIUS_BOOST_SHRINK, ease: 'Power1' });
             this.boostTimerEvent = undefined;
         });
+    }
+
+    private togglePause() {
+        if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) return;
+        this.setGameplayPaused(!this.gameStats.isPaused);
+    }
+
+    private setGameplayPaused(isPaused: boolean) {
+        if (isPaused) {
+            this.gameStats.pauseGame();
+            this.physics.pause();
+            this.tweens.pauseAll();
+            this.time.paused = true;
+        } else {
+            this.time.paused = false;
+            this.tweens.resumeAll();
+            this.physics.resume();
+            this.gameStats.resumeGame();
+        }
+        if (this.uiManager) this.uiManager.setPauseButtonState(isPaused);
+    }
+
+    private toggleGameSpeed() {
+        if (!this.isGameStarted || this.gameStats.isGameOver) return;
+        this.setGameSpeed(this.gameSpeed === 1 ? 2 : 1);
+    }
+
+    private setGameSpeed(speed: number) {
+        this.gameSpeed = speed;
+        this.time.timeScale = speed;
+        this.tweens.timeScale = speed;
+        (this.physics.world as any).timeScale = speed;
+        if (this.uiManager) this.uiManager.setSpeedButtonState(speed);
     }
 }

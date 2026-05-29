@@ -546,7 +546,7 @@ export class SkillTreeUI {
                         targets: ft,
                         y: btn.y - 60,
                         alpha: 0,
-                        duration: 800,
+                        duration: 400,
                         ease: 'Sine.easeOut',
                         onComplete: () => ft.destroy()
                     });
@@ -557,7 +557,7 @@ export class SkillTreeUI {
 
                 // 마지막 스킬 애니메이션이 끝나면 콜백 호출
                 if (index === maxedSkills.length - 1) {
-                    this.scene.time.delayedCall(800, () => {
+                    this.scene.time.delayedCall(400, () => {
                         // 부스터 시간이 있으면 1초 추가
                         if (addedTime > 0) {
                             addedTime += 1;

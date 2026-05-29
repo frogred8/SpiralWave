@@ -45,6 +45,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public playtime: number = 0;
     private lastUpdateTime: number = 0;
     private gameStarted: boolean = false;
+    public isPaused: boolean = false;
     public isGameOver: boolean = false;
     public readonly TIME_LIMIT = INITIAL_STATS.TIME_LIMIT;
     public timeSpawnMultiplier: number = 1.0;
@@ -65,6 +66,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         SKILL_UPGRADED: 'skillUpgraded',
         RESEARCH_REDUCED: 'researchTimeReduced',
         GAME_OVER: 'gameOver',
+        GAME_PAUSED: 'gamePaused',
+        GAME_RESUMED: 'gameResumed',
+        RESEARCH_COMPLETED: 'researchCompleted',
         SPAWN_RATE_CHANGED: 'spawnRateChanged',
         SPECIAL_ITEM_INTERVAL_CHANGED: 'specialItemIntervalChanged',
         CALCULATE_BOOSTER: 'calculateBooster',
@@ -113,6 +117,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.researchQueue = [];
         this.playtime = 0;
         this.gameStarted = false;
+        this.isPaused = false;
         this.isGameOver = false;
         this.collectionHistory = [];
         this.timeSpawnMultiplier = 1.0;
@@ -138,15 +143,30 @@ export class GameStats extends Phaser.Events.EventEmitter {
      */
     startGame() {
         this.gameStarted = true;
+        this.isPaused = false;
         this.isGameOver = false;
         this.lastUpdateTime = Date.now();
+    }
+
+    pauseGame() {
+        if (!this.gameStarted || this.isGameOver || this.isPaused) return;
+        this.isPaused = true;
+        this.emit(GameStats.EVENTS.GAME_PAUSED);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    resumeGame() {
+        if (!this.gameStarted || this.isGameOver || !this.isPaused) return;
+        this.isPaused = false;
+        this.emit(GameStats.EVENTS.GAME_RESUMED);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
     /**
      * 프레임 업데이트: 연구 진행도 처리 (백그라운드 캐치업 포함)
      */
     update(dt: number) {
-        if (!this.gameStarted || this.isGameOver || this.isBoosterCalculating) return;
+        if (!this.gameStarted || this.isPaused || this.isGameOver || this.isBoosterCalculating) return;
 
         // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
         const cappedDt = Math.min(dt, 1000);
@@ -224,7 +244,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
                     i--;
                     activeCount--;
                     finishedAny = true;
-                    if (skill) this.applySkillUpgrade(skill);
+                    if (skill) {
+                        this.applySkillUpgrade(skill);
+                        this.emit(GameStats.EVENTS.RESEARCH_COMPLETED, skill.id);
+                    }
                     
                     // 하나라도 완료되면 즉시 큐에서 다음 연구 가능한 것을 채움
                     this.promoteFromQueue();

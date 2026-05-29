@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260529_1246",
+    "type": "preview",
+    "title": "20260529_1246 Build",
+    "url": "http://134.185.103.3:3304",
+    "branch": "20260529_1246",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260529_1246:latest",
+    "container": "spiralwave",
+    "port": 3304,
+    "status": "active",
+    "released_at": "2026-05-29T03:46:37.058Z",
+    "release_note": {
+      "en": "Implement the following features and improvements based on the analyzed user requirements:\n\n1. **Visual Enhancement:** Add a brief flashing visual effect that triggers upon the completion of skill research.\n2. **Game Control:** Implement a \"Pause\" and \"Resume\" functionality to allow users to pause the game.\n3. **Effect Balancing:** Reduce the duration of the 'Bonus Time' visual effect by 50%.\n4. **Game Logic Update:** Modify the total game time limit to 2 minutes (120 seconds).\n5. **Speed Feature:** Add a \"2x Speed\" toggle to allow the game to run at double the standard speed.",
+      "ko": "분석된 사용자 요구 사항을 바탕으로 다음 기능 및 개선 사항을 구현했습니다:\n\n1. 시각적 향상: 기술 연구 완료 시 발생하는 짧은 점멸 시각 효과 추가.\n2. 게임 제어: 게임을 일시 중지할 수 있는 '일시 중지' 및 '재개' 기능 구현.\n3. 효과 밸런싱: '보너스 타임' 시각 효과의 지속 시간을 50% 단축.\n4. 게임 로직 업데이트: 총 게임 시간 제한을 2분(120초)으로 수정.\n5. 배속 기능: 게임을 표준 속도의 2배로 실행할 수 있는 '2배속' 토글 추가.",
+      "zh": "根据分析的用户需求，实现了以下功能和改进：\n\n1. 视觉增强：在技能研究完成时添加简短的闪烁视觉效果。\n2. 游戏控制：实现“暂停”和“恢复”功能，允许用户暂停游戏。\n3. 效果平衡：将“奖励时间”视觉效果的持续时间缩短 50%。\n4. 游戏逻辑更新：将游戏总时长限制修改为 2 分钟（120 秒）。\n5. 倍速功能：添加“2倍速”切换功能，允许游戏以标准速度的两倍运行。",
+      "ja": "分析されたユーザー要件に基づき、以下の機能と改善を実装しました：\n\n1. 視覚的強化：スキル研究完了時に短い点滅の視覚効果を追加。\n2. ゲームコントロール：ゲームを一時停止できる「一時停止」および「再開」機能を実装。\n3. 効果のバランス調整：「ボーナスタイム」の視覚効果の持続時間を50%短縮。\n4. ゲームロジックの更新：合計ゲーム時間制限を2分（120秒）に変更。\n5. スピード機能：ゲームを標準の2倍の速さで実行できる「2倍速」トグルを追加。"
+    }
+  },
+  {
     "id": "20260529_1222",
     "type": "preview",
     "title": "20260529_1222 Build",

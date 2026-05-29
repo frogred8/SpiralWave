@@ -1,6 +1,8 @@
 import cron from 'node-cron';
+import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { promisify } from 'node:util';
 
 type DeploymentEntry = {
     id: string;
@@ -23,6 +25,7 @@ type StoredMetrics = Record<string, Record<string, StoredRouteMetrics>>;
 
 const METRICS_CRON = '*/5 * * * *';
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
+const execFileAsync = promisify(execFile);
 
 function findProjectFile(fileName: string) {
     const candidates = [
@@ -46,7 +49,7 @@ function getDeploymentsFilePath() {
 }
 
 function getMetricsFilePath() {
-    return process.env.METRICS_OUTPUT_FILE || path.join(PROJECT_ROOT, 'deployment-metrics.json');
+    return process.env.METRICS_OUTPUT_FILE || path.join(PROJECT_ROOT, 'metrics.json');
 }
 
 function readDeployments(filePath: string): DeploymentEntry[] {
@@ -142,6 +145,8 @@ export async function collectDeploymentMetrics() {
     fs.mkdirSync(path.dirname(metricsFilePath), { recursive: true });
     fs.writeFileSync(metricsFilePath, JSON.stringify(storedMetrics, null, 2) + '\n');
     console.log(`metrics 저장 완료: ${metricsFilePath}`);
+
+    await commitMetricsFileToMain(metricsFilePath);
 }
 
 export function startDeploymentMetricsJob() {
@@ -150,4 +155,43 @@ export function startDeploymentMetricsJob() {
     });
 
     console.log(`Deployment metrics cron scheduled: ${METRICS_CRON}`);
+}
+
+async function commitMetricsFileToMain(metricsFilePath: string) {
+    const relativeMetricsPath = path.relative(PROJECT_ROOT, metricsFilePath);
+    if (relativeMetricsPath.startsWith('..') || path.isAbsolute(relativeMetricsPath)) {
+        console.error(`metrics 파일이 git 프로젝트 밖에 있어 커밋하지 않습니다: ${metricsFilePath}`);
+        return;
+    }
+
+    try {
+        const branchResult = await execFileAsync('git', ['-C', PROJECT_ROOT, 'branch', '--show-current']);
+        const currentBranch = branchResult.stdout.trim();
+        if (currentBranch !== 'main') {
+            console.error(`현재 브랜치가 main이 아니어서 metrics 커밋을 건너뜁니다: ${currentBranch}`);
+            return;
+        }
+
+        await execFileAsync('git', ['-C', PROJECT_ROOT, 'add', relativeMetricsPath]);
+        const statusResult = await execFileAsync('git', ['-C', PROJECT_ROOT, 'status', '--porcelain', '--', relativeMetricsPath]);
+        if (!statusResult.stdout.trim()) {
+            console.log('metrics 변경사항이 없어 커밋을 건너뜁니다.');
+            return;
+        }
+
+        const timestamp = new Date().toISOString();
+        await execFileAsync('git', [
+            '-C',
+            PROJECT_ROOT,
+            'commit',
+            '-m',
+            `chore: Update metrics [${timestamp}]`,
+            '--',
+            relativeMetricsPath,
+        ]);
+        await execFileAsync('git', ['-C', PROJECT_ROOT, 'push', 'origin', 'main']);
+        console.log('metrics 변경사항을 main에 커밋하고 push했습니다.');
+    } catch (error) {
+        console.error('metrics git 커밋 실패:', error);
+    }
 }

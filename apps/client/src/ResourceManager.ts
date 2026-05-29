@@ -40,6 +40,15 @@ export class ResourceManager {
         return this.smallBlackHoles;
     }
 
+    public syncSmallBlackHoleDisplayRadius() {
+        this.smallBlackHoles.forEach(sbh => {
+            const boundary = sbh.getData('boundary') as Phaser.GameObjects.Arc | undefined;
+            if (boundary) {
+                boundary.setRadius(this.stats.smallBlackHoleRadius);
+            }
+        });
+    }
+
     private getSpawnBaseDimensions() {
         return {
             width: SPAWN_BOUNDARY.WIDTH,
@@ -302,11 +311,12 @@ export class ResourceManager {
         if (!isValid) return; 
 
         const sbh = this.scene.add.container(targetX, targetY);
-        const boundary = this.scene.add.circle(0, 0, 150, 0x333333, 0.15).setStrokeStyle(1, 0x666666, 0.6);
+        const boundary = this.scene.add.circle(0, 0, this.stats.smallBlackHoleRadius, 0x333333, 0.15).setStrokeStyle(1, 0x666666, 0.6);
         const core = this.scene.add.circle(0, 0, 8, 0x000000, 1);
         const swirl = this.scene.add.circle(0, 0, 18, 0xffffff, 0.2);
 
         sbh.add([boundary, swirl, core]);
+        sbh.setData('boundary', boundary);
         this.worldContainer.add(sbh);
 
         this.scene.tweens.add({

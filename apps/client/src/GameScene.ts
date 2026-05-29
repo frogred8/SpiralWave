@@ -429,6 +429,7 @@ export class GameScene extends Phaser.Scene {
             this.updateSpawnTimer();
             this.syncArmsCount();
             this.orbitSystem.setSatelliteCount(this.gameStats.satelliteCount);
+            this.resourceManager.syncSmallBlackHoleDisplayRadius();
             SoundManager.getInstance().play('skilllevelup');
         }, this);
         

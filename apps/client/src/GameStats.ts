@@ -31,7 +31,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public netAngle!: number;
     public satelliteCount!: number;
     public smallBlackHoleCount: number = 0;
-    public smallBlackHoleRadius: number = 150;
+    public smallBlackHoleRadius: number = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
     public netDistance: number = 600;
     public specialItemInterval: number = 15000;
     

@@ -17,6 +17,11 @@ type ServerMetricsResponse = {
 };
 
 type StoredRouteMetrics = {
+    '/start': number[];
+    '/end': number[];
+};
+
+type CollectedRouteMetrics = {
     '/start': number;
     '/end': number;
 };
@@ -63,6 +68,42 @@ function readDeployments(filePath: string): DeploymentEntry[] {
     }
 }
 
+function toNumberArray(value: unknown): number[] {
+    if (Array.isArray(value)) {
+        return value.filter((item): item is number => typeof item === 'number');
+    }
+
+    return typeof value === 'number' ? [value] : [];
+}
+
+function normalizeStoredMetrics(metrics: unknown): StoredMetrics {
+    if (!metrics || typeof metrics !== 'object' || Array.isArray(metrics)) {
+        return {};
+    }
+
+    const normalized: StoredMetrics = {};
+    for (const [dateKey, dailyValue] of Object.entries(metrics)) {
+        if (!dailyValue || typeof dailyValue !== 'object' || Array.isArray(dailyValue)) {
+            continue;
+        }
+
+        normalized[dateKey] = {};
+        for (const [deploymentId, routeValue] of Object.entries(dailyValue)) {
+            if (!routeValue || typeof routeValue !== 'object' || Array.isArray(routeValue)) {
+                continue;
+            }
+
+            const routeMetrics = routeValue as Record<string, unknown>;
+            normalized[dateKey][deploymentId] = {
+                '/start': toNumberArray(routeMetrics['/start']),
+                '/end': toNumberArray(routeMetrics['/end']),
+            };
+        }
+    }
+
+    return normalized;
+}
+
 function readStoredMetrics(filePath: string): StoredMetrics {
     if (!fs.existsSync(filePath)) {
         return {};
@@ -70,15 +111,14 @@ function readStoredMetrics(filePath: string): StoredMetrics {
 
     try {
         const content = fs.readFileSync(filePath, 'utf8');
-        const metrics = JSON.parse(content) as StoredMetrics;
-        return metrics && typeof metrics === 'object' && !Array.isArray(metrics) ? metrics : {};
+        return normalizeStoredMetrics(JSON.parse(content));
     } catch (error) {
         console.error('metrics 파일 조회 실패:', error);
         return {};
     }
 }
 
-function normalizeMetrics(data: ServerMetricsResponse): StoredRouteMetrics | null {
+function normalizeMetrics(data: ServerMetricsResponse): CollectedRouteMetrics | null {
     const start = typeof data.start === 'number' ? data.start : data['/start'];
     const end = typeof data.end === 'number' ? data.end : data['/end'];
 
@@ -92,7 +132,7 @@ function normalizeMetrics(data: ServerMetricsResponse): StoredRouteMetrics | nul
     };
 }
 
-async function fetchDeploymentMetrics(deployment: DeploymentEntry): Promise<StoredRouteMetrics | null> {
+async function fetchDeploymentMetrics(deployment: DeploymentEntry): Promise<CollectedRouteMetrics | null> {
     if (!deployment.url) {
         return null;
     }
@@ -128,7 +168,7 @@ export async function collectDeploymentMetrics() {
         }))
     );
 
-    const dailyMetrics: Record<string, StoredRouteMetrics> = {};
+    const dailyMetrics: Record<string, CollectedRouteMetrics> = {};
     for (const entry of collectedEntries) {
         if (entry.metrics) {
             dailyMetrics[entry.id] = entry.metrics;
@@ -137,10 +177,13 @@ export async function collectDeploymentMetrics() {
 
     const dateKey = getDateKey(new Date());
     const storedMetrics = readStoredMetrics(metricsFilePath);
-    storedMetrics[dateKey] = {
-        ...(storedMetrics[dateKey] || {}),
-        ...dailyMetrics,
-    };
+    storedMetrics[dateKey] = storedMetrics[dateKey] || {};
+    for (const [deploymentId, metrics] of Object.entries(dailyMetrics)) {
+        const storedRouteMetrics = storedMetrics[dateKey][deploymentId] || { '/start': [], '/end': [] };
+        storedRouteMetrics['/start'].push(metrics['/start']);
+        storedRouteMetrics['/end'].push(metrics['/end']);
+        storedMetrics[dateKey][deploymentId] = storedRouteMetrics;
+    }
 
     fs.mkdirSync(path.dirname(metricsFilePath), { recursive: true });
     fs.writeFileSync(metricsFilePath, JSON.stringify(storedMetrics, null, 2) + '\n');

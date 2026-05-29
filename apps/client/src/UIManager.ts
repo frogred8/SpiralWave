@@ -888,7 +888,7 @@ export class UIManager {
         const bg = this.scene.add.rectangle(0, 0, 250, 60, 0x222222, 0.9)
             .setStrokeStyle(3, 0x00aa00)
             .setInteractive({ useHandCursor: true });
-        const text = this.scene.add.text(0, 0, 'X', {
+        const text = this.scene.add.text(0, 0, I18n.t('ui.close'), {
             fontSize: '24px',
             color: '#00ff00',
             fontStyle: 'bold'

@@ -879,7 +879,7 @@ export class UIManager {
 
         loadingText.destroy();
         const leaderboard = this.createLeaderboardUI(width, height, ranks);
-        const closeButton = this.createLeaderboardCloseButton(width / 2, height - 100);
+        const closeButton = this.createLeaderboardCloseButton(width / 2, height - 140);
         overlayContainer.add([leaderboard, closeButton]);
     }
 
@@ -923,7 +923,7 @@ export class UIManager {
         const container = this.scene.add.container(width / 2, height / 2).setDepth(3001);
         this.uiContainer.add(container);
 
-        const bg = this.scene.add.rectangle(0, 0, 600, 400, 0x222222, 0.9).setStrokeStyle(2, 0x444444);
+        const bg = this.scene.add.rectangle(0, 0, 600, 400, 0x222222, 0.9).setStrokeStyle(2, 0x558855);
         const title = this.scene.add.text(0, -170, I18n.t('ui.leaderboard'), {
             fontSize: '24px', color: '#00ff00', fontStyle: 'bold'
         }).setOrigin(0.5);

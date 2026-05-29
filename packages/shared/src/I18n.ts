@@ -186,7 +186,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.preview_builds': '서버 목록',
         'ui.release_notes': '릴리즈 노트',
         'ui.stable_release': '안정 버전',
-        'ui.blog': '블로그',
+        'ui.blog': 'Blog',
         'ui.github': 'GitHub',
         'ui.open_build': '접속',
         'ui.current_server': '현재 접속',

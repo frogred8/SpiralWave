@@ -79,6 +79,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': 'CURRENT CONNECTION',
         'ui.current_version': 'Version',
         'ui.no_release_note': 'No release note.',
+        'ui.paused': 'Paused',
+        'ui.resume': 'RESUME',
         
         // Units
         'unit.second': 's',
@@ -194,6 +196,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '현재 접속',
         'ui.current_version': '버전',
         'ui.no_release_note': '릴리즈 노트가 없습니다.',
+        'ui.paused': '일시 정지',
+        'ui.resume': '계속하기',
         
         // Units
         'unit.second': '초',
@@ -308,6 +312,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '当前连接',
         'ui.current_version': '版本',
         'ui.no_release_note': '暂无发布说明。',
+        'ui.paused': '已暂停',
+        'ui.resume': '继续',
         
         // Units
         'unit.second': '秒',
@@ -422,6 +428,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '現在の接続',
         'ui.current_version': 'バージョン',
         'ui.no_release_note': 'リリースノートはありません。',
+        'ui.paused': '一時停止',
+        'ui.resume': '再開',
 
         // Units
         'unit.second': '秒',

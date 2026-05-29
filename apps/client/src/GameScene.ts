@@ -11,6 +11,7 @@ import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
 import { OrbitSystem } from './OrbitSystem';
+import { I18n } from '@shared/I18n';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -33,6 +34,8 @@ export class GameScene extends Phaser.Scene {
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
+    private isPaused: boolean = false;
+    private pauseOverlay: Phaser.GameObjects.Container | null = null;
 
     private getServerUrl() {
         return (import.meta.env.VITE_SERVER_URL || '127.0.0.1:3001').replace(/\/$/, '');
@@ -184,6 +187,10 @@ export class GameScene extends Phaser.Scene {
         if (this.uiManager) {
             this.uiManager.handleResize();
         }
+
+        if (this.isPaused) {
+            this.showPauseOverlay();
+        }
     }
 
     private setupPhysics() {
@@ -332,6 +339,7 @@ export class GameScene extends Phaser.Scene {
 
     private restartGame(canReroll: boolean = false) {
         const { width, height } = this.scale;
+        if (this.isPaused) this.setPaused(false);
         this.cleanupForRestart();
         
         const skillData = this.resetGameStats(width, height);
@@ -501,6 +509,90 @@ export class GameScene extends Phaser.Scene {
             if (gameObjects.length > 0) return;
             this.handleInput(pointer);
         }, this);
+
+        if (this.input.keyboard) {
+            this.input.keyboard.off('keydown-ESC', this.handlePauseKey, this);
+            this.input.keyboard.off('keydown-P', this.handlePauseKey, this);
+            this.input.keyboard.on('keydown-ESC', this.handlePauseKey, this);
+            this.input.keyboard.on('keydown-P', this.handlePauseKey, this);
+        }
+    }
+
+    private handlePauseKey(event: KeyboardEvent) {
+        event.preventDefault();
+        this.togglePause();
+    }
+
+    private togglePause() {
+        this.setPaused(!this.isPaused);
+    }
+
+    private setPaused(paused: boolean) {
+        if (this.isPaused === paused) return;
+        if (paused && !this.canPauseGame()) return;
+
+        this.isPaused = paused;
+
+        if (paused) {
+            this.physics.pause();
+            this.time.paused = true;
+            this.tweens.pauseAll();
+            this.showPauseOverlay();
+            return;
+        }
+
+        this.destroyPauseOverlay();
+        this.tweens.resumeAll();
+        this.time.paused = false;
+        this.physics.resume();
+    }
+
+    private canPauseGame() {
+        return this.isGameStarted && !this.gameStats.isGameOver && !this.gameStats.isBoosterCalculating;
+    }
+
+    private showPauseOverlay() {
+        this.destroyPauseOverlay();
+
+        const { width, height } = this.scale;
+        const overlayContainer = this.add.container(0, 0).setDepth(10001).setScrollFactor(0);
+        const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.65)
+            .setOrigin(0)
+            .setInteractive();
+        const panel = this.add.rectangle(width / 2, height / 2, 320, 220, 0x161616, 0.96)
+            .setStrokeStyle(2, 0x00aa00);
+        const title = this.add.text(width / 2, height / 2 - 48, I18n.t('ui.paused'), {
+            fontSize: '42px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 6
+        }).setOrigin(0.5);
+        const resumeButton = this.add.container(width / 2, height / 2 + 44);
+        const resumeBg = this.add.rectangle(0, 0, 180, 56, 0x00aa00, 1)
+            .setStrokeStyle(2, 0x00ff00)
+            .setInteractive({ useHandCursor: true });
+        const resumeText = this.add.text(0, 0, I18n.t('ui.resume'), {
+            fontSize: '22px',
+            color: '#001800',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        resumeButton.add([resumeBg, resumeText]);
+        overlayContainer.add([overlay, panel, title, resumeButton]);
+        this.topUiContainer.add(overlayContainer);
+
+        resumeBg.on('pointerover', () => resumeBg.setFillStyle(0x00cc00));
+        resumeBg.on('pointerout', () => resumeBg.setFillStyle(0x00aa00));
+        resumeBg.on('pointerdown', () => this.setPaused(false));
+
+        this.pauseOverlay = overlayContainer;
+    }
+
+    private destroyPauseOverlay() {
+        if (!this.pauseOverlay) return;
+        this.pauseOverlay.destroy();
+        this.pauseOverlay = null;
     }
 
     private findBestArmTarget(originX: number, originY: number, minRadius: number, maxRadius: number): Collectible | null {
@@ -533,6 +625,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private handleInput(pointer: Phaser.Input.Pointer) {
+        if (this.isPaused) return;
         if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) return;
 
         const arm = this.arms.find(a => a.state === 'idle');
@@ -543,6 +636,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
+        if (this.isPaused) {
+            return;
+        }
+
         if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
             if (this.gameStats.isGameOver) {
                 this.gameRenderer.clearArmGraphics();

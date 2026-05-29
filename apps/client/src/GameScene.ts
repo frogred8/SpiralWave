@@ -237,14 +237,8 @@ export class GameScene extends Phaser.Scene {
     private scheduleSmallBlackHoleSpawn() {
         this.time.delayedCall(DURATIONS.SMALL_BLACK_HOLE_SPAWN, () => {
             // 게임이 실행 중이고 종료되지 않은 경우에만 스폰 시도
-            if (this.isGameStarted && !this.gameStats.isGameOver && !this.gameStats.isBoosterCalculating) {
-                const count = this.gameStats.smallBlackHoleCount;
-                let spawnDelay = 0;
-                for (let i = 0; i < count; i++) {
-                    const delay = Phaser.Math.Between(DURATIONS.SMALL_BLACK_HOLE_DELAY_MIN, DURATIONS.SMALL_BLACK_HOLE_DELAY_MAX);
-                    spawnDelay += delay;
-                    this.time.delayedCall(spawnDelay, () => this.resourceManager.spawnSmallBlackHole());
-                }
+            if (this.canSpawnSmallBlackHoles()) {
+                this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount, true);
             }
             // 다음 스폰 예약 (게임 오버 시에는 중지)
             if (!this.gameStats.isGameOver) {
@@ -253,10 +247,33 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
+    private canSpawnSmallBlackHoles() {
+        return this.isGameStarted && !this.gameStats.isGameOver && !this.gameStats.isBoosterCalculating;
+    }
+
+    private spawnSmallBlackHoles(count: number, staggered: boolean = false) {
+        if (count <= 0 || !this.canSpawnSmallBlackHoles()) return;
+
+        let spawnDelay = 0;
+        for (let i = 0; i < count; i++) {
+            if (staggered) {
+                const delay = Phaser.Math.Between(DURATIONS.SMALL_BLACK_HOLE_DELAY_MIN, DURATIONS.SMALL_BLACK_HOLE_DELAY_MAX);
+                spawnDelay += delay;
+            }
+
+            this.time.delayedCall(spawnDelay, () => {
+                if (this.canSpawnSmallBlackHoles()) {
+                    this.resourceManager.spawnSmallBlackHole();
+                }
+            });
+        }
+    }
+
     private startGame() {
         this.gameStats.startGame();
-        this.setupTimers();
         this.isGameStarted = true;
+        this.setupTimers();
+        this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
         const soundManager = SoundManager.getInstance();
         soundManager.play('background');
         soundManager.play('gamestart');
@@ -425,11 +442,17 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.removeAllListeners('resourceCollected');
         this.gameStats.removeAllListeners('worldResourceCollected');
 
-        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, () => {
+        this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
             this.updateSpawnTimer();
             this.syncArmsCount();
             this.orbitSystem.setSatelliteCount(this.gameStats.satelliteCount);
             this.resourceManager.syncSmallBlackHoleDisplayRadius();
+
+            const skill = this.gameStats.skillTreeData.find(s => s.id === skillId);
+            if (skill?.effectProperty === 'smallBlackHole') {
+                this.spawnSmallBlackHoles(skill.effectValue);
+            }
+
             SoundManager.getInstance().play('skilllevelup');
         }, this);
         

@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260529_1042",
+    "type": "preview",
+    "title": "20260529_1042 Build",
+    "url": "http://134.185.103.3:3303",
+    "branch": "20260529_1042",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260529_1042:latest",
+    "container": "spiralwave",
+    "port": 3303,
+    "status": "active",
+    "released_at": "2026-05-29T01:43:01.281Z",
+    "release_note": {
+      "en": "Please implement the following game features and improvements based on user requirements:\n\n1. Visual Feedback: Add a brief flash effect to the UI to indicate when skill research has been successfully completed.\n2. Game Control: Implement a functionality to pause and resume the game during a session.\n3. Effect Adjustment: Modify the duration of the bonus time visual effect, reducing it by 50% from its current length.\n4. Game Speed: Add a 2x speed toggle feature to allow players to accelerate gameplay.\n5. Session Configuration: Update the game time settings to support durations of 2 minutes, 3 minutes, and 4 minutes.",
+      "ko": "1. 시각적 피드백: 스킬 연구가 성공적으로 완료되었음을 알리기 위해 UI에 짧은 플래시 효과를 추가했습니다.\n2. 게임 제어: 세션 중 게임을 일시 중지하고 재개할 수 있는 기능을 구현했습니다.\n3. 효과 조정: 보너스 타임 시각 효과의 지속 시간을 현재 길이에서 50% 단축했습니다.\n4. 게임 속도: 플레이어가 게임 플레이를 가속할 수 있도록 2배속 토글 기능을 추가했습니다.\n5. 세션 설정: 2분, 3분, 4분의 지속 시간을 지원하도록 게임 시간 설정을 업데이트했습니다.",
+      "zh": "1. 视觉反馈：在UI中添加简短的闪烁效果，以指示技能研究已成功完成。\n2. 游戏控制：实现会在游戏会话期间暂停和恢复游戏的功能。\n3. 效果调整：修改奖励时间视觉效果的持续时间，将其从当前长度缩短50%。\n4. 游戏速度：添加2倍速切换功能，允许玩家加速游戏。 \n5. 会话配置：更新游戏时间设置，以支持2分钟、3分钟和4分钟的时长。",
+      "ja": "1. 視覚的フィードバック：スキル研究が正常に完了したことを示すために、UIに短いフラッシュ効果を追加しました。\n2. ゲームコントロール：セッション中にゲームを一時停止および再開できる機能を実装しました。\n3. エフェクト調整：ボーナスタイムの視覚効果の持続時間を変更し、現在の長さから50%短縮しました。\n4. ゲーム速度：ゲームプレイを加速できる2倍速切り替え機能を追加しました。\n5. セッション構成：2分、3分、4分の時間をサポートするようにゲーム時間設定を更新しました。"
+    }
+  },
+  {
     "id": "20260528_0039",
     "type": "preview",
     "title": "20260528_0039 Build",

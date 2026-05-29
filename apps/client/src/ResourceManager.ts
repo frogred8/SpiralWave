@@ -77,6 +77,13 @@ export class ResourceManager {
         };
     }
 
+    private clampPositionToScreen(x: number, y: number) {
+        return {
+            x: Phaser.Math.Clamp(x, 0, this.scene.scale.width),
+            y: Phaser.Math.Clamp(y, 0, this.scene.scale.height)
+        };
+    }
+
     public spawnResource(count: number = 2) {
         if (this.resources.getLength() >= INITIAL_STATS.MAX_RESOURCES) return;
         if (this.stats.isFeverMode) {
@@ -282,8 +289,9 @@ export class ResourceManager {
         let isValid = false;
         do {
             const pos = this.getRandomPositionAroundCenter(minDist, maxDist);
-            targetX = pos.x;
-            targetY = pos.y;
+            const screenPos = this.clampPositionToScreen(pos.x, pos.y);
+            targetX = screenPos.x;
+            targetY = screenPos.y;
             
             isValid = this.smallBlackHoles.every(sbh => {
                 return Utils.getDistance(targetX, targetY, sbh.x, sbh.y) >= RESOURCE_CONFIG.SMALL_BLACK_HOLE.MIN_GAP;

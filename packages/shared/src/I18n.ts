@@ -85,7 +85,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         
         // Skill Data (Keys matching SKILLTREE.json IDs or specific keys)
         'skill.q1.name': 'Radius Boost',
-        'skill.q1.desc': 'Radius +10',
+        'skill.q1.desc': 'Radius +20',
         'skill.small_black_hole.name': 'Small Black Hole',
         'skill.small_black_hole.desc': 'Spawn +1 small black hole that absorbs resources (3s active, 2s shrink)',
         'skill.f2.name': 'Wider Net',
@@ -200,7 +200,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         
         // Skill Data
         'skill.q1.name': '반지름 확장',
-        'skill.q1.desc': '반지름 +10',
+        'skill.q1.desc': '반지름 +20',
         'skill.small_black_hole.name': '작은 블랙홀',
         'skill.small_black_hole.desc': '자원을 흡수하는 작은 블랙홀 +1개 생성 (3초 유지, 2초간 축소)',
         'skill.f2.name': '그물 확장',
@@ -314,7 +314,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         
         // Skill Data
         'skill.q1.name': '半径提升',
-        'skill.q1.desc': '半径 +10',
+        'skill.q1.desc': '半径 +20',
         'skill.small_black_hole.name': '小黑洞',
         'skill.small_black_hole.desc': '生成 +1 个吸收资源的小黑洞（3秒活跃，2秒缩小）',
         'skill.f2.name': '宽网',
@@ -428,7 +428,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         
         // Skill Data
         'skill.q1.name': '半径拡張',
-        'skill.q1.desc': '半径 +10',
+        'skill.q1.desc': '半径 +20',
         'skill.small_black_hole.name': '小型ブラックホール',
         'skill.small_black_hole.desc': '資源を吸収する小型ブラックホール +1 個を生成 (3秒維持、2秒かけて縮小)',
         'skill.f2.name': 'ネット拡張',

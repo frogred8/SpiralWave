@@ -797,7 +797,7 @@ export class GameScene extends Phaser.Scene {
         this.tweens.killTweensOf(this);
         if (this.boostTimerEvent) this.boostTimerEvent.remove();
 
-        this.radiusMultiplier = 2.0;
+        this.radiusMultiplier = DURATIONS.RADIUS_BOOST_DISTANCE_MULTIPLIER;
         this.boostTimerEvent = this.time.delayedCall(DURATIONS.RADIUS_BOOST, () => {
             this.tweens.add({ targets: this, radiusMultiplier: 1.0, duration: DURATIONS.RADIUS_BOOST_SHRINK, ease: 'Power1' });
             this.boostTimerEvent = undefined;

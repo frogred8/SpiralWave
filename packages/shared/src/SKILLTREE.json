@@ -11,7 +11,7 @@
         "prerequisites": [],
         "researchTimes": [5, 10, 15],
         "effectProperty": "radius",
-        "effectValue": 10,
+        "effectValue": 20,
         "maxLevel": 3
     },
     {

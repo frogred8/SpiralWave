@@ -33,6 +33,8 @@ export class GameScene extends Phaser.Scene {
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
+    private isPaused: boolean = false;
+    private gameSpeed: number = 1;
 
     private getServerUrl() {
         return (import.meta.env.VITE_SERVER_URL || '127.0.0.1:3001').replace(/\/$/, '');
@@ -62,6 +64,10 @@ export class GameScene extends Phaser.Scene {
         this.uiManager = new UIManager(this, this.uiContainer, this.topUiContainer, this.gameStats, {
             onStartGame: () => this.startGame(),
             onRestartGame: (canReroll) => this.restartGame(canReroll),
+            onTogglePause: () => this.togglePause(),
+            onToggleSpeed: () => this.toggleSpeed(),
+            isGamePaused: () => this.isPaused,
+            getGameSpeed: () => this.gameSpeed,
             onSendStartSignal: (id) => this.sendStartGameSignal(id),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
@@ -272,6 +278,8 @@ export class GameScene extends Phaser.Scene {
     private startGame() {
         this.gameStats.startGame();
         this.isGameStarted = true;
+        this.isPaused = false;
+        this.applyGameSpeed();
         this.setupTimers();
         this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
         const soundManager = SoundManager.getInstance();
@@ -339,6 +347,8 @@ export class GameScene extends Phaser.Scene {
         this.isGameStarted = false;
         this.isRestarted = true;
         this.canReroll = canReroll;
+        this.isPaused = false;
+        this.applyGameSpeed();
         
         this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
         this.uiManager.refreshUIAfterLanguageChange();
@@ -352,6 +362,7 @@ export class GameScene extends Phaser.Scene {
         this.orbitSystem.resetResourceState();
         this.radiusMultiplier = 1.0;
         this.netTimerAccumulator = 0;
+        this.isPaused = false;
         if (this.boostTimerEvent) {
             this.boostTimerEvent.remove();
             this.boostTimerEvent = undefined;
@@ -407,9 +418,8 @@ export class GameScene extends Phaser.Scene {
 
     private async setupUI(skillData: any) {
         this.uiManager.setupMainUI();
-        await this.uiManager.setupSkillTree(skillData);
-
         this.setupGameStatsListeners();
+        await this.uiManager.setupSkillTree(skillData);
         this.setupInputListeners();
 
         if (this.uiUpdateTimer) this.uiUpdateTimer.remove();
@@ -503,6 +513,32 @@ export class GameScene extends Phaser.Scene {
         }, this);
     }
 
+    private togglePause() {
+        if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
+            return this.isPaused;
+        }
+
+        this.isPaused = !this.isPaused;
+        this.applyGameSpeed();
+        return this.isPaused;
+    }
+
+    private toggleSpeed() {
+        this.gameSpeed = this.gameSpeed === 1 ? 2 : 1;
+        this.applyGameSpeed();
+        return this.gameSpeed;
+    }
+
+    private applyGameSpeed() {
+        const effectiveSpeed = this.isPaused ? 0 : (this.isGameStarted && !this.gameStats.isGameOver ? this.gameSpeed : 1);
+        this.time.timeScale = effectiveSpeed;
+        this.tweens.timeScale = effectiveSpeed;
+        (this.physics.world as any).timeScale = effectiveSpeed;
+
+        if (this.isPaused) this.physics.pause();
+        else if (!this.gameStats.isBoosterCalculating) this.physics.resume();
+    }
+
     private findBestArmTarget(originX: number, originY: number, minRadius: number, maxRadius: number): Collectible | null {
         let bestTarget: Collectible | null = null;
         let bestPriority = -1; // 2: Special, 1: HighDim, 0: Normal
@@ -543,7 +579,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
+        if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating || this.isPaused) {
             if (this.gameStats.isGameOver) {
                 this.gameRenderer.clearArmGraphics();
                 this.uiManager.setGameOverTimerStyle();
@@ -551,7 +587,7 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        const cappedDelta = Math.min(delta, 1000);
+        const cappedDelta = Math.min(delta * this.gameSpeed, 1000);
         this.gameStats.update(cappedDelta);
         
         this.uiManager.updateTimerDisplay(time, this.isGameStarted);

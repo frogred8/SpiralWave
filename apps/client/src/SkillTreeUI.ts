@@ -414,6 +414,23 @@ export class SkillTreeUI {
         if (!btn) return;
         const data = (btn as any).skillButtonData;
         if (!data || !data.bg) return;
+        this.scene.cameras.main.flash(120, 120, 255, 255, true);
+
+        const flash = this.scene.add.rectangle(btn.x, btn.y, UI_CONFIG.BUTTON.WIDTH + 18, UI_CONFIG.BUTTON.HEIGHT + 18, 0xffffff, 0.8)
+            .setOrigin(0.5)
+            .setDepth(btn.depth + 1);
+        this.skillContainer.add(flash);
+
+        this.scene.tweens.add({
+            targets: flash,
+            alpha: 0,
+            scaleX: 1.25,
+            scaleY: 1.25,
+            duration: 260,
+            ease: 'Sine.easeOut',
+            onComplete: () => flash.destroy()
+        });
+
         this.scene.tweens.add({
             targets: data.bg,
             scaleX: 1.1,
@@ -513,7 +530,7 @@ export class SkillTreeUI {
 
         let addedTime = 0;
         let delay = 0;
-        const animationStep = 400; // 각 스킬당 400ms
+        const animationStep = 200; // 각 스킬당 200ms
 
         maxedSkills.forEach((skill, index) => {
             this.scene.time.delayedCall(delay, () => {
@@ -526,7 +543,7 @@ export class SkillTreeUI {
                         targets: btn,
                         scaleX: 1.15,
                         scaleY: 1.15,
-                        duration: 150,
+                        duration: 75,
                         yoyo: true,
                         ease: 'Quad.easeInOut'
                     });
@@ -546,7 +563,7 @@ export class SkillTreeUI {
                         targets: ft,
                         y: btn.y - 60,
                         alpha: 0,
-                        duration: 800,
+                        duration: 400,
                         ease: 'Sine.easeOut',
                         onComplete: () => ft.destroy()
                     });
@@ -557,7 +574,7 @@ export class SkillTreeUI {
 
                 // 마지막 스킬 애니메이션이 끝나면 콜백 호출
                 if (index === maxedSkills.length - 1) {
-                    this.scene.time.delayedCall(800, () => {
+                    this.scene.time.delayedCall(400, () => {
                         // 부스터 시간이 있으면 1초 추가
                         if (addedTime > 0) {
                             addedTime += 1;

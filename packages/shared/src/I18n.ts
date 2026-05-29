@@ -79,6 +79,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': 'CURRENT CONNECTION',
         'ui.current_version': 'Version',
         'ui.no_release_note': 'No release note.',
+        'ui.pause': 'Pause',
+        'ui.resume': 'Resume',
+        'ui.speed_1x': '1x Speed',
+        'ui.speed_2x': '2x Speed',
         
         // Units
         'unit.second': 's',
@@ -194,6 +198,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '현재 접속',
         'ui.current_version': '버전',
         'ui.no_release_note': '릴리즈 노트가 없습니다.',
+        'ui.pause': '일시정지',
+        'ui.resume': '재개',
+        'ui.speed_1x': '1배속',
+        'ui.speed_2x': '2배속',
         
         // Units
         'unit.second': '초',
@@ -308,6 +316,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '当前连接',
         'ui.current_version': '版本',
         'ui.no_release_note': '暂无发布说明。',
+        'ui.pause': '暂停',
+        'ui.resume': '继续',
+        'ui.speed_1x': '1倍速',
+        'ui.speed_2x': '2倍速',
         
         // Units
         'unit.second': '秒',
@@ -422,6 +434,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '現在の接続',
         'ui.current_version': 'バージョン',
         'ui.no_release_note': 'リリースノートはありません。',
+        'ui.pause': '一時停止',
+        'ui.resume': '再開',
+        'ui.speed_1x': '1倍速',
+        'ui.speed_2x': '2倍速',
 
         // Units
         'unit.second': '秒',

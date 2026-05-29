@@ -65,7 +65,7 @@ function convertDateFormat(date: Date): string {
     return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}`;
 };
 
-await collectDeploymentMetrics();
+await startDeploymentMetricsJob();
 
 // 매일 실행 (초 분 시 일 월 요일)
 cron.schedule('0 0 0 * * *', async () => {

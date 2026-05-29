@@ -12,6 +12,8 @@ import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
 import { OrbitSystem } from './OrbitSystem';
 
+type GameExecutionState = 'Running' | 'Paused';
+
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
     private worldContainer!: Phaser.GameObjects.Container;
@@ -33,6 +35,7 @@ export class GameScene extends Phaser.Scene {
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
+    private executionState: GameExecutionState = 'Running';
 
     private getServerUrl() {
         return (import.meta.env.VITE_SERVER_URL || '127.0.0.1:3001').replace(/\/$/, '');
@@ -66,7 +69,10 @@ export class GameScene extends Phaser.Scene {
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
             onFetchDeployments: () => this.fetchDeploymentsData(),
-            onRefreshUI: () => this.handleRefreshUI()
+            onRefreshUI: () => this.handleRefreshUI(),
+            onTogglePause: () => this.togglePause(),
+            isGamePaused: () => this.isGamePaused(),
+            canTogglePause: () => this.canTogglePause()
         });
 
         this.initSystems(skillData);
@@ -79,6 +85,8 @@ export class GameScene extends Phaser.Scene {
 
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
+            this.input.keyboard.on('keydown-P', () => this.togglePause());
+            this.input.keyboard.on('keydown-ESC', () => this.togglePause());
         }
     }
 
@@ -86,6 +94,7 @@ export class GameScene extends Phaser.Scene {
         // 카메라 설정 다시 적용 (ignore 등)
         const { width, height } = this.scale;
         this.initCameras(width, height);
+        this.uiManager.setPauseState(this.isGamePaused());
         this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
@@ -270,6 +279,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private startGame() {
+        this.setGamePaused(false);
         this.gameStats.startGame();
         this.isGameStarted = true;
         this.setupTimers();
@@ -345,6 +355,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private cleanupForRestart() {
+        this.setGamePaused(false);
         this.resourceManager.clear();
         this.time.removeAllEvents();
         this.tweens.killAll();
@@ -499,8 +510,52 @@ export class GameScene extends Phaser.Scene {
         this.input.off('pointerdown');
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
             if (gameObjects.length > 0) return;
+            if (this.isGamePaused()) return;
             this.handleInput(pointer);
         }, this);
+    }
+
+    private getExecutionState(): GameExecutionState {
+        return this.executionState;
+    }
+
+    private isGamePaused(): boolean {
+        return this.getExecutionState() === 'Paused';
+    }
+
+    private canTogglePause(): boolean {
+        return this.isGameStarted
+            && !this.gameStats.isGameOver
+            && !this.gameStats.isBoosterCalculating
+            && !this.uiManager.currentUIState.overlay;
+    }
+
+    private togglePause() {
+        if (!this.canTogglePause() && !this.isGamePaused()) return;
+        this.setGamePaused(!this.isGamePaused());
+    }
+
+    private setGamePaused(paused: boolean) {
+        if (paused === this.isGamePaused()) {
+            this.uiManager?.setPauseState(paused);
+            return;
+        }
+
+        this.executionState = paused ? 'Paused' : 'Running';
+
+        if (paused) {
+            this.physics.pause();
+            this.time.paused = true;
+            this.tweens.pauseAll();
+        } else {
+            this.time.paused = false;
+            this.tweens.resumeAll();
+            if (!this.gameStats.isBoosterCalculating) {
+                this.physics.resume();
+            }
+        }
+
+        this.uiManager?.setPauseState(paused);
     }
 
     private findBestArmTarget(originX: number, originY: number, minRadius: number, maxRadius: number): Collectible | null {
@@ -533,6 +588,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private handleInput(pointer: Phaser.Input.Pointer) {
+        if (this.isGamePaused()) return;
         if (this.arms.filter(a => a.state !== 'idle').length >= this.gameStats.maxArms) return;
 
         const arm = this.arms.find(a => a.state === 'idle');
@@ -543,7 +599,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        if (!this.isGameStarted || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
+        if (!this.isGameStarted || this.isGamePaused() || this.gameStats.isGameOver || this.gameStats.isBoosterCalculating) {
             if (this.gameStats.isGameOver) {
                 this.gameRenderer.clearArmGraphics();
                 this.uiManager.setGameOverTimerStyle();

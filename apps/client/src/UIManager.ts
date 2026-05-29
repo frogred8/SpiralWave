@@ -26,6 +26,9 @@ export interface UICallbacks {
     onFetchLeaderboard: () => Promise<RankEntry[]>;
     onFetchDeployments: () => Promise<DeploymentEntry[]>;
     onRefreshUI: () => void;
+    onTogglePause: () => void;
+    isGamePaused: () => boolean;
+    canTogglePause: () => boolean;
 }
 
 export class UIManager {
@@ -40,6 +43,10 @@ export class UIManager {
     private langSelectorContainer!: Phaser.GameObjects.Container;
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
+    private pauseBtnContainer!: Phaser.GameObjects.Container;
+    private pauseOverlayContainer: Phaser.GameObjects.Container | null = null;
+    private pauseButtonText: Phaser.GameObjects.Text | null = null;
+    private pauseButtonBg: Phaser.GameObjects.Rectangle | null = null;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
@@ -1183,6 +1190,77 @@ export class UIManager {
             const isMuted = SoundManager.getInstance().isMuted();
             soundBg.setStrokeStyle(1, isMuted ? 0xaa0000 : 0x444444);
         });
+
+        this.setupPauseButton(x, y + height + 5, width, height);
+    }
+
+    private setupPauseButton(x: number, y: number, width: number, height: number) {
+        this.pauseBtnContainer = this.scene.add.container(x, y);
+        this.pauseButtonBg = this.scene.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
+        this.pauseButtonText = this.scene.add.text(width / 2, height / 2, '', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
+
+        this.pauseBtnContainer.add([this.pauseButtonBg, this.pauseButtonText]);
+        this.pauseBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+        this.topUiContainer.add(this.pauseBtnContainer);
+
+        this.pauseBtnContainer.on('pointerdown', () => {
+            if (!this.callbacks.canTogglePause()) return;
+            this.callbacks.onTogglePause();
+        });
+
+        this.pauseBtnContainer.on('pointerover', () => {
+            if (this.pauseButtonBg) this.pauseButtonBg.setStrokeStyle(1, this.callbacks.canTogglePause() ? 0xaaaaaa : 0x666666);
+        });
+        this.pauseBtnContainer.on('pointerout', () => this.refreshPauseButton());
+        this.refreshPauseButton();
+    }
+
+    public setPauseState(paused: boolean) {
+        this.refreshPauseButton();
+
+        if (paused) {
+            this.showPauseOverlay();
+        } else {
+            this.destroyPauseOverlay();
+        }
+    }
+
+    private refreshPauseButton() {
+        if (!this.pauseButtonText || !this.pauseButtonBg) return;
+
+        const paused = this.callbacks.isGamePaused();
+        const canToggle = this.callbacks.canTogglePause();
+        this.pauseButtonText.setText(paused ? 'RUN' : 'PAUSE');
+        this.pauseButtonText.setColor(canToggle ? '#ffffff' : '#777777');
+        this.pauseButtonBg.setStrokeStyle(1, paused ? 0x00ff00 : 0x444444);
+        this.pauseBtnContainer?.setAlpha(canToggle || paused ? 1 : 0.6);
+    }
+
+    private showPauseOverlay() {
+        if (this.pauseOverlayContainer) return;
+
+        const { width, height } = this.scene.scale;
+        this.pauseOverlayContainer = this.scene.add.container(0, 0).setDepth(1500);
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.45)
+            .setOrigin(0)
+            .setScrollFactor(0)
+            .setInteractive();
+        const label = this.scene.add.text(width / 2, height / 2, 'PAUSED', {
+            fontSize: '56px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 6
+        }).setOrigin(0.5).setScrollFactor(0);
+
+        this.pauseOverlayContainer.add([overlay, label]);
+        this.uiContainer.add(this.pauseOverlayContainer);
+    }
+
+    private destroyPauseOverlay() {
+        if (!this.pauseOverlayContainer) return;
+        this.pauseOverlayContainer.destroy();
+        this.pauseOverlayContainer = null;
     }
 
     public async refreshUIAfterLanguageChange() {
@@ -1190,6 +1268,7 @@ export class UIManager {
         const currentSkillData = this.stats.skillTreeData;
         this.destroyCoffeeBanner();
         this.destroyDeploymentsPanel();
+        this.destroyPauseOverlay();
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
         if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
@@ -1215,12 +1294,22 @@ export class UIManager {
         if (this.soundBtnContainer) {
             const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
             this.soundBtnContainer.setPosition(startX, startY + btnHeight + 5 + menuOffset);
+            if (this.pauseBtnContainer) {
+                this.pauseBtnContainer.setPosition(startX, startY + (btnHeight + 5) * 2 + menuOffset);
+            }
         }
+        this.refreshPauseButton();
     }
 
     public handleResize() {
-        const { width } = this.scene.scale;
+        const { width, height } = this.scene.scale;
         if (this.timerText) this.timerText.setPosition(width / 2, 40);
+        if (this.pauseOverlayContainer) {
+            const overlay = this.pauseOverlayContainer.getAt(0) as Phaser.GameObjects.Rectangle;
+            const label = this.pauseOverlayContainer.getAt(1) as Phaser.GameObjects.Text;
+            overlay.setSize(width, height);
+            label.setPosition(width / 2, height / 2);
+        }
         this.updateUIPositions();
     }
 
@@ -1252,6 +1341,7 @@ export class UIManager {
         this.destroyDeploymentsPanel();
         this.destroyStableReleasePanel();
         this.destroyLeaderboardOverlay();
+        this.destroyPauseOverlay();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);

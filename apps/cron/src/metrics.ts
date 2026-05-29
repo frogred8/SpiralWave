@@ -187,7 +187,7 @@ export async function collectDeploymentMetrics() {
 
     fs.mkdirSync(path.dirname(metricsFilePath), { recursive: true });
     fs.writeFileSync(metricsFilePath, JSON.stringify(storedMetrics, null, 2) + '\n');
-    console.log(`metrics 저장 완료: ${metricsFilePath}`);
+    //console.log(`metrics 저장 완료: ${metricsFilePath}`);
 
     await commitMetricsFileToMain(metricsFilePath);
 }

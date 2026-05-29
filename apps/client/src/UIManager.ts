@@ -44,6 +44,7 @@ export class UIManager {
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
+    private leaderboardOverlayElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseNoteMask: Phaser.GameObjects.Graphics | null = null;
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
@@ -386,11 +387,13 @@ export class UIManager {
         noteText.setMask(noteMask.createGeometryMask());
 
         const buttonY = panelHeight - 28;
-        const buttonWidth = Math.max(78, (panelWidth - 38) / 2);
-        const blogButton = this.createExternalLinkButton(14, buttonY, buttonWidth, 'Blog', 'https://blog.frogred8.dev/docs/044_automatic_daily_release_game');
-        const githubButton = this.createExternalLinkButton(24 + buttonWidth, buttonY, buttonWidth, 'Github', 'https://github.com/frogred8/SpiralWave');
+        const buttonGap = 8;
+        const buttonWidth = (panelWidth - 28 - buttonGap * 2) / 3;
+        const blogButton = this.createExternalLinkButton(14, buttonY, buttonWidth, I18n.t('ui.blog'), 'https://blog.frogred8.dev/docs/044_automatic_daily_release_game');
+        const githubButton = this.createExternalLinkButton(14 + buttonWidth + buttonGap, buttonY, buttonWidth, I18n.t('ui.github'), 'https://github.com/frogred8/SpiralWave');
+        const leaderboardButton = this.createLeaderboardButton(14 + (buttonWidth + buttonGap) * 2, buttonY, buttonWidth);
 
-        const entryItems: Phaser.GameObjects.GameObject[] = [bg, title, subtitle, noteText, blogButton, githubButton];
+        const entryItems: Phaser.GameObjects.GameObject[] = [bg, title, subtitle, noteText, blogButton, githubButton, leaderboardButton];
         const maxScroll = Math.max(0, noteText.height - noteHeight);
         if (maxScroll > 0) {
             const scrollbarX = panelWidth - 12;
@@ -442,6 +445,33 @@ export class UIManager {
         bg.on('pointerout', () => bg.setFillStyle(0x22c55e));
         bg.on('pointerdown', () => {
             window.open(url, '_blank', 'noopener,noreferrer');
+        });
+        return button;
+    }
+
+    private createLeaderboardButton(x: number, y: number, width: number) {
+        const button = this.scene.add.container(x + width / 2, y);
+        const bg = this.scene.add.rectangle(0, 0, width, 28, 0x222222, 0.9)
+            .setOrigin(0.5)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.leaderboard'), {
+            fontSize: '12px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(3, 0x00ff00);
+            bg.setFillStyle(0x444444);
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(2, 0x00aa00);
+            bg.setFillStyle(0x222222);
+        });
+        bg.on('pointerdown', () => {
+            void this.showLeaderboardOverlay();
         });
         return button;
     }
@@ -824,6 +854,59 @@ export class UIManager {
         return this.currentUIState.leaderBoardRanks || [];
     }
 
+    private async showLeaderboardOverlay() {
+        this.destroyLeaderboardOverlay();
+
+        const { width, height } = this.scene.scale;
+        const overlayContainer = this.scene.add.container(0, 0).setDepth(3000);
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.72)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true });
+        const loadingText = this.scene.add.text(width / 2, height / 2, I18n.t('ui.leaderboard'), {
+            fontSize: '24px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        overlayContainer.add([overlay, loadingText]);
+        this.uiContainer.add(overlayContainer);
+        this.leaderboardOverlayElement = overlayContainer;
+
+        overlay.on('pointerdown', () => this.destroyLeaderboardOverlay());
+
+        const ranks = await this.fetchLeaderboardRanks();
+        if (this.leaderboardOverlayElement !== overlayContainer) return;
+
+        loadingText.destroy();
+        const leaderboard = this.createLeaderboardUI(width, height, ranks);
+        const closeButton = this.createLeaderboardCloseButton(width / 2, height - 100);
+        overlayContainer.add([leaderboard, closeButton]);
+    }
+
+    private createLeaderboardCloseButton(x: number, y: number) {
+        const button = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, 250, 60, 0x222222, 0.9)
+            .setStrokeStyle(3, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, 'X', {
+            fontSize: '24px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(4, 0x00ff00);
+            bg.setFillStyle(0x444444);
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(3, 0x00aa00);
+            bg.setFillStyle(0x222222);
+        });
+        bg.on('pointerdown', () => this.destroyLeaderboardOverlay());
+        return button;
+    }
+
     private createGameOverText(width: number) {
         const title = this.scene.add.text(width / 2, 80, I18n.t('ui.game_over'), {
             fontSize: '56px', color: '#ff0000', fontStyle: 'bold', stroke: '#000000', strokeThickness: 8
@@ -1157,6 +1240,10 @@ export class UIManager {
         if (this.stableReleaseElement && this.stableReleaseElement.depth >= minDepth) {
             this.destroyStableReleasePanel();
         }
+
+        if (this.leaderboardOverlayElement && this.leaderboardOverlayElement.depth >= minDepth) {
+            this.destroyLeaderboardOverlay();
+        }
     }
 
     public destroy() {
@@ -1164,6 +1251,7 @@ export class UIManager {
         this.destroyCoffeeBanner();
         this.destroyDeploymentsPanel();
         this.destroyStableReleasePanel();
+        this.destroyLeaderboardOverlay();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);
@@ -1191,6 +1279,13 @@ export class UIManager {
         if (this.stableReleaseElement) {
             this.stableReleaseElement.destroy();
             this.stableReleaseElement = null;
+        }
+    }
+
+    private destroyLeaderboardOverlay() {
+        if (this.leaderboardOverlayElement) {
+            this.leaderboardOverlayElement.destroy();
+            this.leaderboardOverlayElement = null;
         }
     }
 }

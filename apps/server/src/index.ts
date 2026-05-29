@@ -26,6 +26,11 @@ const getClientDistDir = () => {
   return candidates.find((candidate) => fs.existsSync(path.join(candidate, 'index.html')));
 };
 
+const routeMetrics = {
+  start: 0,
+  end: 0,
+};
+
 // Handle favicon requests to prevent unnecessary errors in logs
 fastify.get('/favicon.ico', (request, reply) => {
   reply.code(204).send();
@@ -37,10 +42,23 @@ fastify.get('/health', async (request, reply) => {
 });
 
 // Routes
-fastify.post('/start', GameController.handleStart);
-fastify.post('/end', GameController.handleEnd);
+fastify.post('/start', async (request) => {
+  routeMetrics.start++;
+  return GameController.handleStart(request);
+});
+fastify.post('/end', async (request) => {
+  routeMetrics.end++;
+  return GameController.handleEnd(request);
+});
 fastify.get('/leaderboard', GameController.handleGetLeaderboard);
 fastify.post('/leaderboard/reset', GameController.handleResetLeaderboard);
+
+fastify.get('/metrics', async () => {
+  return {
+    start: routeMetrics.start,
+    end: routeMetrics.end,
+  };
+});
 
 fastify.get('/deployments', async () => {
   return await DeploymentsService.getDeployments();

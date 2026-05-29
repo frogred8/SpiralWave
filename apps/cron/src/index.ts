@@ -8,6 +8,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { spawn } from 'child_process';
 import process from 'process';
+import { startDeploymentMetricsJob } from './metrics';
 
 const execAsync = promisify(exec);
 
@@ -57,6 +58,7 @@ const TEMP_BASE_DIR = process.env.TEMP_DIR || path.join(process.cwd(), '.tmp');
 
 console.log(`Start Cron (${new Date().toISOString()})`);
 console.log(`SERVER_URL: ${SERVER_URL}`);
+startDeploymentMetricsJob();
 
 function convertDateFormat(date: Date): string {
     const pad = (n: any) => n.toString().padStart(2, '0');

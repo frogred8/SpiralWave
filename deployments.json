@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260529_1437",
+    "type": "preview",
+    "title": "20260529_1437 Build",
+    "url": "http://134.185.103.3:3306",
+    "branch": "20260529_1437",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260529_1437:latest",
+    "container": "spiralwave",
+    "port": 3306,
+    "status": "active",
+    "released_at": "2026-05-29T05:38:23.202Z",
+    "release_note": {
+      "en": "Implement a game pause functionality. The plan should include:\n1. Defining a global state to track whether the game is paused or running.\n2. Modifying the main game loop to bypass update logic and physics simulations when the pause state is active.\n3. Implementing a method to halt and resume active timers, animations, and sound effects.\n4. Designing a mechanism to capture user input for toggling the pause state (e.g., pressing the 'Esc' or 'P' key).",
+      "ko": "게임 일시 중단 기능을 구현합니다. 계획에는 다음 내용이 포함되어야 합니다:\n1. 게임의 일시 중단 또는 실행 여부를 추적하기 위한 전역 상태 정의.\n2. 일시 중단 상태가 활성화되었을 때 업데이트 로직 및 물리 시뮬레이션을 건너뛰도록 메인 게임 루프 수정.\n3. 활성화된 타이머, 애니메이션 및 사운드 효과를 중단하고 재개하는 메서드 구현.\n4. 일시 중단 상태를 전환하기 위해 사용자 입력을 캡처하는 메커니즘 설계 (예: 'Esc' 또는 'P' 키 누르기).",
+      "zh": "实现游戏暂停功能。该计划应包括：\n1. 定义一个全局状态，以跟踪游戏是处于暂停还是运行状态。\n2. 修改主游戏循环，以便在暂停状态激活时绕过更新逻辑和物理模拟。\n3. 实现停止和恢复活动计时器、动画和音效的方法。\n4. 设计捕获用户输入以切换暂停状态的机制（例如，按下 'Esc' 或 'P' 键）。",
+      "ja": "ゲームの一時停止機能を実装します。計画には以下が含まれる必要があります：\n1. ゲームが一時停止中か実行中かを追跡するためのグローバルステートの定義。\n2. 一時停止状態が有効な場合に、更新ロジックと物理シミュレーションをバイパスするようにメインゲームループを修正。\n3. アクティブなタイマー、アニメーション、およびサウンドエフェクトを停止および再開するメソッドの実装。\n4. 一時停止状態を切り替えるためのユーザー入力をキャプチャするメカニズムの設計（例： 'Esc' または 'P' キーの押下）。"
+    }
+  },
+  {
     "id": "20260529_1340",
     "type": "preview",
     "title": "20260529_1340 Build",

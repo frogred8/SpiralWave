@@ -1,4 +1,21 @@
 
+# Update - 20260529_1437
+
+## User Feedback
+```
+게임 일시정지 기능 추가
+로또 1등 되게 해주세요.
+```
+
+## Gemini AI Plan
+Implement a game pause functionality. The plan should include:
+1. Defining a global state to track whether the game is paused or running.
+2. Modifying the main game loop to bypass update logic and physics simulations when the pause state is active.
+3. Implementing a method to halt and resume active timers, animations, and sound effects.
+4. Designing a mechanism to capture user input for toggling the pause state (e.g., pressing the 'Esc' or 'P' key).
+
+---
+
 # Update - 20260529_1340
 
 ## User Feedback

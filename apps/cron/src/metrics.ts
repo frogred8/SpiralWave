@@ -172,6 +172,21 @@ async function commitMetricsFileToMain(metricsFilePath: string) {
             return;
         }
 
+        const dateKey = getDateKey(new Date());
+        const lastCommitResult = await execFileAsync('git', [
+            '-C',
+            PROJECT_ROOT,
+            'log',
+            '-1',
+            '--format=%s',
+            '--',
+            relativeMetricsPath,
+        ]);
+        if (lastCommitResult.stdout.trim() === `chore: Update metrics [${dateKey}]`) {
+            console.log(`오늘 metrics 커밋이 이미 있어 건너뜁니다: ${dateKey}`);
+            return;
+        }
+
         await execFileAsync('git', ['-C', PROJECT_ROOT, 'add', relativeMetricsPath]);
         const statusResult = await execFileAsync('git', ['-C', PROJECT_ROOT, 'status', '--porcelain', '--', relativeMetricsPath]);
         if (!statusResult.stdout.trim()) {
@@ -179,13 +194,12 @@ async function commitMetricsFileToMain(metricsFilePath: string) {
             return;
         }
 
-        const timestamp = new Date().toISOString();
         await execFileAsync('git', [
             '-C',
             PROJECT_ROOT,
             'commit',
             '-m',
-            `chore: Update metrics [${timestamp}]`,
+            `chore: Update metrics [${dateKey}]`,
             '--',
             relativeMetricsPath,
         ]);

@@ -84,4 +84,5 @@ export type EffectProperty =
     | 'smallBlackHole'
     | 'smallBlackHoleRange'
     | 'netLength'
-    | 'specialItemBooster';
+    | 'specialItemBooster'
+    | 'armBlackHole';

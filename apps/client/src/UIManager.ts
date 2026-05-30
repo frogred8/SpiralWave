@@ -227,7 +227,7 @@ export class UIManager {
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {
             const candidateSkills = skillData.filter(s => s.row <= 1 && !excludeSkillIds.includes(s.id));
-            selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
+            selectedSkills = [...candidateSkills].sort((a, b) => a.row === b.row ? a.tree - b.tree : a.row - b.row);
             this.currentUIState.selectedInitialSkills = selectedSkills;
         }
 
@@ -237,9 +237,15 @@ export class UIManager {
             this.createRerollButton(width, height, skillData, currentSelectionIds);
         }
 
+        const columns = Math.min(3, Math.max(1, selectedSkills.length));
+        const cardGapX = 260;
+        const cardGapY = 210;
+        const startY = height / 2 + 35;
         selectedSkills.forEach((skill, index) => {
-            const x = width / 2 + (index === 0 ? -180 : 180);
-            const y = height / 2 + 100;
+            const col = index % columns;
+            const row = Math.floor(index / columns);
+            const x = width / 2 + (col - (columns - 1) / 2) * cardGapX;
+            const y = startY + row * cardGapY;
             this.createSkillCard(x, y, skill, overlay, title);
         });
     }
@@ -612,22 +618,22 @@ export class UIManager {
 
     private createSkillCard(x: number, y: number, skill: any, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
         const btn = this.scene.add.container(x, y).setDepth(2001);
-        const bg = this.scene.add.rectangle(0, 0, 280, 320, 0x1a1a1a, 0.95)
+        const bg = this.scene.add.rectangle(0, 0, 230, 180, 0x1a1a1a, 0.95)
             .setStrokeStyle(3, 0x444444)
             .setInteractive({ useHandCursor: true });
 
         const skillName = I18n.t(`skill.${skill.id}.name`) || skill.id;
-        const nameText = this.scene.add.text(0, -100, skillName, {
-            fontSize: '24px', color: '#00ff00', fontStyle: 'bold', align: 'center', wordWrap: { width: 240 }
+        const nameText = this.scene.add.text(0, -58, skillName, {
+            fontSize: '20px', color: '#00ff00', fontStyle: 'bold', align: 'center', wordWrap: { width: 200 }
         }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
 
         const desc = I18n.t(`skill.${skill.id}.desc`) || '';
-        const descText = this.scene.add.text(0, 0, desc, {
-            fontSize: '18px', color: '#ffffff', align: 'center', lineSpacing: 8, wordWrap: { width: 240 }
+        const descText = this.scene.add.text(0, 4, desc, {
+            fontSize: '14px', color: '#ffffff', align: 'center', lineSpacing: 5, wordWrap: { width: 198 }
         }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
 
-        const hintText = this.scene.add.text(0, 110, I18n.t('ui.click_to_select'), {
-            fontSize: '14px', color: '#aaaaaa', fontStyle: 'italic'
+        const hintText = this.scene.add.text(0, 68, I18n.t('ui.click_to_select'), {
+            fontSize: '12px', color: '#aaaaaa', fontStyle: 'italic'
         }).setOrigin(0.5);
 
         btn.add([bg, nameText, descText, hintText]);
@@ -643,6 +649,33 @@ export class UIManager {
         });
         bg.on('pointerdown', () => {
             this.handleInitialSkillSelection(skill, btn, overlay, title);
+        });
+    }
+
+    public showNotification(message: string, color: string = '#00ff00') {
+        const { width } = this.scene.scale;
+        const container = this.scene.add.container(width / 2, 112).setDepth(3500).setScrollFactor(0);
+        const bg = this.scene.add.rectangle(0, 0, 360, 44, 0x111111, 0.92)
+            .setStrokeStyle(2, 0x444444)
+            .setOrigin(0.5);
+        const text = this.scene.add.text(0, 0, message, {
+            fontSize: '18px',
+            color,
+            fontStyle: 'bold',
+            align: 'center',
+            wordWrap: { width: 330 }
+        }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+
+        container.add([bg, text]);
+        this.uiContainer.add(container);
+        this.scene.tweens.add({
+            targets: container,
+            y: 82,
+            alpha: 0,
+            delay: 1200,
+            duration: 500,
+            ease: 'Sine.easeIn',
+            onComplete: () => container.destroy()
         });
     }
 

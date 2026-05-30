@@ -125,19 +125,6 @@
         "maxLevel": 5
     },
     {
-        "id": "auto_arm",
-        "tree": 2,
-        "row": 2,
-        "costs": [
-            { "wood": 80 }
-        ],
-        "prerequisites": [],
-        "researchTimes": [10],
-        "effectProperty": "autoArm",
-        "effectValue": 1,
-        "maxLevel": 1
-    },
-    {
         "id": "r4",
         "tree": 0,
         "row": 3,
@@ -221,5 +208,18 @@
         "effectProperty": "specialItemBooster",
         "effectValue": -1,
         "maxLevel": 3
+    },
+    {
+        "id": "arm_black_hole",
+        "tree": 2,
+        "row": 2,
+        "costs": [
+            { "wood": 30, "rock": 30 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [12],
+        "effectProperty": "armBlackHole",
+        "effectValue": 1,
+        "maxLevel": 1
     }
 ]

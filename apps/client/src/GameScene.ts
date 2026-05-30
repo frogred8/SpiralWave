@@ -7,6 +7,7 @@ import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
 import { SpecialItem, Collectible } from './Types';
 import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse } from '@shared/ApiTypes';
+import { I18n } from '@shared/I18n';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
@@ -401,7 +402,7 @@ export class GameScene extends Phaser.Scene {
 
     private syncArmsCount() {
         while (this.arms.length < this.gameStats.maxArms) {
-            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter));
+            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter, (x, y) => this.triggerArmBlackHole(x, y)));
         }
     }
 
@@ -439,6 +440,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.removeAllListeners(GameStats.EVENTS.CALCULATE_BOOSTER);
         this.gameStats.removeAllListeners(GameStats.EVENTS.SPAWN_RATE_CHANGED);
         this.gameStats.removeAllListeners(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
+        this.gameStats.removeAllListeners(GameStats.EVENTS.RESEARCH_COMPLETED);
         this.gameStats.removeAllListeners('resourceCollected');
         this.gameStats.removeAllListeners('worldResourceCollected');
 
@@ -481,6 +483,10 @@ export class GameScene extends Phaser.Scene {
 
         this.gameStats.on(GameStats.EVENTS.SPAWN_RATE_CHANGED, () => this.updateSpawnTimer(), this);
         this.gameStats.on(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED, () => this.updateSpecialItemTimer(), this);
+        this.gameStats.on(GameStats.EVENTS.RESEARCH_COMPLETED, (skillId: string) => {
+            const skillName = I18n.t(`skill.${skillId}.name`);
+            this.uiManager.showNotification(`${I18n.t('ui.research_complete')}: ${skillName}`, '#00ffcc');
+        }, this);
 
         // 자원 획득 시 플로팅 텍스트 표시
         this.gameStats.on('resourceCollected', (type: string, amount: number) => {
@@ -667,6 +673,28 @@ export class GameScene extends Phaser.Scene {
                 }
             });
 
+            this.resourceManager.getArmBlackHoles().forEach(bh => {
+                if (!res.active || collectedBySBH) return;
+                const bhDist = Utils.getDistance(res.x, res.y, bh.x, bh.y);
+                const bhRadius = this.gameStats.armBlackHoleRadius * bh.scale;
+                if (bhDist < bhRadius) {
+                    Utils.applyGravityToPoint(
+                        res,
+                        bhDist,
+                        bhRadius,
+                        bh.x,
+                        bh.y,
+                        this.gameStats.force * this.gameStats.armBlackHoleForceMultiplier,
+                        PHYSICS_CONFIG.ACCEL_BASE,
+                        PHYSICS_CONFIG.DRAG_BASE
+                    );
+                }
+                if (bhDist < 32 * bh.scale) {
+                    this.collectResource(res, false, false, bh.x, bh.y);
+                    collectedBySBH = true;
+                }
+            });
+
             if (!collectedBySBH) {
                 if (dist > screenLimit) res.destroy();
                 else Utils.limitSpeed(res, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
@@ -718,7 +746,8 @@ export class GameScene extends Phaser.Scene {
         
         if (!silent) SoundManager.getInstance().play('gather');
         
-        const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
+        const baseAmount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
+        const amount = this.gameStats.isFeverMode ? Math.ceil(baseAmount * this.gameStats.feverScoreMultiplier) : baseAmount;
         this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);
         
         if (byArm && this.gameStats.researchReduction > 0) {
@@ -802,5 +831,12 @@ export class GameScene extends Phaser.Scene {
             this.tweens.add({ targets: this, radiusMultiplier: 1.0, duration: DURATIONS.RADIUS_BOOST_SHRINK, ease: 'Power1' });
             this.boostTimerEvent = undefined;
         });
+    }
+
+    private triggerArmBlackHole(x: number, y: number) {
+        if (!this.gameStats.isArmBlackHoleEnabled) return;
+
+        this.resourceManager.spawnArmBlackHole(x, y);
+        this.cameras.main.shake(80, 0.004);
     }
 }

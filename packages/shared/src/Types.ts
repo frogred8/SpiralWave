@@ -50,4 +50,23 @@ export type EffectProperty =
     | 'smallBlackHole'
     | 'smallBlackHoleRange'
     | 'netLength'
-    | 'specialItemBooster';
+    | 'specialItemBooster'
+    | 'armBlackHole';
+
+export type ArtifactEffectProperty =
+    | EffectProperty
+    | 'feverScoreMultiplier'
+    | 'feverTimeRecovery'
+    | 'armBlackHoleRadius'
+    | 'armBlackHoleForceMultiplier';
+
+export interface ArtifactEffect {
+    property: ArtifactEffectProperty;
+    value: number;
+    mode?: 'add' | 'multiply' | 'set';
+}
+
+export interface UniqueArtifactData {
+    id: string;
+    effects: ArtifactEffect[];
+}

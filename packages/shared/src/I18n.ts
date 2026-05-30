@@ -41,6 +41,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': 'Small Black Hole Range',
         'prop.netLength': 'Net Length',
         'prop.specialItemBooster': 'Special Item Interval',
+        'prop.armBlackHole': 'Arm Black Hole',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -79,6 +80,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': 'CURRENT CONNECTION',
         'ui.current_version': 'Version',
         'ui.no_release_note': 'No release note.',
+        'ui.research_complete': 'Research complete',
         
         // Units
         'unit.second': 's',
@@ -113,7 +115,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': 'Net Length',
         'skill.net_length.desc': 'Net Length +100',
         'skill.special_item_booster.name': 'Special Item Booster',
-        'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s'
+        'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s',
+        'skill.arm_black_hole.name': 'Arm Black Hole',
+        'skill.arm_black_hole.desc': 'Arm contact creates a temporary black hole'
     },
     ko: {
         // Resources
@@ -156,6 +160,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': '작은 블랙홀 범위',
         'prop.netLength': '그물 길이',
         'prop.specialItemBooster': '특수 아이템 주기',
+        'prop.armBlackHole': '로봇팔 블랙홀',
         
         // Utils / Formatting
         'ui.on': '켬',
@@ -194,6 +199,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '현재 접속',
         'ui.current_version': '버전',
         'ui.no_release_note': '릴리즈 노트가 없습니다.',
+        'ui.research_complete': '연구 완료',
         
         // Units
         'unit.second': '초',
@@ -228,7 +234,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': '그물 길이',
         'skill.net_length.desc': '그물 길이 +100',
         'skill.special_item_booster.name': '특수 아이템 부스터',
-        'skill.special_item_booster.desc': '특수 아이템 생성 간격 -1초'
+        'skill.special_item_booster.desc': '특수 아이템 생성 간격 -1초',
+        'skill.arm_black_hole.name': '로봇팔 블랙홀',
+        'skill.arm_black_hole.desc': '로봇팔 접촉 지점에 임시 블랙홀 생성'
     },
     zh: {
         // Resources
@@ -270,6 +278,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': '小黑洞范围',
         'prop.netLength': '网长度',
         'prop.specialItemBooster': '特殊物品间隔',
+        'prop.armBlackHole': '机械臂黑洞',
         
         // Utils / Formatting
         'ui.on': '开',
@@ -308,6 +317,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '当前连接',
         'ui.current_version': '版本',
         'ui.no_release_note': '暂无发布说明。',
+        'ui.research_complete': '研究完成',
         
         // Units
         'unit.second': '秒',
@@ -342,7 +352,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': '网长度',
         'skill.net_length.desc': '网长度 +100',
         'skill.special_item_booster.name': '特殊物品助推器',
-        'skill.special_item_booster.desc': '特殊物品生成间隔 -1秒'
+        'skill.special_item_booster.desc': '特殊物品生成间隔 -1秒',
+        'skill.arm_black_hole.name': '机械臂黑洞',
+        'skill.arm_black_hole.desc': '机械臂接触点生成临时黑洞'
     },
     ja: {
         // Resources
@@ -384,6 +396,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': '小型ブラックホール範囲',
         'prop.netLength': 'ネットの長さ',
         'prop.specialItemBooster': '特殊アイテム間隔',
+        'prop.armBlackHole': 'アームブラックホール',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -422,6 +435,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '現在の接続',
         'ui.current_version': 'バージョン',
         'ui.no_release_note': 'リリースノートはありません。',
+        'ui.research_complete': '研究完了',
 
         // Units
         'unit.second': '秒',
@@ -456,7 +470,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': 'ネットの長さ',
         'skill.net_length.desc': 'ネットの長さ +100',
         'skill.special_item_booster.name': '特殊アイテムブースター',
-        'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒'
+        'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒',
+        'skill.arm_black_hole.name': 'アームブラックホール',
+        'skill.arm_black_hole.desc': 'アームの接触地点に一時ブラックホールを生成'
     }
 };
 

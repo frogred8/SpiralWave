@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { SkillData } from '@shared/SkillData';
 import { DURATIONS, INITIAL_STATS } from '@shared/Constants';
+import type { ArtifactEffectProperty, UniqueArtifactData } from '@shared/Types';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
 /**
@@ -32,6 +33,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public satelliteCount!: number;
     public smallBlackHoleCount: number = 0;
     public smallBlackHoleRadius: number = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
+    public isArmBlackHoleEnabled: boolean = false;
+    public armBlackHoleRadius: number = INITIAL_STATS.ARM_BLACK_HOLE_RADIUS;
+    public armBlackHoleForceMultiplier: number = INITIAL_STATS.ARM_BLACK_HOLE_FORCE_MULTIPLIER;
     public netDistance: number = 600;
     public specialItemInterval: number = 15000;
     
@@ -58,6 +62,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public feverGauge: number = 0;
     public isFeverMode: boolean = false;
     public feverTimer: number = 0;
+    public feverScoreMultiplier: number = INITIAL_STATS.FEVER_SCORE_MULTIPLIER;
+    public feverTimeRecoveryPerSecond: number = INITIAL_STATS.FEVER_TIME_RECOVERY_PER_SECOND;
+
+    public uniqueArtifacts: Record<string, UniqueArtifactData> = {};
 
     // 이벤트 상수 정의
     public static readonly EVENTS = {
@@ -69,7 +77,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         SPECIAL_ITEM_INTERVAL_CHANGED: 'specialItemIntervalChanged',
         CALCULATE_BOOSTER: 'calculateBooster',
         FEVER_START: 'feverStart',
-        FEVER_END: 'feverEnd'
+        FEVER_END: 'feverEnd',
+        RESEARCH_COMPLETED: 'researchCompleted',
+        ARTIFACT_GRANTED: 'artifactGranted'
     };
 
     constructor(skillTreeData: SkillData[]) {
@@ -92,7 +102,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.isColorUnlocked = true; // 시작부터 개방된 상태
         
         this.maxArms = INITIAL_STATS.MAX_ARMS;
-        this.isAutoArmEnabled = false;
+        this.isAutoArmEnabled = true;
         this.armSpeedFactor = INITIAL_STATS.ARM_SPEED_FACTOR;
         this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
         this.isNetEnabled = false;
@@ -100,6 +110,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.satelliteCount = 0;
         this.smallBlackHoleCount = 0;
         this.smallBlackHoleRadius = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
+        this.isArmBlackHoleEnabled = false;
+        this.armBlackHoleRadius = INITIAL_STATS.ARM_BLACK_HOLE_RADIUS;
+        this.armBlackHoleForceMultiplier = INITIAL_STATS.ARM_BLACK_HOLE_FORCE_MULTIPLIER;
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
         this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
 
@@ -123,6 +136,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.feverGauge = 0;
         this.isFeverMode = false;
         this.feverTimer = 0;
+        this.feverScoreMultiplier = INITIAL_STATS.FEVER_SCORE_MULTIPLIER;
+        this.feverTimeRecoveryPerSecond = INITIAL_STATS.FEVER_TIME_RECOVERY_PER_SECOND;
+        this.uniqueArtifacts = {};
     }
 
     /**
@@ -155,6 +171,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         // 피버 모드 처리
         if (this.isFeverMode) {
             this.feverTimer -= cappedDt;
+            this.playtime = Math.max(0, this.playtime - (this.feverTimeRecoveryPerSecond * elapsedSeconds));
             this.feverGauge = Math.max(0, (this.feverTimer / DURATIONS.FEVER_MODE_DURATION) * INITIAL_STATS.MAX_FEVER_GAUGE);
             
             if (this.feverTimer <= 0) {
@@ -224,7 +241,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
                     i--;
                     activeCount--;
                     finishedAny = true;
-                    if (skill) this.applySkillUpgrade(skill);
+                    if (skill) {
+                        this.applySkillUpgrade(skill);
+                        this.emit(GameStats.EVENTS.RESEARCH_COMPLETED, skill.id);
+                    }
                     
                     // 하나라도 완료되면 즉시 큐에서 다음 연구 가능한 것을 채움
                     this.promoteFromQueue();
@@ -262,6 +282,49 @@ export class GameStats extends Phaser.Events.EventEmitter {
      */
     grantSkill(skill: SkillData) {
         this.applySkillUpgrade(skill);
+    }
+
+    grantUniqueArtifact(artifact: UniqueArtifactData): boolean {
+        if (this.uniqueArtifacts[artifact.id]) return false;
+
+        this.uniqueArtifacts[artifact.id] = artifact;
+        artifact.effects.forEach(effect => this.applyArtifactEffect(effect.property, effect.value, effect.mode || 'add'));
+        this.emit(GameStats.EVENTS.ARTIFACT_GRANTED, artifact.id);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+        return true;
+    }
+
+    private applyArtifactEffect(property: ArtifactEffectProperty, value: number, mode: 'add' | 'multiply' | 'set') {
+        const applyNumber = (current: number) => {
+            if (mode === 'set') return value;
+            if (mode === 'multiply') return current * value;
+            return current + value;
+        };
+
+        switch (property) {
+            case 'radius': this.radius = applyNumber(this.radius); break;
+            case 'force': this.force = applyNumber(this.force); break;
+            case 'highDimProb': this.highDimProb = applyNumber(this.highDimProb); break;
+            case 'maxArms': this.maxArms = applyNumber(this.maxArms); break;
+            case 'autoArm': this.isAutoArmEnabled = value > 0; break;
+            case 'armSpeed': this.armSpeedFactor = applyNumber(this.armSpeedFactor); break;
+            case 'maxResearchSlots': this.maxResearchSlots = applyNumber(this.maxResearchSlots); break;
+            case 'spawnRate': this.spawnRateFactor = applyNumber(this.spawnRateFactor); break;
+            case 'researchBonus': this.researchReduction = applyNumber(this.researchReduction); break;
+            case 'moveSpeed': this.moveSpeed = applyNumber(this.moveSpeed); break;
+            case 'net': this.isNetEnabled = value > 0; break;
+            case 'netAngle': this.netAngle = applyNumber(this.netAngle); break;
+            case 'satelliteCount': this.satelliteCount = applyNumber(this.satelliteCount); break;
+            case 'smallBlackHole': this.smallBlackHoleCount = applyNumber(this.smallBlackHoleCount); break;
+            case 'smallBlackHoleRange': this.smallBlackHoleRadius = applyNumber(this.smallBlackHoleRadius); break;
+            case 'netLength': this.netDistance = applyNumber(this.netDistance); break;
+            case 'specialItemBooster': this.specialItemInterval = applyNumber(this.specialItemInterval); break;
+            case 'armBlackHole': this.isArmBlackHoleEnabled = value > 0; break;
+            case 'feverScoreMultiplier': this.feverScoreMultiplier = applyNumber(this.feverScoreMultiplier); break;
+            case 'feverTimeRecovery': this.feverTimeRecoveryPerSecond = applyNumber(this.feverTimeRecoveryPerSecond); break;
+            case 'armBlackHoleRadius': this.armBlackHoleRadius = applyNumber(this.armBlackHoleRadius); break;
+            case 'armBlackHoleForceMultiplier': this.armBlackHoleForceMultiplier = applyNumber(this.armBlackHoleForceMultiplier); break;
+        }
     }
 
     /**
@@ -505,6 +568,7 @@ getRecentCollectionAmount(): number {
             case 'smallBlackHole': this.smallBlackHoleCount += val; break;
             case 'smallBlackHoleRange': this.smallBlackHoleRadius += val; break;
             case 'netLength': this.netDistance += val; break;
+            case 'armBlackHole': this.isArmBlackHoleEnabled = true; break;
             case 'specialItemBooster': 
                 this.specialItemInterval += val * 1000; // val is in seconds (-1), convert to ms (-1000)
                 this.emit(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);

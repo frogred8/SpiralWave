@@ -462,6 +462,7 @@ export class SkillTreeUI {
             case 'highDimProb': return INITIAL_STATS.HIGH_DIM_PROB;
             case 'maxArms': return INITIAL_STATS.MAX_ARMS;
             case 'autoArm': return 0;
+            case 'armBlackHole': return 0;
             case 'armSpeed': return INITIAL_STATS.ARM_SPEED_FACTOR;
             case 'maxResearchSlots': return INITIAL_STATS.MAX_RESEARCH_SLOTS;
             case 'spawnRate': return INITIAL_STATS.SPAWN_RATE_FACTOR;
@@ -489,6 +490,7 @@ export class SkillTreeUI {
             case 'netAngle': return I18n.t('prop.netAngle');
             case 'satelliteCount': return I18n.t('prop.satelliteCount');
             case 'smallBlackHole': return I18n.t('prop.smallBlackHole');
+            case 'armBlackHole': return I18n.t('prop.armBlackHole');
             default: return property;
         }
     }

@@ -146,6 +146,7 @@ export const Utils = {
             case 'highDimProb': return `${(value * 100).toFixed(0)}%`;
             case 'maxArms': return `${value}`;
             case 'autoArm': return level > 0 ? I18n.t('ui.on') : I18n.t('ui.off');
+            case 'armBlackHole': return level > 0 ? I18n.t('ui.on') : I18n.t('ui.off');
             case 'armSpeed': return `${value.toFixed(1)}x`;
             case 'maxResearchSlots': return `${value}`;
             case 'spawnRate': return `${value.toFixed(1)}x`;
@@ -164,6 +165,7 @@ export const Utils = {
         switch (property) {
             case 'highDimProb': return `${sign}${(bonus * 100).toFixed(0)}%`;
             case 'autoArm': return level > 0 ? I18n.t('ui.enabled') : I18n.t('ui.disabled');
+            case 'armBlackHole': return level > 0 ? I18n.t('ui.enabled') : I18n.t('ui.disabled');
             case 'net': return level > 0 ? I18n.t('ui.activated') : I18n.t('ui.locked');
             case 'armSpeed':
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;

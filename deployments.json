@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260530_1000",
+    "type": "preview",
+    "title": "20260530_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260530_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260530_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-05-30T01:00:23.595Z",
+    "release_note": {
+      "en": "Implement the following gameplay features and improvements:\n\n1. Fever Mode Enhancement: Update the fever mode logic to apply a 2x score multiplier and provide a small amount of time recovery while active.\n2. Skill Selection System: Modify the game initialization to allow players to manually choose a starting skill instead of receiving one randomly.\n3. Unique Artifact System: Implement a logic framework for unique artifacts that grant various passive effects or gameplay modifiers.\n4. Research Notification: Add a notification system that triggers a brief alert or message to the player upon the completion of a research task.\n5. Baseline Automation: Enable the \"Automatic Robot Arm\" as a default core feature available from the start of the game.\n6. Black Hole Skill: Create a new skill that generates a \"Black Hole\" effect at the specific coordinates where the robot arm interacts, pulling in or affecting objects at that location.",
+      "ko": "다음 게임플레이 기능 및 개선 사항을 구현했습니다:\n\n1. 피버 모드 강화: 활성화 시 점수 2배 배율을 적용하고 소량의 시간을 회복하도록 피버 모드 로직을 업데이트했습니다.\n2. 스킬 선택 시스템: 게임 시작 시 스킬을 무작위로 받는 대신 플레이어가 직접 선택할 수 있도록 수정했습니다.\n3. 유니크 아티팩트 시스템: 다양한 패시브 효과나 게임플레이 보정치를 부여하는 유니크 아티팩트의 로직 프레임워크를 구현했습니다.\n4. 연구 알림: 연구 과제 완료 시 플레이어에게 짧은 알림이나 메시지를 표시하는 알림 시스템을 추가했습니다.\n5. 기본 자동화: '자동 로봇 팔'을 게임 시작부터 사용 가능한 기본 핵심 기능으로 활성화했습니다.\n6. 블랙홀 스킬: 로봇 팔이 상호작용하는 특정 좌표에 '블랙홀' 효과를 생성하여 해당 위치의 물체를 끌어당기거나 영향을 주는 새로운 스킬을 제작했습니다.",
+      "zh": "实现了以下游戏功能和改进：\n\n1. 狂热模式增强：更新狂热模式逻辑，在激活时应用 2 倍分数乘数并提供少量时间恢复。\n2. 技能选择系统：修改游戏初始化过程，允许玩家手动选择初始技能，而非随机获得。\n3. 独特神器系统：实现独特神器的逻辑框架，用于提供各种被动效果或游戏调整参数。\n4. 研究通知：添加通知系统，在研究任务完成时触发并向玩家发送简短警报或消息。\n5. 基础自动化：将“自动机械臂”设为游戏开始时即可使用的默认核心功能。\n6. 黑洞技能：创建一项新技能，在机械臂交互的特定坐标生成“黑洞”效果，吸引或影响该位置的物体。",
+      "ja": "以下のゲームプレイ機能の実装および改善を行いました：\n\n1. フィーバーモードの強化：フィーバーモード中にスコア2倍マルチプライヤーを適用し、少量の時間を回復するようロジックを更新しました。\n2. スキル選択システム：ゲーム開始時にスキルをランダムに受け取るのではなく、プレイヤーが手動で選択できるように変更しました。\n3. ユニークアーティファクトシステム：様々なパッシブ効果やゲームプレイ修飾子を付与するユニークアーティファクトのロジックフレームワークを実装しました。\n4. 研究通知：研究タスク完了時にプレイヤーに短いアラートやメッセージを表示する通知システムを追加しました。\n5. 基本オートメーション：「自動ロボットアーム」をゲーム開始時から利用可能なデフォルトのコア機能として有効化しました。\n6. ブラックホールスキル：ロボットアームが相互作用する特定の座標に「ブラックホール」効果を生成し、その場所のオブジェクトを引き寄せたり影響を与えたりする新しいスキルを作成しました。"
+    }
+  },
+  {
     "id": "20260529_1442",
     "type": "preview",
     "title": "20260529_1442 Build",

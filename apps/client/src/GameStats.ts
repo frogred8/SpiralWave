@@ -11,7 +11,6 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public force!: number;
     public radius!: number;
     public highDimProb!: number;
-    public moveSpeed!: number;
     
     // 자원 및 인벤토리
     public collected!: Record<ResourceType, number>;
@@ -83,10 +82,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.force = INITIAL_STATS.FORCE;
         this.radius = INITIAL_STATS.RADIUS;
         this.highDimProb = INITIAL_STATS.HIGH_DIM_PROB;
-        this.moveSpeed = INITIAL_STATS.MOVE_SPEED;
         
-        this.collected = { rock: INITIAL_STATS.ROCK, wood: INITIAL_STATS.WOOD };
-        this.totalCollected = { rock: 0, wood: 0 };
+        this.collected = { rock: INITIAL_STATS.ROCK, wood: INITIAL_STATS.WOOD, crystal: 0, plasma: 0 };
+        this.totalCollected = { rock: 0, wood: 0, crystal: 0, plasma: 0 };
         this.totalAll = 0;
         this.maxResources = INITIAL_STATS.MAX_RESOURCES;
         this.isColorUnlocked = true; // 시작부터 개방된 상태
@@ -500,7 +498,6 @@ getRecentCollectionAmount(): number {
             case 'maxResearchSlots': this.maxResearchSlots += val; break;
             case 'spawnRate': this.spawnRateFactor += val; break;
             case 'researchBonus': this.researchReduction += val; break;
-            case 'moveSpeed': this.moveSpeed += val; break;
             case 'net': this.isNetEnabled = true; break;
             case 'netAngle': this.netAngle += val; break;
             case 'satelliteCount': this.satelliteCount += val; break;

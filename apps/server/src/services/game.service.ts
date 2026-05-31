@@ -1,4 +1,5 @@
-import { INITIAL_STATS, type LeaderboardResponse } from '@repo/shared';
+import { INITIAL_STATS } from '@shared/Constants';
+import type { LeaderboardResponse } from '@shared/ApiTypes';
 import db from '../config/db';
 
 /**

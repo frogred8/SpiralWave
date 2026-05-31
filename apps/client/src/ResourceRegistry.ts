@@ -1,6 +1,6 @@
 import { ResourceType, SpecialItemType } from './Types';
 
-export type ResourceRegistryKey = ResourceType | SpecialItemType | 'satellite';
+export type ResourceRegistryKey = ResourceType | SpecialItemType | 'satellite' | 'spaceJunk' | 'resourceEnemy';
 
 export interface ResourceMetadata {
     key: ResourceRegistryKey;
@@ -25,6 +25,20 @@ export const RESOURCE_METADATA: Record<ResourceRegistryKey, ResourceMetadata> = 
         icon: '🪵',
         tint: 0x8b4513
     },
+    crystal: {
+        key: 'crystal',
+        name: 'Crystal',
+        description: 'Rare special resource worth extra score when pulled into the black hole.',
+        icon: '💎',
+        tint: 0x7dd3fc
+    },
+    plasma: {
+        key: 'plasma',
+        name: 'Plasma',
+        description: 'Unstable special resource that awards a high-value burst on collection.',
+        icon: '🔮',
+        tint: 0xd946ef
+    },
     whitehole: {
         key: 'whitehole',
         name: 'White Hole',
@@ -45,6 +59,20 @@ export const RESOURCE_METADATA: Record<ResourceRegistryKey, ResourceMetadata> = 
         description: 'A collection drone that revolves around the black hole and pulls nearby resources inward.',
         icon: '🛰️',
         tint: 0x7dddff
+    },
+    spaceJunk: {
+        key: 'spaceJunk',
+        name: 'Space Junk',
+        description: 'A dead obstacle that distracts robotic arms three times and pays no currency.',
+        icon: '🛰️',
+        tint: 0x8f8f8f
+    },
+    resourceEnemy: {
+        key: 'resourceEnemy',
+        name: 'Resource Hunter',
+        description: 'A hostile drone that destroys loose resources unless intercepted by robotic arms.',
+        icon: '🛸',
+        tint: 0xff5555
     }
 };
 

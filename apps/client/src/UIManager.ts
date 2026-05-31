@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from './GameStats';
-import { INITIAL_STATS, RESOURCE_CONFIG } from '@shared/Constants';
+import { INITIAL_STATS, RESOURCE_CONFIG, UPDATE_HISTORY } from '@shared/Constants';
 import { DeploymentEntry, RankEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
@@ -40,11 +40,14 @@ export class UIManager {
     private langSelectorContainer!: Phaser.GameObjects.Container;
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
+    private fullscreenBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
     private leaderboardOverlayElement: Phaser.GameObjects.Container | null = null;
+    private suggestionsElement: Phaser.GameObjects.Container | null = null;
+    private updateHistoryElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseNoteMask: Phaser.GameObjects.Graphics | null = null;
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
@@ -223,6 +226,8 @@ export class UIManager {
         this.createCurrentVersionLabel(width, titleY - 32);
         this.createGameTips(width, titleY + 100);
         void this.createDeploymentsPanel(width, height + 72);
+        void this.createPublicSuggestionsPanel(width, height);
+        this.createUpdateHistoryButton(width / 2, Math.min(height - 44, titleY + 180));
 
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {
@@ -274,6 +279,133 @@ export class UIManager {
         this.deploymentsElement.setScrollFactor(0);
         this.buildDeploymentsPanel(this.deploymentsElement, visibleDeployments, metrics.panelWidth, metrics.panelHeight);
         this.uiContainer.add(this.deploymentsElement);
+    }
+
+    private async createPublicSuggestionsPanel(width: number, height: number) {
+        this.destroyPublicSuggestionsPanel();
+
+        const ranks = await this.fetchLeaderboardRanks();
+        const suggestions = ranks.filter(rank => rank.msg && rank.msg.trim().length > 0).slice(0, 5);
+        const panelWidth = Math.min(340, Math.max(220, width * 0.25));
+        const panelHeight = 56 + Math.max(1, suggestions.length) * 42;
+        const x = width <= 900 ? 24 : Math.max(24, width - panelWidth - 24);
+        const y = Math.max(118, Math.min(height - panelHeight - 20, height / 2 + 140));
+        const container = this.scene.add.container(x, y).setDepth(2002).setScrollFactor(0);
+
+        const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x121212, 0.9)
+            .setOrigin(0)
+            .setStrokeStyle(1, 0x444444);
+        const title = this.scene.add.text(14, 12, I18n.t('ui.public_suggestions'), {
+            fontSize: '15px',
+            color: '#22c55e',
+            fontStyle: 'bold'
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+
+        container.add([bg, title]);
+        if (suggestions.length === 0) {
+            container.add(this.scene.add.text(14, 54, I18n.t('ui.no_suggestions'), {
+                fontSize: '12px',
+                color: '#9ca3af',
+                wordWrap: { width: panelWidth - 28 }
+            }).setOrigin(0));
+        } else {
+            suggestions.forEach((rank, index) => {
+                const yPos = 48 + index * 42;
+                const label = `${rank.emoji || ''} ${rank.name || 'Player'}`.trim();
+                const name = this.scene.add.text(14, yPos, label, {
+                    fontSize: '11px',
+                    color: '#9ca3af',
+                    fontStyle: 'bold'
+                }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+                const msg = this.scene.add.text(14, yPos + 16, this.getTextWithCjkBreaks(rank.msg), {
+                    fontSize: '12px',
+                    color: '#d1d5db',
+                    maxLines: 1,
+                    wordWrap: { width: panelWidth - 28, useAdvancedWrap: true }
+                }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+                msg.setInteractive({ useHandCursor: true });
+                msg.on('pointerover', (pointer: Phaser.Input.Pointer) => this.showTooltip(pointer.x, pointer.y, rank.msg));
+                msg.on('pointerout', () => this.hideTooltip());
+                container.add([name, msg]);
+            });
+        }
+
+        this.suggestionsElement = container;
+        this.uiContainer.add(container);
+    }
+
+    private createUpdateHistoryButton(x: number, y: number) {
+        const button = this.scene.add.container(x, y).setDepth(2002);
+        const bg = this.scene.add.rectangle(0, 0, 170, 34, 0x222222, 0.9)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.update_history'), {
+            fontSize: '14px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => bg.setFillStyle(0x444444));
+        bg.on('pointerout', () => bg.setFillStyle(0x222222));
+        bg.on('pointerdown', () => this.showUpdateHistoryOverlay());
+        this.uiContainer.add(button);
+    }
+
+    private showUpdateHistoryOverlay() {
+        this.destroyUpdateHistoryOverlay();
+        const { width, height } = this.scene.scale;
+        const overlayContainer = this.scene.add.container(0, 0).setDepth(3500);
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.76)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true });
+        const panelWidth = Math.min(680, width - 40);
+        const panelHeight = Math.min(520, height - 80);
+        const panel = this.scene.add.rectangle(width / 2, height / 2, panelWidth, panelHeight, 0x151515, 0.98)
+            .setStrokeStyle(2, 0x22c55e);
+        const title = this.scene.add.text(width / 2, height / 2 - panelHeight / 2 + 28, I18n.t('ui.update_history'), {
+            fontSize: '24px',
+            color: '#22c55e',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        overlayContainer.add([overlay, panel, title]);
+        let y = height / 2 - panelHeight / 2 + 68;
+        UPDATE_HISTORY.forEach(entry => {
+            const heading = this.scene.add.text(width / 2 - panelWidth / 2 + 24, y, `${entry.date}  ${entry.title}`, {
+                fontSize: '15px',
+                color: '#ffffff',
+                fontStyle: 'bold'
+            }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+            overlayContainer.add(heading);
+            y += 24;
+            entry.changes.forEach(change => {
+                const line = this.scene.add.text(width / 2 - panelWidth / 2 + 34, y, `- ${change}`, {
+                    fontSize: '13px',
+                    color: '#d1d5db',
+                    wordWrap: { width: panelWidth - 68, useAdvancedWrap: true }
+                }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+                overlayContainer.add(line);
+                y += Math.max(22, line.height + 4);
+            });
+            y += 12;
+        });
+
+        const closeButton = this.scene.add.container(width / 2, height / 2 + panelHeight / 2 - 34);
+        const closeBg = this.scene.add.rectangle(0, 0, 180, 44, 0x222222, 0.9)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const closeText = this.scene.add.text(0, 0, I18n.t('ui.close'), {
+            fontSize: '18px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        closeButton.add([closeBg, closeText]);
+        closeBg.on('pointerdown', () => this.destroyUpdateHistoryOverlay());
+        overlayContainer.add(closeButton);
+        overlay.on('pointerdown', () => this.destroyUpdateHistoryOverlay());
+        this.updateHistoryElement = overlayContainer;
+        this.uiContainer.add(overlayContainer);
     }
 
     private getDeploymentPanelMetrics(width: number, height: number, deploymentCount: number) {
@@ -1181,6 +1313,7 @@ export class UIManager {
         this.langSelectorContainer.on('pointerout', () => mainBg.setStrokeStyle(1, 0x444444));
 
         this.setupSoundButton(startX, startY + btnHeight + 5, btnWidth, btnHeight);
+        this.setupFullscreenButton(startX, startY + (btnHeight + 5) * 2, btnWidth, btnHeight);
     }
 
     private createLanguageMenuItem(lang: any, index: number, width: number, height: number, arrow: Phaser.GameObjects.Text) {
@@ -1236,11 +1369,34 @@ export class UIManager {
         });
     }
 
+    private setupFullscreenButton(x: number, y: number, width: number, height: number) {
+        this.fullscreenBtnContainer = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95).setStrokeStyle(1, 0x444444).setOrigin(0);
+        const getLabel = () => this.scene.scale.isFullscreen ? I18n.t('ui.windowed') : I18n.t('ui.fullscreen');
+        const text = this.scene.add.text(width / 2, height / 2, getLabel(), { fontSize: '12px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+
+        this.fullscreenBtnContainer.add([bg, text]);
+        this.fullscreenBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+        this.topUiContainer.add(this.fullscreenBtnContainer);
+
+        this.fullscreenBtnContainer.on('pointerdown', () => {
+            if (this.scene.scale.isFullscreen) this.scene.scale.stopFullscreen();
+            else this.scene.scale.startFullscreen();
+            this.scene.time.delayedCall(100, () => text.setText(getLabel()));
+        });
+        this.fullscreenBtnContainer.on('pointerover', () => bg.setStrokeStyle(1, 0xaaaaaa));
+        this.fullscreenBtnContainer.on('pointerout', () => bg.setStrokeStyle(1, 0x444444));
+        this.scene.scale.on('enterfullscreen', () => text.setText(getLabel()));
+        this.scene.scale.on('leavefullscreen', () => text.setText(getLabel()));
+    }
+
     public async refreshUIAfterLanguageChange() {
         this.hideTooltip();
         const currentSkillData = this.stats.skillTreeData;
         this.destroyCoffeeBanner();
         this.destroyDeploymentsPanel();
+        this.destroyPublicSuggestionsPanel();
+        this.destroyUpdateHistoryOverlay();
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);
         if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
@@ -1266,6 +1422,10 @@ export class UIManager {
         if (this.soundBtnContainer) {
             const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
             this.soundBtnContainer.setPosition(startX, startY + btnHeight + 5 + menuOffset);
+        }
+        if (this.fullscreenBtnContainer) {
+            const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
+            this.fullscreenBtnContainer.setPosition(startX, startY + (btnHeight + 5) * 2 + menuOffset);
         }
     }
 
@@ -1295,6 +1455,14 @@ export class UIManager {
         if (this.leaderboardOverlayElement && this.leaderboardOverlayElement.depth >= minDepth) {
             this.destroyLeaderboardOverlay();
         }
+
+        if (this.suggestionsElement && this.suggestionsElement.depth >= minDepth) {
+            this.destroyPublicSuggestionsPanel();
+        }
+
+        if (this.updateHistoryElement && this.updateHistoryElement.depth >= minDepth) {
+            this.destroyUpdateHistoryOverlay();
+        }
     }
 
     public destroy() {
@@ -1303,6 +1471,8 @@ export class UIManager {
         this.destroyDeploymentsPanel();
         this.destroyStableReleasePanel();
         this.destroyLeaderboardOverlay();
+        this.destroyPublicSuggestionsPanel();
+        this.destroyUpdateHistoryOverlay();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);
@@ -1337,6 +1507,20 @@ export class UIManager {
         if (this.leaderboardOverlayElement) {
             this.leaderboardOverlayElement.destroy();
             this.leaderboardOverlayElement = null;
+        }
+    }
+
+    private destroyPublicSuggestionsPanel() {
+        if (this.suggestionsElement) {
+            this.suggestionsElement.destroy();
+            this.suggestionsElement = null;
+        }
+    }
+
+    private destroyUpdateHistoryOverlay() {
+        if (this.updateHistoryElement) {
+            this.updateHistoryElement.destroy();
+            this.updateHistoryElement = null;
         }
     }
 }

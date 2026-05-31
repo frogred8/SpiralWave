@@ -28,7 +28,6 @@ export class GameScene extends Phaser.Scene {
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
     private spawnTimer!: Phaser.Time.TimerEvent;
-    private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private netTimerAccumulator: number = 0;
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
@@ -77,9 +76,6 @@ export class GameScene extends Phaser.Scene {
 
         this.scale.on('resize', this.handleResize, this);
 
-        if (this.input.keyboard) {
-            this.cursors = this.input.keyboard.createCursorKeys();
-        }
     }
 
     private handleRefreshUI() {
@@ -229,6 +225,13 @@ export class GameScene extends Phaser.Scene {
             callback: () => this.resourceManager.spawnMeteor(), 
             callbackScope: this, 
             loop: true 
+        });
+
+        this.time.addEvent({
+            delay: RESOURCE_CONFIG.RESOURCE_ENEMY.SPAWN_INTERVAL,
+            callback: () => this.resourceManager.spawnResourceEnemy(),
+            callbackScope: this,
+            loop: true
         });
 
         this.scheduleSmallBlackHoleSpawn();
@@ -505,10 +508,15 @@ export class GameScene extends Phaser.Scene {
 
     private findBestArmTarget(originX: number, originY: number, minRadius: number, maxRadius: number): Collectible | null {
         let bestTarget: Collectible | null = null;
-        let bestPriority = -1; // 2: Special, 1: HighDim, 0: Normal
+        let bestPriority = -1; // 4: Enemy, 3: Special, 2: Junk, 1: HighDim, 0: Normal
         let minDistance = maxRadius;
 
-        this.resourceManager.getGroup().getChildren().forEach(child => {
+        const candidates = [
+            ...this.resourceManager.getGroup().getChildren(),
+            ...this.resourceManager.getEnemyGroup().getChildren()
+        ];
+
+        candidates.forEach(child => {
             const res = child as Collectible;
             if (!res.active || this.arms.some(a => a.grabbedResource === res)) return;
             
@@ -516,7 +524,9 @@ export class GameScene extends Phaser.Scene {
             if (dist > minDistance) return;
 
             let priority = 0;
-            if (res.itemType === 'special') priority = 2;
+            if (res.enemyType === 'resourceDestroyer') priority = 4;
+            else if (res.itemType === 'special') priority = 3;
+            else if (res.obstacleType === 'spaceJunk') priority = 2;
             else if (res.isHighDim) priority = 1;
 
             if (priority > bestPriority) {
@@ -556,28 +566,15 @@ export class GameScene extends Phaser.Scene {
         
         this.uiManager.updateTimerDisplay(time, this.isGameStarted);
         this.uiManager.updateFeverDisplay();
-        this.handleBlackHoleMovement();
         this.updateAutoNet(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);
         this.orbitSystem.update(cappedDelta);
+        this.updateResourceEnemies();
         this.updateArms(time, cappedDelta);
         this.updateAutoArms(time);
 
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
         this.processResources();
-    }
-
-    private handleBlackHoleMovement() {
-        if (!this.cursors) return;
-        const moveSpeed = this.gameStats.moveSpeed;
-        if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
-        if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
-        if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
-        if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
-        
-        this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
-        this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
-        this.gameRenderer.updateSpiralPosition();
     }
 
     private updateAutoNet(delta: number) {
@@ -620,6 +617,50 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
+    private updateResourceEnemies() {
+        const enemies = this.resourceManager.getEnemyGroup().getChildren() as any[];
+        const resources = this.resourceManager.getGroup().getChildren() as any[];
+        const screenLimit = Math.max(1200, this.scale.width, this.scale.height);
+
+        enemies.forEach(enemy => {
+            if (!enemy.active || this.arms.some(a => a.grabbedResource === enemy)) return;
+
+            const targets = resources.filter(res => {
+                return res.active
+                    && !res.itemType
+                    && !res.obstacleType
+                    && !res.isBeingPulled
+                    && !this.arms.some(a => a.grabbedResource === res);
+            });
+
+            if (targets.length === 0) {
+                const angle = Utils.getAngle(enemy.x, enemy.y, this.spiralCenter.x, this.spiralCenter.y);
+                enemy.body.setVelocity(Math.cos(angle) * RESOURCE_CONFIG.RESOURCE_ENEMY.SPEED, Math.sin(angle) * RESOURCE_CONFIG.RESOURCE_ENEMY.SPEED);
+            } else {
+                let nearest = targets[0];
+                let nearestDist = Utils.getDistance(enemy.x, enemy.y, nearest.x, nearest.y);
+                targets.slice(1).forEach(target => {
+                    const dist = Utils.getDistance(enemy.x, enemy.y, target.x, target.y);
+                    if (dist < nearestDist) {
+                        nearest = target;
+                        nearestDist = dist;
+                    }
+                });
+
+                const angle = Utils.getAngle(enemy.x, enemy.y, nearest.x, nearest.y);
+                enemy.body.setVelocity(Math.cos(angle) * RESOURCE_CONFIG.RESOURCE_ENEMY.SPEED, Math.sin(angle) * RESOURCE_CONFIG.RESOURCE_ENEMY.SPEED);
+
+                if (nearestDist <= RESOURCE_CONFIG.RESOURCE_ENEMY.DESTROY_DISTANCE) {
+                    this.gameRenderer.emitCollisionSpark(nearest.x, nearest.y);
+                    nearest.destroy();
+                }
+            }
+
+            const distFromCenter = Utils.getDistance(enemy.x, enemy.y, this.spiralCenter.x, this.spiralCenter.y);
+            if (distFromCenter > screenLimit) enemy.destroy();
+        });
+    }
+
     private getCurrentRadius() {
         return this.gameStats.radius * this.radiusMultiplier;
     }
@@ -632,6 +673,10 @@ export class GameScene extends Phaser.Scene {
         this.resourceManager.getGroup().getChildren().forEach(child => {
             const res = child as any;
             if (!res.active || this.arms.some(a => a.grabbedResource === res) || res.isBeingPulled) return;
+            if (res.obstacleType === 'spaceJunk') {
+                this.processSpaceJunk(res, effectiveRadius, centerX, centerY, screenLimit);
+                return;
+            }
             
             // 위성 중력 처리 통합
             if (this.orbitSystem.handleResourceGravity(res)) return;
@@ -674,6 +719,29 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
+    private processSpaceJunk(junk: any, effectiveRadius: number, centerX: number, centerY: number, screenLimit: number) {
+        const dist = Utils.getDistance(junk.x, junk.y, centerX, centerY);
+        if (dist < effectiveRadius) {
+            this.destroyObstacle(junk, centerX, centerY);
+            return;
+        }
+
+        let destroyedBySmallBlackHole = false;
+        this.resourceManager.getSmallBlackHoles().forEach(sbh => {
+            if (!junk.active || destroyedBySmallBlackHole) return;
+            const sbhDist = Utils.getDistance(junk.x, junk.y, sbh.x, sbh.y);
+            if (sbhDist < this.gameStats.smallBlackHoleRadius * sbh.scale) {
+                this.destroyObstacle(junk, sbh.x, sbh.y);
+                destroyedBySmallBlackHole = true;
+            }
+        });
+
+        if (!destroyedBySmallBlackHole) {
+            if (dist > screenLimit) junk.destroy();
+            else Utils.limitSpeed(junk, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
+        }
+    }
+
     private async fetchLeaderboardData(): Promise<RankEntry[]> {
         try {
             const response = await fetch(`/leaderboard`);
@@ -708,6 +776,16 @@ export class GameScene extends Phaser.Scene {
     private collectResource(collectible: any, byArm: boolean = false, byNet: boolean = false, centerX?: number, centerY?: number, silent: boolean = false) {
         if (!collectible.active) return;
 
+        if (collectible.enemyType === 'resourceDestroyer') {
+            this.handleResourceEnemy(collectible, byArm, silent);
+            return;
+        }
+
+        if (collectible.obstacleType === 'spaceJunk') {
+            this.handleSpaceJunk(collectible, byArm, byNet, centerX, centerY);
+            return;
+        }
+
         if (collectible.itemType === 'special') {
             this.handleSpecialItem(collectible, byArm, byNet, silent);
             return;
@@ -728,6 +806,40 @@ export class GameScene extends Phaser.Scene {
         collectible.destroy();
     }
 
+    private handleResourceEnemy(enemy: any, byArm: boolean, silent: boolean = false) {
+        if (!byArm) return;
+        if (!silent) SoundManager.getInstance().play('gather');
+        this.gameRenderer.emitCollisionSpark(enemy.x, enemy.y);
+        enemy.destroy();
+    }
+
+    private handleSpaceJunk(junk: any, byArm: boolean, byNet: boolean, centerX?: number, centerY?: number) {
+        if (byNet || !byArm) {
+            this.destroyObstacle(junk, centerX, centerY);
+            return;
+        }
+
+        junk.armAggroHitsRemaining = Math.max(0, (junk.armAggroHitsRemaining ?? RESOURCE_CONFIG.SPACE_JUNK.ARM_AGGRO_HITS) - 1);
+        this.gameRenderer.emitCollisionSpark(junk.x, junk.y);
+        if (junk.armAggroHitsRemaining <= 0) {
+            junk.destroy();
+            return;
+        }
+
+        const restoreX = junk.lastAggroX ?? junk.x;
+        const restoreY = junk.lastAggroY ?? junk.y;
+        junk.setPosition(restoreX, restoreY);
+        junk.body.setEnable(true);
+        const angle = Math.random() * Math.PI * 2;
+        junk.body.setVelocity(Math.cos(angle) * 120, Math.sin(angle) * 120);
+    }
+
+    private destroyObstacle(obstacle: any, centerX?: number, centerY?: number) {
+        if (!obstacle.active) return;
+        this.gameRenderer.emitCollectionParticles(obstacle.x, obstacle.y, false, this.resourceManager.getParticleTint(obstacle), centerX, centerY);
+        obstacle.destroy();
+    }
+
     private fireNet(targetX: number, targetY: number, distance: number) {
         this.gameRenderer.drawNet(this.spiralCenter.x, this.spiralCenter.y, targetX, targetY, distance);
 
@@ -746,6 +858,11 @@ export class GameScene extends Phaser.Scene {
             const diff = Phaser.Math.Angle.ShortestBetween(Phaser.Math.RadToDeg(angleToTarget), Phaser.Math.RadToDeg(angleToRes));
 
             if (Math.abs(diff) <= Phaser.Math.RadToDeg(spread) / 2) {
+                if (res.obstacleType === 'spaceJunk') {
+                    this.collectResource(res, false, true, this.spiralCenter.x, this.spiralCenter.y, true);
+                    return;
+                }
+
                 res.body.setEnable(false);
                 res.isBeingPulled = true;
                 const startX = res.x;

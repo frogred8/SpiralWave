@@ -1,7 +1,7 @@
 /**
  * 자원 종류 정의
  */
-export type ResourceType = 'rock' | 'wood';
+export type ResourceType = 'rock' | 'wood' | 'crystal' | 'plasma';
 
 /**
  * 특수 아이템 종류 정의
@@ -43,7 +43,6 @@ export type EffectProperty =
     | 'maxResearchSlots' 
     | 'spawnRate' 
     | 'researchBonus' 
-    | 'moveSpeed' 
     | 'net'
     | 'netAngle'
     | 'satelliteCount'

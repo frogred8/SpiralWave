@@ -16,7 +16,6 @@ export const INITIAL_STATS = {
     ARM_SPEED_FACTOR: 1.0,
     SPAWN_RATE_FACTOR: 1.0,
     RESEARCH_BONUS: 0,
-    MOVE_SPEED: 0,
     MAX_RESEARCH_SLOTS: 1,
     TIME_LIMIT: 300,
     NET_ANGLE: 45,
@@ -60,19 +59,27 @@ export const DURATIONS = {
 
 export const RESOURCE_CONFIG = {
     SPAWN_INTERVAL_BASE: 1000,
-    TYPES: ['rock', 'wood'] as const,
+    TYPES: ['rock', 'wood', 'crystal', 'plasma'] as const,
     ICONS: {
         rock: '🪨',
         wood: '🪵',
+        crystal: '💎',
+        plasma: '🔮',
         whitehole: '🌀',
         boost: '⚡',
+        spaceJunk: '🛰️',
+        resourceEnemy: '🛸',
         meteor: '☄️',
         default: '✨'
     },
     COLORS: {
         rock: 0xaaaaaa,
         wood: 0x8b4513,
+        crystal: 0x7dd3fc,
+        plasma: 0xd946ef,
         special: 0x00ffff,
+        junk: 0x8f8f8f,
+        enemy: 0xff5555,
         default: 0xffffff
     },
     COLLECTION_RADIUS: {
@@ -88,8 +95,40 @@ export const RESOURCE_CONFIG = {
         MIN_DIST_OFFSET: 150,
         MAX_DIST_BASE: 800,
         MIN_GAP: 300
+    },
+    SPACE_JUNK: {
+        SPAWN_CHANCE: 0.12,
+        ARM_AGGRO_HITS: 3
+    },
+    RESOURCE_ENEMY: {
+        MAX_ACTIVE: 4,
+        SPAWN_INTERVAL: 12000,
+        SPEED: 90,
+        DESTROY_DISTANCE: 28
     }
 };
+
+export const UPDATE_HISTORY = [
+    {
+        date: '2026-05-31',
+        title: 'Resource ecosystem update',
+        changes: [
+            'Added crystal and plasma special resources to the collection pool.',
+            'Added resource-destroying enemies that can be intercepted by robotic arms.',
+            'Added space junk obstacles with three robotic-arm aggro charges.',
+            'Removed black-hole movement and replaced movement progression with collection upgrades.',
+            'Added mobile-friendly full-screen controls, public suggestions, and update history.'
+        ]
+    },
+    {
+        date: '2026-05-30',
+        title: 'Release and leaderboard panels',
+        changes: [
+            'Added stable and preview deployment panels to the main menu.',
+            'Improved leaderboard submission flow and release note visibility.'
+        ]
+    }
+] as const;
 
 export const PHYSICS_CONFIG = {
     MAX_SPEED: 240,

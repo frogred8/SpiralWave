@@ -102,6 +102,10 @@ export class RoboticArm {
     public fire(target: Collectible, time: number) {
         this.state = 'extending';
         this.grabbedResource = target;
+        if (target.obstacleType === 'spaceJunk') {
+            (target as any).lastAggroX = target.x;
+            (target as any).lastAggroY = target.y;
+        }
         this.extensionProgress = 0;
         this.target.copy(this.spiralCenter);
         this.lastFireTime = time;

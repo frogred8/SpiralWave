@@ -466,7 +466,6 @@ export class SkillTreeUI {
             case 'maxResearchSlots': return INITIAL_STATS.MAX_RESEARCH_SLOTS;
             case 'spawnRate': return INITIAL_STATS.SPAWN_RATE_FACTOR;
             case 'researchBonus': return INITIAL_STATS.RESEARCH_BONUS;
-            case 'moveSpeed': return INITIAL_STATS.MOVE_SPEED;
             case 'net': return 0;
             case 'satelliteCount': return 0;
             default: return 0;
@@ -484,7 +483,6 @@ export class SkillTreeUI {
             case 'maxResearchSlots': return I18n.t('prop.maxResearchSlots');
             case 'spawnRate': return I18n.t('prop.spawnRate');
             case 'researchBonus': return I18n.t('prop.researchBonus');
-            case 'moveSpeed': return I18n.t('prop.moveSpeed');
             case 'net': return I18n.t('prop.net');
             case 'netAngle': return I18n.t('prop.netAngle');
             case 'satelliteCount': return I18n.t('prop.satelliteCount');

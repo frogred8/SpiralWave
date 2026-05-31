@@ -112,7 +112,7 @@ export class OrbitSystem {
     }
 
     public handleResourceGravity(resource: Resource): boolean {
-        if (!resource.active || resource.itemType === 'special' || resource.isBeingPulled) return false;
+        if (!resource.active || resource.itemType === 'special' || (resource as any).obstacleType || resource.isBeingPulled) return false;
 
         const nearest = this.getNearestSatellite(resource);
         if (!nearest) {

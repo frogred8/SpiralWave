@@ -5,6 +5,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         // Resources
         'resource.wood': 'WOOD',
         'resource.rock': 'ROCK',
+        'resource.crystal': 'CRYSTAL',
+        'resource.plasma': 'PLASMA',
         
         // Stats Panel
         'stats.total': 'TOTAL',
@@ -34,7 +36,6 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.spawnRate': 'Spawn Rate',
         'prop.researchBonus': 'Research time reduction when using robotic arm',
         'prop.satelliteCount': 'Satellites',
-        'prop.moveSpeed': 'Move Speed',
         'prop.net': 'Resource Net',
         'prop.netAngle': 'Net Angle',
         'prop.smallBlackHole': 'Small Black Holes',
@@ -58,7 +59,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.reroll': 'REROLL',
         'ui.click_to_select': 'CLICK TO SELECT',
         'ui.game_tips_title': 'Game Tips',
-        'ui.game_tips_body': '- Fever Mode activates when you collect resources and fill the gauge completely!\n- Find your own optimal combination in a skill tree that changes every run.\n- Suggestions from Top 10 users will be applied in the next update.',
+        'ui.game_tips_body': '- Fever Mode activates when you collect resources and fill the gauge completely!\n- Robotic arms can block resource hunters and clear space junk.\n- Community suggestions are visible to everyone on the main menu.',
         'ui.submit_score': 'Submit Your Score',
         'ui.name': 'Name (Max 10 chars)',
         'ui.message': 'Suggestions for the next update',
@@ -81,6 +82,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': 'CURRENT CONNECTION',
         'ui.current_version': 'Version',
         'ui.no_release_note': 'No release note.',
+        'ui.fullscreen': 'FULL',
+        'ui.windowed': 'EXIT',
+        'ui.public_suggestions': 'Public Suggestions',
+        'ui.no_suggestions': 'No public suggestions yet.',
+        'ui.update_history': 'Update History',
         
         // Units
         'unit.second': 's',
@@ -92,8 +98,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.small_black_hole.desc': 'Spawn +1 small black hole that absorbs resources (3s active, 2s shrink)',
         'skill.f2.name': 'Wider Net',
         'skill.f2.desc': 'Net Angle +15°',
-        'skill.q3.name': 'Move Speed',
-        'skill.q3.desc': 'Move Speed +0.5 (using Arrow Keys)',
+        'skill.q3.name': 'Gravity Tuning',
+        'skill.q3.desc': 'Force +0.08',
         'skill.r1.name': 'Big Resource',
         'skill.r1.desc': 'Big Resource Prob +5%',
         'skill.arm_speed.name': 'Arm Speed',
@@ -121,6 +127,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         // Resources
         'resource.wood': '나무',
         'resource.rock': '돌',
+        'resource.crystal': '크리스탈',
+        'resource.plasma': '플라즈마',
         
         // Stats Panel
         'stats.total': '총계',
@@ -151,7 +159,6 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.spawnRate': '생성 속도',
         'prop.researchBonus': '로봇팔 사용 시 연구 시간 단축',
         'prop.satelliteCount': '위성 개수',
-        'prop.moveSpeed': '이동 속도',
         'prop.net': '자원 그물',
         'prop.netAngle': '그물 각도',
         'prop.smallBlackHole': '작은 블랙홀 개수',
@@ -175,7 +182,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.reroll': '다시 선택',
         'ui.click_to_select': '클릭하여 선택',
         'ui.game_tips_title': '게임 팁',
-        'ui.game_tips_body': '- 자원을 획득해서 게이지를 끝까지 충전하면 발동되는 피버 모드!\n- 매번 달라지는 스킬 트리로 당신만의 최적 조합을 찾아내세요.\n- Top10 유저의 제안 사항은 다음 업데이트에 적용됩니다.',
+        'ui.game_tips_body': '- 자원을 획득해서 게이지를 끝까지 충전하면 피버 모드가 발동됩니다.\n- 로봇팔은 자원 사냥꾼을 막고 우주 쓰레기를 처리할 수 있습니다.\n- 커뮤니티 제안은 메인 메뉴에서 모두에게 공개됩니다.',
         'ui.submit_score': '점수 제출',
         'ui.name': '이름 (10자 이하)',
         'ui.message': '다음 업데이트 제안',
@@ -198,6 +205,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '현재 접속',
         'ui.current_version': '버전',
         'ui.no_release_note': '릴리즈 노트가 없습니다.',
+        'ui.fullscreen': '전체',
+        'ui.windowed': '해제',
+        'ui.public_suggestions': '공개 제안',
+        'ui.no_suggestions': '공개 제안이 없습니다.',
+        'ui.update_history': '업데이트 내역',
         
         // Units
         'unit.second': '초',
@@ -209,8 +221,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.small_black_hole.desc': '자원을 흡수하는 작은 블랙홀 +1개 생성 (3초 유지, 2초간 축소)',
         'skill.f2.name': '그물 확장',
         'skill.f2.desc': '그물 각도 +15°',
-        'skill.q3.name': '이동 속도',
-        'skill.q3.desc': '이동 속도 +0.5 (방향키 사용)',
+        'skill.q3.name': '중력 조율',
+        'skill.q3.desc': '인력 +0.08',
         'skill.r1.name': '대형 자원',
         'skill.r1.desc': '대형 자원 확률 +5%',
         'skill.arm_speed.name': '로봇팔 속도',
@@ -238,6 +250,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         // Resources
         'resource.wood': '木头',
         'resource.rock': '石头',
+        'resource.crystal': '水晶',
+        'resource.plasma': '等离子',
         
         // Stats Panel
         'stats.total': '总计',
@@ -267,7 +281,6 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.spawnRate': '生成速度',
         'prop.researchBonus': '使用机械臂时缩短研究时间',
         'prop.satelliteCount': '卫星数量',
-        'prop.moveSpeed': '移动速度',
         'prop.net': '资源网',
         'prop.netAngle': '网角度',
         'prop.smallBlackHole': '小黑洞数量',
@@ -291,7 +304,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.reroll': '重新选择',
         'ui.click_to_select': '点击选择',
         'ui.game_tips_title': '游戏提示',
-        'ui.game_tips_body': '- 收集资源并将能量槽充满即可发动狂热模式！\n- 在每次都会变化的技能树中，找出属于你的最佳组合。\n- Top10 用户的建议将在下次更新中应用。',
+        'ui.game_tips_body': '- 收集资源并充满能量槽即可发动狂热模式。\n- 机械臂可以拦截资源猎手并清理太空垃圾。\n- 社区建议会在主菜单中向所有玩家公开。',
         'ui.submit_score': '提交分数',
         'ui.name': '姓名 (10个字符以内)',
         'ui.message': '对下次更新的建议',
@@ -314,6 +327,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '当前连接',
         'ui.current_version': '版本',
         'ui.no_release_note': '暂无发布说明。',
+        'ui.fullscreen': '全屏',
+        'ui.windowed': '退出',
+        'ui.public_suggestions': '公开建议',
+        'ui.no_suggestions': '暂无公开建议。',
+        'ui.update_history': '更新历史',
         
         // Units
         'unit.second': '秒',
@@ -325,8 +343,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.small_black_hole.desc': '生成 +1 个吸收资源的小黑洞（3秒活跃，2秒缩小）',
         'skill.f2.name': '宽网',
         'skill.f2.desc': '网角度 +15°',
-        'skill.q3.name': '移动速度',
-        'skill.q3.desc': '移动速度 +0.5 (使用方向键)',
+        'skill.q3.name': '引力调校',
+        'skill.q3.desc': '引力 +0.08',
         'skill.r1.name': '大资源',
         'skill.r1.desc': '大资源概率 +5%',
         'skill.arm_speed.name': '机械臂速度',
@@ -354,6 +372,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         // Resources
         'resource.wood': '木材',
         'resource.rock': '石材',
+        'resource.crystal': 'クリスタル',
+        'resource.plasma': 'プラズマ',
         
         // Stats Panel
         'stats.total': '合計',
@@ -383,7 +403,6 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.spawnRate': '出現速度',
         'prop.researchBonus': 'アーム使用時の研究時間短縮',
         'prop.satelliteCount': '衛星数',
-        'prop.moveSpeed': '移動速度',
         'prop.net': '資源ネット',
         'prop.netAngle': 'ネット角度',
         'prop.smallBlackHole': '小型ブラックホール数',
@@ -407,7 +426,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.reroll': '再選択',
         'ui.click_to_select': 'クリックして選択',
         'ui.game_tips_title': 'ゲームのコツ',
-        'ui.game_tips_body': '- 資源を集めてゲージを最後まで満たすと、フィーバーモードが発動します！\n- 毎回変化するスキルツリーで、あなただけの最適な組み合わせを見つけましょう。\n- Top10ユーザーの提案は次のアップデートで適用されます。',
+        'ui.game_tips_body': '- 資源を集めてゲージを満たすとフィーバーモードが発動します。\n- アームは資源ハンターを止め、スペースデブリを処理できます。\n- コミュニティ提案はメインメニューで全員に公開されます。',
         'ui.submit_score': 'スコア送信',
         'ui.name': '名前 (10文字以内)',
         'ui.message': '次のアップデートへの要望',
@@ -430,6 +449,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_server': '現在の接続',
         'ui.current_version': 'バージョン',
         'ui.no_release_note': 'リリースノートはありません。',
+        'ui.fullscreen': '全画面',
+        'ui.windowed': '解除',
+        'ui.public_suggestions': '公開提案',
+        'ui.no_suggestions': '公開提案はまだありません。',
+        'ui.update_history': '更新履歴',
 
         // Units
         'unit.second': '秒',
@@ -441,8 +465,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.small_black_hole.desc': '資源を吸収する小型ブラックホール +1 個を生成 (3秒維持、2秒かけて縮小)',
         'skill.f2.name': 'ネット拡張',
         'skill.f2.desc': 'ネット角度 +15°',
-        'skill.q3.name': '移動速度',
-        'skill.q3.desc': '移動速度 +0.5 (方向キー使用)',
+        'skill.q3.name': '重力調整',
+        'skill.q3.desc': '引力 +0.08',
         'skill.r1.name': '大型資源',
         'skill.r1.desc': '大型資源確率 +5%',
         'skill.arm_speed.name': 'アーム速度',

@@ -3,7 +3,7 @@ import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
-import { Resource, SpecialItem, Collectible } from './Types';
+import { Resource, SpecialItem, ResourceDestroyingEnemy, SpaceJunk } from './Types';
 import { getResourceMetadata } from './ResourceRegistry';
 
 export class ResourceManager {
@@ -11,6 +11,7 @@ export class ResourceManager {
     private stats: GameStats;
     private renderer: GameRenderer;
     private resources: Phaser.Physics.Arcade.Group;
+    private enemies: Phaser.Physics.Arcade.Group;
     private worldContainer: Phaser.GameObjects.Container;
     private spiralCenter: Phaser.Math.Vector2;
     private whiteHoles: Phaser.GameObjects.Container[] = [];
@@ -30,10 +31,19 @@ export class ResourceManager {
             bounceY: 0.8,
             collideWorldBounds: false
         });
+        this.enemies = this.scene.physics.add.group({
+            bounceX: 0.4,
+            bounceY: 0.4,
+            collideWorldBounds: false
+        });
     }
 
     public getGroup(): Phaser.Physics.Arcade.Group {
         return this.resources;
+    }
+
+    public getEnemyGroup(): Phaser.Physics.Arcade.Group {
+        return this.enemies;
     }
 
     public getSmallBlackHoles(): Phaser.GameObjects.Container[] {
@@ -180,6 +190,11 @@ export class ResourceManager {
     }
 
     public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {
+        if (!isWhiteHole && Math.random() < RESOURCE_CONFIG.SPACE_JUNK.SPAWN_CHANCE) {
+            this.createSpaceJunkAt(x, y);
+            return;
+        }
+
         const types = RESOURCE_CONFIG.TYPES;
         const type = types[Phaser.Math.Between(0, types.length - 1)];
         const isHighDim = Math.random() < this.stats.highDimProb;
@@ -207,6 +222,52 @@ export class ResourceManager {
         
         res.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
         res.body.setAngularVelocity(Phaser.Math.Between(45, 180));
+    }
+
+    public createSpaceJunkAt(x: number, y: number) {
+        const item = this.scene.add.text(x, y, this.getIcon('spaceJunk'), {
+            fontSize: '34px',
+            color: '#bbbbbb'
+        }).setOrigin(0.5) as SpaceJunk;
+
+        item.obstacleType = 'spaceJunk';
+        item.armAggroHitsRemaining = RESOURCE_CONFIG.SPACE_JUNK.ARM_AGGRO_HITS;
+        this.scene.physics.add.existing(item);
+        this.resources.add(item);
+        this.worldContainer.add(item);
+        item.body.setCircle(17);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Phaser.Math.Between(80, 140);
+        item.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+        item.body.setAngularVelocity(Phaser.Math.Between(60, 160));
+    }
+
+    public spawnResourceEnemy() {
+        if (this.enemies.getLength() >= RESOURCE_CONFIG.RESOURCE_ENEMY.MAX_ACTIVE) return;
+
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
+        const { x: rawX, y: rawY } = Utils.getRandomEdgePosition(width, height);
+        const enemy = this.scene.add.text(rawX - offsetX, rawY - offsetY, this.getIcon('resourceEnemy'), {
+            fontSize: '38px'
+        }).setOrigin(0.5) as ResourceDestroyingEnemy;
+
+        enemy.enemyType = 'resourceDestroyer';
+        this.scene.physics.add.existing(enemy);
+        this.enemies.add(enemy);
+        this.worldContainer.add(enemy);
+        enemy.body.setCircle(19);
+        enemy.body.setAngularVelocity(80);
+
+        this.scene.tweens.add({
+            targets: enemy,
+            scale: 1.18,
+            duration: 600,
+            yoyo: true,
+            loop: -1
+        });
     }
 
     public spawnSpecialItem() {
@@ -348,6 +409,12 @@ export class ResourceManager {
     }
 
     public getParticleTint(res: any): number {
+        if (res.obstacleType === 'spaceJunk') {
+            return getResourceMetadata('spaceJunk').tint;
+        }
+        if (res.enemyType === 'resourceDestroyer') {
+            return getResourceMetadata('resourceEnemy').tint;
+        }
         if (res.itemType === 'special' && res.specialType) {
             return getResourceMetadata(res.specialType).tint;
         }
@@ -358,6 +425,7 @@ export class ResourceManager {
 
     public clear() {
         this.resources.clear(true, true);
+        this.enemies.clear(true, true);
         this.whiteHoles.forEach(wh => wh.destroy());
         this.whiteHoles = [];
         

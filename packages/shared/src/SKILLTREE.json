@@ -53,13 +53,15 @@
             { "wood": 10, "rock": 20 },
             { "wood": 15, "rock": 40 },
             { "wood": 20, "rock": 70 },
-            { "wood": 80, "rock": 120 }
+            { "wood": 80, "rock": 120 },
+            { "wood": 140, "rock": 180 },
+            { "wood": 220, "rock": 260 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 12, 15, 15],
-        "effectProperty": "moveSpeed",
-        "effectValue": 0.5,
-        "maxLevel": 5
+        "researchTimes": [5, 10, 12, 15, 15, 18, 20],
+        "effectProperty": "force",
+        "effectValue": 0.08,
+        "maxLevel": 7
     },
     {
         "id": "r1",
@@ -85,13 +87,15 @@
         "costs": [
             { "wood": 10 },
             { "wood": 40 },
-            { "wood": 100 }
+            { "wood": 100 },
+            { "wood": 180 },
+            { "wood": 280 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 15],
+        "researchTimes": [5, 10, 15, 18, 22],
         "effectProperty": "armSpeed",
         "effectValue": 0.4,
-        "maxLevel": 3
+        "maxLevel": 5
     },
     {
         "id": "r2",
@@ -99,13 +103,15 @@
         "row": 2,
         "costs": [
             { "wood": 40, "rock": 20 },
-            { "wood": 100, "rock": 80 }
+            { "wood": 100, "rock": 80 },
+            { "wood": 160, "rock": 140 },
+            { "wood": 240, "rock": 220 }
         ],
         "prerequisites": [],
-        "researchTimes": [10, 15],
+        "researchTimes": [10, 15, 20, 25],
         "effectProperty": "satelliteCount",
         "effectValue": 1,
-        "maxLevel": 2
+        "maxLevel": 4
     },
     {
         "id": "r3",
@@ -143,13 +149,14 @@
         "row": 3,
         "costs": [
             { "rock": 30 },
-            { "rock": 100 }
+            { "rock": 100 },
+            { "rock": 180 }
         ],
         "prerequisites": [],
-        "researchTimes": [10, 15],
+        "researchTimes": [10, 15, 20],
         "effectProperty": "maxArms",
         "effectValue": 1,
-        "maxLevel": 2
+        "maxLevel": 3
     },
     {
         "id": "arm_sync",
@@ -199,13 +206,15 @@
         "costs": [
             { "wood": 10, "rock": 5 },
             { "wood": 50, "rock": 20 },
-            { "wood": 90, "rock": 60 }
+            { "wood": 90, "rock": 60 },
+            { "wood": 150, "rock": 110 },
+            { "wood": 220, "rock": 170 }
         ],
         "prerequisites": [],
-        "researchTimes": [5, 10, 15],
+        "researchTimes": [5, 10, 15, 20, 25],
         "effectProperty": "netLength",
         "effectValue": 100,
-        "maxLevel": 3
+        "maxLevel": 5
     },
     {
         "id": "special_item_booster",

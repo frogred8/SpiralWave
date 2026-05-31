@@ -149,7 +149,6 @@ export const Utils = {
             case 'armSpeed': return `${value.toFixed(1)}x`;
             case 'maxResearchSlots': return `${value}`;
             case 'spawnRate': return `${value.toFixed(1)}x`;
-            case 'moveSpeed': return `${value.toFixed(2)}`;
             case 'netAngle': return `${value}°`;
             case 'satelliteCount': return `${value}`;
             default: return `${value}`;

@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 /**
  * 자원 종류 정의
  */
-export type ResourceType = 'rock' | 'wood';
+export type ResourceType = 'rock' | 'wood' | 'crystal' | 'plasma';
 
 /**
  * 특수 아이템 종류 정의
@@ -22,6 +22,9 @@ export interface Collectible extends Phaser.GameObjects.GameObject {
     isHighDim?: boolean;
     itemType?: 'special';
     specialType?: SpecialItemType;
+    obstacleType?: 'spaceJunk';
+    enemyType?: 'resourceDestroyer';
+    armAggroHitsRemaining?: number;
 }
 
 /**
@@ -30,6 +33,17 @@ export interface Collectible extends Phaser.GameObjects.GameObject {
 export interface Resource extends Phaser.GameObjects.Text {
     resourceType: ResourceType;
     isHighDim: boolean;
+    body: Phaser.Physics.Arcade.Body;
+}
+
+export interface SpaceJunk extends Phaser.GameObjects.Text {
+    obstacleType: 'spaceJunk';
+    armAggroHitsRemaining: number;
+    body: Phaser.Physics.Arcade.Body;
+}
+
+export interface ResourceDestroyingEnemy extends Phaser.GameObjects.Text {
+    enemyType: 'resourceDestroyer';
     body: Phaser.Physics.Arcade.Body;
 }
 
@@ -77,7 +91,6 @@ export type EffectProperty =
     | 'maxResearchSlots' 
     | 'spawnRate' 
     | 'researchBonus' 
-    | 'moveSpeed' 
     | 'net'
     | 'netAngle'
     | 'satelliteCount'

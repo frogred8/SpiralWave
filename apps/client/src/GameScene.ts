@@ -443,13 +443,15 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.removeAllListeners('worldResourceCollected');
 
         this.gameStats.on(GameStats.EVENTS.SKILL_UPGRADED, (skillId: string) => {
-            this.updateSpawnTimer();
+            if (this.isGameStarted) {
+                this.updateSpawnTimer();
+            }
             this.syncArmsCount();
             this.orbitSystem.setSatelliteCount(this.gameStats.satelliteCount);
             this.resourceManager.syncSmallBlackHoleDisplayRadius();
 
             const skill = this.gameStats.skillTreeData.find(s => s.id === skillId);
-            if (skill?.effectProperty === 'smallBlackHole') {
+            if (this.isGameStarted && skill?.effectProperty === 'smallBlackHole') {
                 this.spawnSmallBlackHoles(skill.effectValue);
             }
 

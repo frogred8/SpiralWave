@@ -19,9 +19,9 @@ export interface UIState {
 }
 
 export interface UICallbacks {
-    onStartGame: () => void;
+    onStartGame: (playTimeSeconds: number) => void;
     onRestartGame: (canReroll: boolean) => void;
-    onSendStartSignal: (skillId: number) => void;
+    onSendStartSignal: (skillId: number, playTimeSeconds: number) => void;
     onSendEndSignal: (name: string, msg: string) => void;
     onFetchLeaderboard: () => Promise<RankEntry[]>;
     onFetchDeployments: () => Promise<DeploymentEntry[]>;
@@ -656,18 +656,12 @@ export class UIManager {
         soundManager.initializeSounds();
         soundManager.play('skillupgrade');
 
-        const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
-        this.callbacks.onSendStartSignal(skillIndex);
-        this.callbacks.onStartGame();
-
         this.scene.tweens.add({
             targets: [overlay, title, btn],
             alpha: 0,
             duration: 500,
             onComplete: () => {
-                overlay.destroy();
-                title.destroy();
-                this.clearUIByDepth(2000);
+                this.showPlayTimeSelection(skill, overlay);
             }
         });
 
@@ -676,6 +670,61 @@ export class UIManager {
                 this.scene.tweens.add({ targets: child, alpha: 0, duration: 300 });
             }
         });
+    }
+
+    private showPlayTimeSelection(skill: any, overlay: Phaser.GameObjects.Rectangle) {
+        const { width, height } = this.scene.scale;
+        const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
+        const container = this.scene.add.container(width / 2, height / 2).setDepth(2001);
+        const panel = this.scene.add.rectangle(0, 0, 460, 250, 0x222222, 0.96)
+            .setStrokeStyle(3, 0x00aa00);
+        const title = this.scene.add.text(0, -82, I18n.t('ui.choose_play_time'), {
+            fontSize: '28px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+
+        container.add([panel, title]);
+        [1, 3, 5].forEach((minutes, index) => {
+            const x = (index - 1) * 130;
+            const option = this.createPlayTimeButton(x, 42, minutes, () => {
+                const playTimeSeconds = minutes * 60;
+                this.callbacks.onSendStartSignal(skillIndex, playTimeSeconds);
+                this.callbacks.onStartGame(playTimeSeconds);
+                overlay.destroy();
+                container.destroy();
+                this.clearUIByDepth(2000);
+            });
+            container.add(option);
+        });
+
+        this.uiContainer.add(container);
+    }
+
+    private createPlayTimeButton(x: number, y: number, minutes: number, onSelect: () => void) {
+        const button = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, 110, 70, 0x222222, 0.9)
+            .setStrokeStyle(3, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.play_time_minutes').replace('{minutes}', minutes.toString()), {
+            fontSize: '22px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(4, 0x00ff00);
+            bg.setFillStyle(0x444444);
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(3, 0x00aa00);
+            bg.setFillStyle(0x222222);
+        });
+        bg.on('pointerdown', onSelect);
+        return button;
     }
 
     public showInputForm() {

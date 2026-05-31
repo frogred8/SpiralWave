@@ -60,9 +60,9 @@ export class GameScene extends Phaser.Scene {
         
         // UI Manager 초기화
         this.uiManager = new UIManager(this, this.uiContainer, this.topUiContainer, this.gameStats, {
-            onStartGame: () => this.startGame(),
+            onStartGame: (playTimeSeconds) => this.startGame(playTimeSeconds),
             onRestartGame: (canReroll) => this.restartGame(canReroll),
-            onSendStartSignal: (id) => this.sendStartGameSignal(id),
+            onSendStartSignal: (id, playTimeSeconds) => this.sendStartGameSignal(id, playTimeSeconds),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
             onFetchDeployments: () => this.fetchDeploymentsData(),
@@ -269,8 +269,8 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private startGame() {
-        this.gameStats.startGame();
+    private startGame(playTimeSeconds: number) {
+        this.gameStats.startGame(playTimeSeconds);
         this.isGameStarted = true;
         this.setupTimers();
         this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
@@ -279,7 +279,7 @@ export class GameScene extends Phaser.Scene {
         soundManager.play('gamestart');
     }
 
-    private async sendStartGameSignal(skillId: number) {
+    private async sendStartGameSignal(skillId: number, playTimeSeconds: number) {
         this.currentSelectSkillId = skillId;
         const serverUrl = this.getServerUrl();
 
@@ -287,7 +287,7 @@ export class GameScene extends Phaser.Scene {
             if (!this.userInfo) {
                 this.userInfo = await Utils.getUserInfo();
             }
-            const body: StartRequest = { select_skill_id: skillId, ip: this.userInfo.ip };
+            const body: StartRequest = { select_skill_id: skillId, play_time_seconds: playTimeSeconds, ip: this.userInfo.ip };
             const response = await fetch(`/start`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

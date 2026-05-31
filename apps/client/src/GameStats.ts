@@ -46,7 +46,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     private lastUpdateTime: number = 0;
     private gameStarted: boolean = false;
     public isGameOver: boolean = false;
-    public readonly TIME_LIMIT = INITIAL_STATS.TIME_LIMIT;
+    public timeLimit: number = INITIAL_STATS.TIME_LIMIT;
     public timeSpawnMultiplier: number = 1.0;
     
     public isBoosterCalculating: boolean = false;
@@ -112,6 +112,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.activeResearches = [];
         this.researchQueue = [];
         this.playtime = 0;
+        this.timeLimit = INITIAL_STATS.TIME_LIMIT;
         this.gameStarted = false;
         this.isGameOver = false;
         this.collectionHistory = [];
@@ -136,7 +137,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
     /**
      * 게임 시작 처리
      */
-    startGame() {
+    startGame(playTimeSeconds: number = INITIAL_STATS.TIME_LIMIT) {
+        this.timeLimit = playTimeSeconds;
         this.gameStarted = true;
         this.isGameOver = false;
         this.lastUpdateTime = Date.now();
@@ -176,7 +178,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         }
 
         // 제한시간 체크 (부스터 시간 포함)
-        const totalLimit = this.TIME_LIMIT + this.boosterTimeAdded;
+        const totalLimit = this.timeLimit + this.boosterTimeAdded;
         if (this.playtime >= totalLimit) {
             this.playtime = totalLimit;
             if (!this.isBoosterTime && !this.isBoosterCalculating) {
@@ -278,7 +280,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 남은 시간(초) 반환
      */
     getRemainingTime(): number {
-        return Math.max(0, (this.TIME_LIMIT + this.boosterTimeAdded) - this.playtime);
+        return Math.max(0, (this.timeLimit + this.boosterTimeAdded) - this.playtime);
     }
 
     /**

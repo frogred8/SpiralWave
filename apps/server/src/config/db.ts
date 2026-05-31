@@ -20,7 +20,12 @@ const initDb = async () => {
         table.string('game_id', 20).primary();
         table.string('ip', 45).notNullable();
         table.integer('select_skill_id');
+        table.integer('play_time_seconds').notNullable().defaultTo(300);
         table.timestamp('created_at').defaultTo(db.fn.now());
+      });
+    } else if (!(await db.schema.hasColumn('game', 'play_time_seconds'))) {
+      await db.schema.alterTable('game', (table) => {
+        table.integer('play_time_seconds').notNullable().defaultTo(300);
       });
     }
 
@@ -33,10 +38,15 @@ const initDb = async () => {
         table.string('ip', 45).notNullable();
         table.string('emoji', 10);
         table.integer('score').notNullable();
+        table.integer('play_time_seconds').notNullable().defaultTo(300);
         table.text('msg');
         table.timestamp('created_at').notNullable();
         table.timestamp('end_at').notNullable();
         table.index(['score'], 'wish_score_idx');
+      });
+    } else if (!(await db.schema.hasColumn('wish', 'play_time_seconds'))) {
+      await db.schema.alterTable('wish', (table) => {
+        table.integer('play_time_seconds').notNullable().defaultTo(300);
       });
     }
 

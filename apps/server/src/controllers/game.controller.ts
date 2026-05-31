@@ -21,10 +21,14 @@ function isValidResetSecret(secretKey: unknown) {
 }
 
 export const GameController = {
-  async handleStart(request: FastifyRequest) {
+  async handleStart(request: FastifyRequest, reply: FastifyReply) {
     const body = request.body as StartRequest;
-    request.log.info({ select_skill_id: body.select_skill_id, ip: body.ip }, 'Game session start requested');
-    return await GameService.startGame(body.select_skill_id, body.ip);
+    if (![60, 180, 300].includes(body.play_time_seconds)) {
+      return reply.code(400).send({ status: 'error', message: 'Invalid play_time_seconds' });
+    }
+
+    request.log.info({ select_skill_id: body.select_skill_id, play_time_seconds: body.play_time_seconds, ip: body.ip }, 'Game session start requested');
+    return await GameService.startGame(body.select_skill_id, body.play_time_seconds, body.ip);
   },
 
   async handleEnd(request: FastifyRequest) {

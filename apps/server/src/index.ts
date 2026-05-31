@@ -42,9 +42,9 @@ fastify.get('/health', async (request, reply) => {
 });
 
 // Routes
-fastify.post('/start', async (request) => {
+fastify.post('/start', async (request, reply) => {
   routeMetrics.start++;
-  return GameController.handleStart(request);
+  return GameController.handleStart(request, reply);
 });
 fastify.post('/end', async (request) => {
   routeMetrics.end++;

@@ -19,6 +19,7 @@ const cache: LeaderboardCache = {
 };
 
 const CACHE_TTL = 60 * 1000; // 1 minute
+const ALLOWED_PLAY_TIME_SECONDS = new Set([60, 180, 300]);
 
 /**
  * @param {number} prefix_n - 타임스탬프 기반 접두사 길이
@@ -58,9 +59,10 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
 
   // 3. 제한 시간보다 이르게 종료 요청이 들어온 경우
   const createdAt = new Date(gameRecord.created_at);
-  const earliestValidEndAt = new Date(createdAt.getTime() + INITIAL_STATS.TIME_LIMIT * 1000);
+  const playTimeSeconds = Number(gameRecord.play_time_seconds) || INITIAL_STATS.TIME_LIMIT;
+  const earliestValidEndAt = new Date(createdAt.getTime() + playTimeSeconds * 1000);
   if (earliestValidEndAt > endAt) { 
-    console.log(`Validation failed (3): Time validation error. Earliest valid end: ${earliestValidEndAt.toISOString()}, EndAt: ${endAt.toISOString()}`); 
+    console.log(`Validation failed (3): Time validation error. Play time: ${playTimeSeconds}s, Earliest valid end: ${earliestValidEndAt.toISOString()}, EndAt: ${endAt.toISOString()}`); 
     return null; 
   }
 
@@ -118,7 +120,11 @@ function invalidateLeaderboardCache() {
 }
 
 export const GameService = {
-  async startGame(selectSkillId: number, ip: string) {
+  async startGame(selectSkillId: number, playTimeSeconds: number, ip: string) {
+    if (!ALLOWED_PLAY_TIME_SECONDS.has(playTimeSeconds)) {
+      throw new Error('Invalid play time');
+    }
+
     // Generate UUID using custom function
     const gameId = generateUUID();
 
@@ -126,7 +132,8 @@ export const GameService = {
       await db('game').insert({
         game_id: gameId,
         ip: ip,
-        select_skill_id: selectSkillId
+        select_skill_id: selectSkillId,
+        play_time_seconds: playTimeSeconds
       });
       return { status: 'ok', message: 'Game session started', game_id: gameId };
     } catch (err) {
@@ -151,6 +158,7 @@ export const GameService = {
           ip: ip,
           emoji: emoji,
           score: score,
+          play_time_seconds: Number(gameRecord.play_time_seconds) || INITIAL_STATS.TIME_LIMIT,
           msg: msg,
           created_at: gameRecord.created_at,
           end_at: endAt

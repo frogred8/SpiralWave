@@ -227,7 +227,6 @@ export class UIManager {
         this.createGameTips(width, titleY + 100);
         void this.createDeploymentsPanel(width, height + 72);
         void this.createPublicSuggestionsPanel(width, height);
-        this.createUpdateHistoryButton(width / 2, Math.min(height - 44, titleY + 180));
 
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {
@@ -334,22 +333,23 @@ export class UIManager {
         this.uiContainer.add(container);
     }
 
-    private createUpdateHistoryButton(x: number, y: number) {
+    private createUpdateHistoryButton(x: number, y: number, width = 170, height = 34) {
         const button = this.scene.add.container(x, y).setDepth(2002);
-        const bg = this.scene.add.rectangle(0, 0, 170, 34, 0x222222, 0.9)
+        const bg = this.scene.add.rectangle(0, 0, width, height, 0x222222, 0.9)
             .setStrokeStyle(2, 0x00aa00)
             .setInteractive({ useHandCursor: true });
         const text = this.scene.add.text(0, 0, I18n.t('ui.update_history'), {
-            fontSize: '14px',
+            fontSize: height <= 22 ? '10px' : '14px',
             color: '#00ff00',
             fontStyle: 'bold'
         }).setOrigin(0.5);
+        Utils.adjustFontSize(text, width - 8, 7, height <= 22 ? 10 : 14);
 
         button.add([bg, text]);
         bg.on('pointerover', () => bg.setFillStyle(0x444444));
         bg.on('pointerout', () => bg.setFillStyle(0x222222));
         bg.on('pointerdown', () => this.showUpdateHistoryOverlay());
-        this.uiContainer.add(button);
+        return button;
     }
 
     private showUpdateHistoryOverlay() {
@@ -477,7 +477,9 @@ export class UIManager {
         //     color: '#9ca3af'
         // }).setOrigin(1, 0).setPadding({ top: 2, bottom: 2 });
 
-        container.add([bg, title/*, subtitle*/]);
+        const updateHistoryButton = this.createUpdateHistoryButton(panelWidth - 44, 22, 60, 22);
+
+        container.add([bg, title, updateHistoryButton/*, subtitle*/]);
 
         deployments.forEach((deployment, index) => {
             this.addDeploymentEntry(container, deployment, panelWidth, headerHeight + index * itemHeight);

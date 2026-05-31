@@ -64,7 +64,7 @@ if [ "$DB_EXISTS" != "1" ]; then
 fi
 
 cd /app
-PORT="$CLIENT_PORT" npm run release --workspace @repo/server &
+PORT="$CLIENT_PORT" npm run serve --workspace @repo/server &
 SERVER_PID=$!
 
 for _ in $(seq 1 30); do

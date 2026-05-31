@@ -6,10 +6,13 @@
     "packages/*"
   ],
   "packageManager": "npm@11.1.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "release": "npm run build && npm run release --workspace @repo/server",
+    "release": "node scripts/check-node-version.cjs && npm run build && npm run serve --workspace @repo/server",
     "db": "turbo run db",
     "start": "turbo run start",
     "cron": "turbo run cron"

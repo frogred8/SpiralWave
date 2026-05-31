@@ -1,3 +1,3 @@
-import { installConsolePrefix } from '@repo/shared/dist/Logging';
+import { installConsolePrefix } from '@repo/shared';
 
 installConsolePrefix('server');

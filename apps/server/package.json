@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "main": "dist/apps/server/src/index.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/apps/server/src/index.js",
-    "release": "NODE_ENV=production HOST=${HOST:-0.0.0.0} PORT=${PORT:-3000} node dist/apps/server/src/index.js",
+    "serve": "node ../../scripts/check-node-version.cjs && NODE_ENV=production HOST=${HOST:-0.0.0.0} PORT=${PORT:-3000} node dist/apps/server/src/index.js",
+    "release": "node ../../scripts/check-node-version.cjs && npm run build --workspace @repo/shared && npm run build --workspace @repo/client && npm run build --workspace @repo/server && npm run serve --workspace @repo/server",
     "db": "docker-compose up -d",
     "clean": "rm -rf dist"
   },

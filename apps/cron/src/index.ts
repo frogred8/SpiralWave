@@ -233,10 +233,10 @@ ${prompt.trim()}
 }
 
 async function pullLatestChanges() {
-    console.log('[00] git pull');
-    const { stdout, stderr } = await execAsync('git pull', { cwd: PROJECT_ROOT });
-    if (stdout.trim()) console.log('git pull 결과:', stdout.trim());
-    if (stderr.trim()) console.error('git pull 에러 출력:', stderr.trim());
+    console.log('[00] git pull --rebase --autostash');
+    const { stdout, stderr } = await execAsync('git pull --rebase --autostash', { cwd: PROJECT_ROOT });
+    if (stdout.trim()) console.log('git pull --rebase 결과:', stdout.trim());
+    if (stderr.trim()) console.error('git pull --rebase 에러 출력:', stderr.trim());
 }
 
 async function runGeminiCli(prompt: string, cwd: string) {

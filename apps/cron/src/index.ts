@@ -4,13 +4,14 @@ import cron from 'node-cron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
 import { spawn } from 'child_process';
 import process from 'process';
-import { startDeploymentMetricsJob, collectDeploymentMetrics } from './metrics';
+import { startDeploymentMetricsJob } from './metrics';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 // Gemini SDK 초기화
 const API_KEY = process.env.GEMINI_API_KEY || '';
@@ -60,14 +61,19 @@ const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 console.log(`Start Cron (${new Date().toISOString()})`);
 console.log(`SERVER_URL: ${SERVER_URL}`);
 
+const branchDeployTarget = getBranchDeployTarget();
 
 function convertDateFormat(date: Date): string {
     const pad = (n: any) => n.toString().padStart(2, '0');
     return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}`;
 };
 
-await startDeploymentMetricsJob();
+if (branchDeployTarget) {
+    await deployExistingBranch(branchDeployTarget);
+    process.exit(process.exitCode || 0);
+}
 
+await startDeploymentMetricsJob();
 // 매일 실행 (초 분 시 일 월 요일)
 cron.schedule('0 0 10 * * *', async () => {
     try {
@@ -199,28 +205,7 @@ ${prompt.trim()}
 
         // 12. SERVER_URL로 reset API 호출하여 데이터 리셋 (leaderboard, deployments 캐시)
         console.log('[12] SERVER_URL로 reset API 호출');
-        const res1 = await fetch(`${SERVER_URL}/leaderboard/reset`, { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                secret_key: process.env.OCI_SERVER_SECRET_KEY,
-                all: true
-            })
-        });
-        if (res1.ok) {
-            console.log('leaderboard 데이터 리셋 성공');
-        } else {
-            console.error('leaderboard 데이터 리셋 실패:', res1.status, res1.statusText);
-        }
-
-        const res2 = await fetch(`${SERVER_URL}/deployments/cache`, { 
-            method: 'DELETE',
-        });
-        if (res2.ok) {
-            console.log('deployments 캐시 리셋 성공');
-        } else {
-            console.error('deployments 캐시 리셋 실패:', res2.status, res2.statusText);
-        }
+        await resetServerCaches();
 
         console.log(`\n=== 크론 작업 완료 (${timestamp}) ===\n`);
 
@@ -229,6 +214,128 @@ ${prompt.trim()}
     } finally {
         // 임시 폴더 삭제
         if (!TESTMODE && fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+}
+
+function getBranchDeployTarget(): string | null {
+    const args = process.argv.slice(2);
+    const deployBranchOption = args.find((arg) => arg.startsWith('--deploy-branch='));
+    if (deployBranchOption) {
+        const branchName = deployBranchOption.slice('--deploy-branch='.length).trim();
+        if (!branchName) throw new Error('--deploy-branch 옵션에 브랜치명을 지정하세요.');
+        return branchName;
+    }
+
+    const commandIndex = args.indexOf('deploy-branch');
+    if (commandIndex >= 0) {
+        const branchName = (args[commandIndex + 1] || '').trim();
+        if (!branchName) throw new Error('deploy-branch 명령에 브랜치명을 지정하세요.');
+        return branchName;
+    }
+
+    return (process.env.DEPLOY_BRANCH || '').trim() || null;
+}
+
+function assertValidBranchName(branchName: string) {
+    if (!branchName) {
+        throw new Error('배포할 브랜치명이 비어 있습니다.');
+    }
+
+    if (
+        branchName.startsWith('-') ||
+        branchName.startsWith('/') ||
+        branchName.endsWith('/') ||
+        branchName.includes('..') ||
+        branchName.includes('@{') ||
+        !/^[A-Za-z0-9._/-]+$/.test(branchName)
+    ) {
+        throw new Error(`배포할 수 없는 브랜치명입니다: ${branchName}`);
+    }
+}
+
+async function deployExistingBranch(branchName: string) {
+    assertValidBranchName(branchName);
+
+    const timestamp = convertDateFormat(new Date());
+    const safeBranchName = branchName.replace(/[^A-Za-z0-9._-]/g, '_');
+    const tempDir = path.join(TEMP_BASE_DIR, `spiralwave_deploy_${safeBranchName}_${timestamp}`);
+    const deploymentsPath = path.join(tempDir, 'deployments.json');
+
+    console.log(`\n=== 지정 브랜치 배포 시작: ${branchName} (${timestamp}) ===\n`);
+
+    try {
+        console.log(`[01] 브랜치 임시 폴더 clone: ${tempDir}`);
+        if (fs.existsSync(tempDir)) {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+        await execFileAsync('git', ['clone', '--branch', branchName, '--single-branch', REPO_URL, tempDir]);
+
+        console.log('[02] 배포 정보 조회');
+        const deployment = getDeploymentForBranch(deploymentsPath, branchName);
+        const hostPort = Number(process.env.HOST_PORT || deployment?.port);
+        if (!Number.isInteger(hostPort) || hostPort <= 0) {
+            throw new Error(`HOST_PORT를 결정할 수 없습니다. deployments.json에 ${branchName} 항목이 없으면 HOST_PORT 환경 변수를 지정하세요.`);
+        }
+
+        const deployVersion = process.env.NEW_VERSION || branchName;
+        const oldVersion = process.env.OLD_VERSION || deployment?.branch || deployment?.id || branchName;
+        console.log(`배포 대상: branch=${branchName}, version=${deployVersion}, port=${hostPort}`);
+
+        console.log('[03] deploy.sh 실행');
+        const { stdout, stderr } = await execAsync(`sh deploy.sh`, {
+            cwd: tempDir,
+            env: {
+                ...process.env,
+                BUILD_ENV: path.join(PROJECT_ROOT, '.env'),
+                NEW_VERSION: deployVersion,
+                OLD_VERSION: oldVersion,
+                HOST_PORT: hostPort.toString(),
+                BRANCH_NAME: branchName,
+                DEPLOYMENTS_SOURCE_FILE: deploymentsPath
+            }
+        });
+        console.log('deploy.sh 결과:', stdout);
+        if (stderr) console.error('deploy.sh 에러 출력:', stderr);
+
+        console.log('[04] SERVER_URL로 reset API 호출');
+        await resetServerCaches();
+
+        console.log(`\n=== 지정 브랜치 배포 완료: ${branchName} (${timestamp}) ===\n`);
+    } catch (error) {
+        console.error('지정 브랜치 배포 중 오류 발생:', error);
+        process.exitCode = 1;
+    } finally {
+        if (!TESTMODE && fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+}
+
+function getDeploymentForBranch(filePath: string, branchName: string): DeploymentEntry | undefined {
+    const deployments = getCurrentDeployments(filePath);
+    return deployments.find((deployment) => deployment.branch === branchName || deployment.id === branchName);
+}
+
+async function resetServerCaches() {
+    const res1 = await fetch(`${SERVER_URL}/leaderboard/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            secret_key: process.env.OCI_SERVER_SECRET_KEY,
+            all: true
+        })
+    });
+    if (res1.ok) {
+        console.log('leaderboard 데이터 리셋 성공');
+    } else {
+        console.error('leaderboard 데이터 리셋 실패:', res1.status, res1.statusText);
+    }
+
+    const res2 = await fetch(`${SERVER_URL}/deployments/cache`, {
+        method: 'DELETE',
+    });
+    if (res2.ok) {
+        console.log('deployments 캐시 리셋 성공');
+    } else {
+        console.error('deployments 캐시 리셋 실패:', res2.status, res2.statusText);
     }
 }
 

@@ -753,6 +753,7 @@ export class UIManager {
     private showPlayTimeSelection(skill: any, overlay: Phaser.GameObjects.Rectangle) {
         const { width, height } = this.scene.scale;
         const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
+        overlay.setVisible(true).setAlpha(0.8).setDepth(2000);
         const container = this.scene.add.container(width / 2, height / 2).setDepth(2001);
         const panel = this.scene.add.rectangle(0, 0, 460, 250, 0x222222, 0.96)
             .setStrokeStyle(3, 0x00aa00);

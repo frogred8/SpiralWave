@@ -74,6 +74,36 @@ if (branchDeployTarget) {
 }
 
 await startDeploymentMetricsJob();
+
+// //await asdf();
+// async function asdf() {
+//         const timestamp = '20260531_1010'; //convertDateFormat(new Date());
+//         const tempDir = path.join(TEMP_BASE_DIR, `spiralwave_${timestamp}`);
+//         console.log(`[TEST] 임시 폴더 경로: ${tempDir}`);
+//     const branchName = `${timestamp}`;
+//     const deploymentsPath = path.join(tempDir, 'deployments.json');
+
+//     console.log(`\n=== 크론 작업 시작... (${timestamp}) ===\n`);
+
+//             const { stdout, stderr } = await execAsync(`sh deploy.sh`, {
+//             cwd: tempDir,
+//             env: {
+//                 ...process.env,
+//                 BUILD_ENV: '../../.env',
+//                 NEW_VERSION: branchName,
+//                 OLD_VERSION: 'spiralwave',
+//                 HOST_PORT: '3303',
+//                 BRANCH_NAME: branchName,
+//                 DEPLOYMENTS_SOURCE_FILE: deploymentsPath
+//             }
+//         });
+//         console.log('deploy.sh 결과:', stdout);
+//         if (stderr) console.error('deploy.sh 에러 출력:', stderr);
+
+//     return;
+
+// }
+
 // 매일 실행 (초 분 시 일 월 요일)
 cron.schedule('0 0 10 * * *', async () => {
     try {

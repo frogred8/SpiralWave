@@ -91,6 +91,28 @@ export const RESOURCE_CONFIG = {
     }
 };
 
+export const UPDATE_HISTORY = [
+    {
+        date: '2026-05-31',
+        title: 'Resource ecosystem update',
+        changes: [
+            'Added crystal and plasma special resources to the collection pool.',
+            'Added resource-destroying enemies that can be intercepted by robotic arms.',
+            'Added space junk obstacles with three robotic-arm aggro charges.',
+            'Removed black-hole movement and replaced movement progression with collection upgrades.',
+            'Added mobile-friendly full-screen controls, public suggestions, and update history.'
+        ]
+    },
+    {
+        date: '2026-05-30',
+        title: 'Release and leaderboard panels',
+        changes: [
+            'Added stable and preview deployment panels to the main menu.',
+            'Improved leaderboard submission flow and release note visibility.'
+        ]
+    }
+] as const;
+
 export const PHYSICS_CONFIG = {
     MAX_SPEED: 240,
     MIN_SPEED_NORMAL: 30,

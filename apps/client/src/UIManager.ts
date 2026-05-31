@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from './GameStats';
-import { INITIAL_STATS, RESOURCE_CONFIG } from '@shared/Constants';
+import { INITIAL_STATS, RESOURCE_CONFIG, UPDATE_HISTORY } from '@shared/Constants';
 import { DeploymentEntry, RankEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
@@ -45,6 +45,7 @@ export class UIManager {
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
     private leaderboardOverlayElement: Phaser.GameObjects.Container | null = null;
+    private updateHistoryElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseNoteMask: Phaser.GameObjects.Graphics | null = null;
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
@@ -276,6 +277,81 @@ export class UIManager {
         this.uiContainer.add(this.deploymentsElement);
     }
 
+    private createUpdateHistoryButton(x: number, y: number, width = 170, height = 34) {
+        const button = this.scene.add.container(x, y).setDepth(2002);
+        const bg = this.scene.add.rectangle(0, 0, width, height, 0x222222, 0.9)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.update_history'), {
+            fontSize: height <= 22 ? '10px' : '14px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        Utils.adjustFontSize(text, width - 8, 7, height <= 22 ? 10 : 14);
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => bg.setFillStyle(0x444444));
+        bg.on('pointerout', () => bg.setFillStyle(0x222222));
+        bg.on('pointerdown', () => this.showUpdateHistoryOverlay());
+        return button;
+    }
+
+    private showUpdateHistoryOverlay() {
+        this.destroyUpdateHistoryOverlay();
+        const { width, height } = this.scene.scale;
+        const overlayContainer = this.scene.add.container(0, 0).setDepth(3500);
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.76)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true });
+        const panelWidth = Math.min(680, width - 40);
+        const panelHeight = Math.min(520, height - 80);
+        const panel = this.scene.add.rectangle(width / 2, height / 2, panelWidth, panelHeight, 0x151515, 0.98)
+            .setStrokeStyle(2, 0x22c55e);
+        const title = this.scene.add.text(width / 2, height / 2 - panelHeight / 2 + 28, I18n.t('ui.update_history'), {
+            fontSize: '24px',
+            color: '#22c55e',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        overlayContainer.add([overlay, panel, title]);
+        let y = height / 2 - panelHeight / 2 + 68;
+        UPDATE_HISTORY.forEach(entry => {
+            const heading = this.scene.add.text(width / 2 - panelWidth / 2 + 24, y, `${entry.date}  ${entry.title}`, {
+                fontSize: '15px',
+                color: '#ffffff',
+                fontStyle: 'bold'
+            }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+            overlayContainer.add(heading);
+            y += 24;
+            entry.changes.forEach(change => {
+                const line = this.scene.add.text(width / 2 - panelWidth / 2 + 34, y, `- ${change}`, {
+                    fontSize: '13px',
+                    color: '#d1d5db',
+                    wordWrap: { width: panelWidth - 68, useAdvancedWrap: true }
+                }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+                overlayContainer.add(line);
+                y += Math.max(22, line.height + 4);
+            });
+            y += 12;
+        });
+
+        const closeButton = this.scene.add.container(width / 2, height / 2 + panelHeight / 2 - 34);
+        const closeBg = this.scene.add.rectangle(0, 0, 180, 44, 0x222222, 0.9)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const closeText = this.scene.add.text(0, 0, I18n.t('ui.close'), {
+            fontSize: '18px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        closeButton.add([closeBg, closeText]);
+        closeBg.on('pointerdown', () => this.destroyUpdateHistoryOverlay());
+        overlayContainer.add(closeButton);
+        overlay.on('pointerdown', () => this.destroyUpdateHistoryOverlay());
+        this.updateHistoryElement = overlayContainer;
+        this.uiContainer.add(overlayContainer);
+    }
+
     private getDeploymentPanelMetrics(width: number, height: number, deploymentCount: number) {
         const headerHeight = 44;
         const itemHeight = 82;
@@ -345,7 +421,9 @@ export class UIManager {
         //     color: '#9ca3af'
         // }).setOrigin(1, 0).setPadding({ top: 2, bottom: 2 });
 
-        container.add([bg, title/*, subtitle*/]);
+        const updateHistoryButton = this.createUpdateHistoryButton(panelWidth - 44, 22, 60, 22);
+
+        container.add([bg, title, updateHistoryButton/*, subtitle*/]);
 
         deployments.forEach((deployment, index) => {
             this.addDeploymentEntry(container, deployment, panelWidth, headerHeight + index * itemHeight);
@@ -1295,6 +1373,10 @@ export class UIManager {
         if (this.leaderboardOverlayElement && this.leaderboardOverlayElement.depth >= minDepth) {
             this.destroyLeaderboardOverlay();
         }
+
+        if (this.updateHistoryElement && this.updateHistoryElement.depth >= minDepth) {
+            this.destroyUpdateHistoryOverlay();
+        }
     }
 
     public destroy() {
@@ -1303,6 +1385,7 @@ export class UIManager {
         this.destroyDeploymentsPanel();
         this.destroyStableReleasePanel();
         this.destroyLeaderboardOverlay();
+        this.destroyUpdateHistoryOverlay();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);
@@ -1337,6 +1420,13 @@ export class UIManager {
         if (this.leaderboardOverlayElement) {
             this.leaderboardOverlayElement.destroy();
             this.leaderboardOverlayElement = null;
+        }
+    }
+
+    private destroyUpdateHistoryOverlay() {
+        if (this.updateHistoryElement) {
+            this.updateHistoryElement.destroy();
+            this.updateHistoryElement = null;
         }
     }
 }

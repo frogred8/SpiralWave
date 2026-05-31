@@ -826,7 +826,9 @@ export class UIManager {
         submitBg.on('pointerdown', async () => {
             const name = (document.getElementById('playerName') as HTMLInputElement).value;
             const msg = (document.getElementById('playerMsg') as HTMLTextAreaElement).value;
-            await this.callbacks.onSendEndSignal(name, msg);
+            if (name.trim() !== '' || msg.trim() !== '') {
+                await this.callbacks.onSendEndSignal(name, msg);
+            }
             closeCallback();
             this.showGameOverScreen(undefined, true);
         });

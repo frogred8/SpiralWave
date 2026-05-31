@@ -226,7 +226,7 @@ export class UIManager {
         this.createCurrentVersionLabel(width, titleY - 32);
         this.createGameTips(width, titleY + 100);
         void this.createDeploymentsPanel(width, height + 72);
-        void this.createPublicSuggestionsPanel(width, height);
+        // void this.createPublicSuggestionsPanel(width, height);
 
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {

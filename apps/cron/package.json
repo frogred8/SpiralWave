@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "cron": "tsx src/index.ts",
+    "deploy": "tsx src/index.ts deploy-branch",
     "deploy:branch": "tsx src/index.ts deploy-branch",
     "build": "tsc",
     "start": "node dist/index.js",

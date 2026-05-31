@@ -15,7 +15,8 @@
     "release": "node scripts/check-node-version.cjs && npm run build && npm run serve --workspace @repo/server",
     "db": "turbo run db",
     "start": "turbo run start",
-    "cron": "turbo run cron"
+    "cron": "turbo run cron",
+    "deploy": "npm run deploy --workspace @repo/cron --"
   },
   "devDependencies": {
     "turbo": "^2.8.20"

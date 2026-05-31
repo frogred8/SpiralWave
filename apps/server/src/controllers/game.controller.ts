@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { GameService } from '../services/game.service';
-import type { StartRequest, EndRequest, LeaderboardResetRequest } from '@shared/ApiTypes';
+import type { StartRequest, EndRequest, LeaderboardResetRequest } from '@repo/shared';
 
 function isValidSeqIdList(seqIds: unknown): seqIds is number[] {
   return Array.isArray(seqIds)

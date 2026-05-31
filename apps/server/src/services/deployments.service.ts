@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { DeploymentEntry, DeploymentsResponse } from '@shared/ApiTypes';
+import type { DeploymentEntry, DeploymentsResponse } from '@repo/shared';
 
 function getDeploymentsFilePath() {
   return process.env.DEPLOYMENTS_FILE || path.resolve(process.cwd()+'../../../', 'deployments.json');

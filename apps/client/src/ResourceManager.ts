@@ -67,7 +67,7 @@ export class ResourceManager {
         const defaultOffset = 3 * Math.PI / 4;
         const userAgent = navigator.userAgent.toLowerCase();
 
-        if (userAgent.includes('android')) {
+        if (userAgent.includes('android') || userAgent.includes('windows')) {
             return defaultOffset + Math.PI / 2;
         }
 

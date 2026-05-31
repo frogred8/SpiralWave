@@ -55,6 +55,7 @@ const gemini = {
 const SERVER_URL = `http://${process.env.OCI_SERVER_IP}:${process.env.OCI_SERVER_PORT}`;
 const REPO_URL = process.env.REPO_URL || 'https://github.com/frogred8/SpiralWave.git';
 const TEMP_BASE_DIR = process.env.TEMP_DIR || path.join(process.cwd(), '.tmp');
+const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 
 console.log(`Start Cron (${new Date().toISOString()})`);
 console.log(`SERVER_URL: ${SERVER_URL}`);
@@ -79,6 +80,8 @@ cron.schedule('0 0 10 * * *', async () => {
 async function run() {
     const timestamp = convertDateFormat(new Date());
     console.log(`\n=== 크론 작업 시작... (${timestamp}) ===\n`);
+
+    await pullLatestChanges();
 
     // 1. 데이터 API 호출
     console.log('[01] 데이터 API 호출');
@@ -227,6 +230,13 @@ ${prompt.trim()}
         // 임시 폴더 삭제
         if (!TESTMODE && fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
     }
+}
+
+async function pullLatestChanges() {
+    console.log('[00] git pull');
+    const { stdout, stderr } = await execAsync('git pull', { cwd: PROJECT_ROOT });
+    if (stdout.trim()) console.log('git pull 결과:', stdout.trim());
+    if (stderr.trim()) console.error('git pull 에러 출력:', stderr.trim());
 }
 
 async function runGeminiCli(prompt: string, cwd: string) {

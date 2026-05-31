@@ -68,7 +68,7 @@ function convertDateFormat(date: Date): string {
 await startDeploymentMetricsJob();
 
 // 매일 실행 (초 분 시 일 월 요일)
-cron.schedule('0 0 0 * * *', async () => {
+cron.schedule('0 0 10 * * *', async () => {
     try {
         await run();
     } catch (error) {

@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260601_1000",
+    "type": "preview",
+    "title": "20260601_1000 Build",
+    "url": "http://134.185.103.3:3304",
+    "branch": "20260601_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260601_1000:latest",
+    "container": "spiralwave",
+    "port": 3304,
+    "status": "active",
+    "released_at": "2026-06-01T01:00:30.502Z",
+    "release_note": {
+      "en": "Enhance the game by implementing the following features:\n\n1. Permanent Stat Upgrade System: Develop a meta-progression mechanic where the score achieved at the end of a session is used to provide permanent base stat enhancements for subsequent playthroughs.\n2. Resource-Generating Projectile: Implement a feature where an entity (alien) throws \"Resource Bombs\" that release collectible items or grant resource bonuses upon activation.\n3. High-Value Resource Tiers: Introduce larger resource objects that yield significantly higher acquisition amounts compared to standard resources.",
+      "ko": "다음 기능을 구현하여 게임을 강화했습니다:\n\n1. 영구 능력치 업그레이드 시스템: 세션 종료 시 획득한 점수를 사용하여 이후 플레이 시 영구적인 기본 능력치 강화를 제공하는 메타 진행 메커니즘을 개발했습니다.\n2. 자원 생성 투사체: 개체(에일리언)가 '자원 폭탄'을 던져 아이템을 방출하거나 활성화 시 자원 보너스를 제공하는 기능을 구현했습니다.\n3. 고가치 자원 등급: 일반 자원에 비해 훨씬 높은 획득량을 제공하는 대형 자원 오브젝트를 도입했습니다.",
+      "zh": "通过实现以下功能来增强游戏体验：\n\n1. 永久属性升级系统：开发了一种元进度机制，利用每局游戏结束时获得的得分，为后续游戏提供永久的基础属性增强。\n2. 资源生成投射物：实现了实体（外星人）投掷“资源炸弹”的功能，该炸弹在激活时会释放可收集物品或提供资源奖励。\n3. 高价值资源层级：引入了大型资源对象，与标准资源相比，其产出量显著更高。",
+      "ja": "以下の機能を実装することでゲームを強化しました：\n\n1. 恒久ステータスアップグレードシステム：セッション終了時のスコアを使用して、次回以降のプレイで永続的な基本ステータス強化を提供するメタプログレッションメカニズムを開発しました。\n2. リソース生成発射体：エンティティ（エイリアン）が「リソースボム」を投げ、起動時に収集可能なアイテムを放出したり、リソースボーナスを付与したりする機能を実装しました。\n3. 高価値リソースティア：標準的なリソースに比べて獲得量が大幅に多い、大型のリソースオブジェクトを導入しました。"
+    }
+  },
+  {
     "id": "20260531_1010",
     "type": "preview",
     "title": "20260531_1010 Build",

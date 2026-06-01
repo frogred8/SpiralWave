@@ -8,7 +8,9 @@ export type ResourceType = 'rock' | 'wood';
 /**
  * 특수 아이템 종류 정의
  */
-export type SpecialItemType = 'whitehole' | 'boost';
+export type SpecialItemType = 'whitehole' | 'boost' | 'resourceBomb';
+
+export type ResourceTier = 'normal' | 'large' | 'massive';
 
 /**
  * 수집 가능한 객체 인터페이스
@@ -20,6 +22,7 @@ export interface Collectible extends Phaser.GameObjects.GameObject {
     body: Phaser.Physics.Arcade.Body;
     resourceType?: ResourceType;
     isHighDim?: boolean;
+    resourceTier?: ResourceTier;
     itemType?: 'special';
     specialType?: SpecialItemType;
 }
@@ -30,6 +33,7 @@ export interface Collectible extends Phaser.GameObjects.GameObject {
 export interface Resource extends Phaser.GameObjects.Text {
     resourceType: ResourceType;
     isHighDim: boolean;
+    resourceTier: ResourceTier;
     body: Phaser.Physics.Arcade.Body;
 }
 

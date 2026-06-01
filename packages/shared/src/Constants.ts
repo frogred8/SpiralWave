@@ -47,6 +47,7 @@ export const DURATIONS = {
     RADIUS_BOOST_DISTANCE_MULTIPLIER: 1.6,
     SPECIAL_ITEM_SPAWN: 15000,
     METEOR_INTERVAL: 30000,
+    RESOURCE_BOMB_INTERVAL: 18000,
     NET_COOLDOWN: 5000,
     NET_DISTANCE: 600,
     NET_ANIMATION: 600,
@@ -77,9 +78,30 @@ export const RESOURCE_CONFIG = {
     },
     COLLECTION_RADIUS: {
         NORMAL: 30,
-        HIGH_DIM: 45
+        HIGH_DIM: 45,
+        MASSIVE: 58
     },
     HIGH_DIM_MULTIPLIER: 5,
+    TIERS: {
+        NORMAL: {
+            AMOUNT: 1,
+            FONT_SIZE: 24,
+            BODY_RADIUS: 12,
+            SPEED_FACTOR: 1
+        },
+        LARGE: {
+            AMOUNT: 5,
+            FONT_SIZE: 60,
+            BODY_RADIUS: 30,
+            SPEED_FACTOR: 0.5
+        },
+        MASSIVE: {
+            AMOUNT: 20,
+            FONT_SIZE: 82,
+            BODY_RADIUS: 42,
+            SPEED_FACTOR: 0.32
+        }
+    },
     WHITE_HOLE: {
         MIN_DIST_OFFSET: 100,
         MAX_DIST: 500
@@ -89,6 +111,17 @@ export const RESOURCE_CONFIG = {
         MAX_DIST_BASE: 800,
         MIN_GAP: 300
     }
+};
+
+export const META_UPGRADE_CONFIG = {
+    STORAGE_KEY: 'spiralwave:metaProgress:v1',
+    SCORE_PER_LEVEL: 500,
+    MAX_LEVEL: 40,
+    STARTING_RESOURCE_PER_LEVEL: 2,
+    RADIUS_PER_LEVEL: 4,
+    FORCE_PER_LEVEL: 0.015,
+    HIGH_DIM_PROB_PER_LEVEL: 0.003,
+    SPAWN_RATE_PER_LEVEL: 0.02
 };
 
 export const UPDATE_HISTORY = [

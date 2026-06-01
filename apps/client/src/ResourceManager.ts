@@ -3,7 +3,7 @@ import { GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { Utils } from './Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
-import { Resource, SpecialItem, Collectible } from './Types';
+import { Resource, ResourceTier, SpecialItem, Collectible } from './Types';
 import { getResourceMetadata } from './ResourceRegistry';
 
 export class ResourceManager {
@@ -16,6 +16,7 @@ export class ResourceManager {
     private whiteHoles: Phaser.GameObjects.Container[] = [];
     private smallBlackHoles: Phaser.GameObjects.Container[] = [];
     private meteors: Phaser.GameObjects.Text[] = [];
+    private aliens: Phaser.GameObjects.Text[] = [];
     private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
     constructor(scene: Phaser.Scene, stats: GameStats, renderer: GameRenderer, worldContainer: Phaser.GameObjects.Container, spiralCenter: Phaser.Math.Vector2) {
@@ -179,23 +180,26 @@ export class ResourceManager {
         (this.scene.tweens.getTweensOf(meteor)[0] as any).lastResourceProgress = 0;
     }
 
-    public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {
+    public createResourceAt(x: number, y: number, isWhiteHole: boolean = false, forcedTier?: ResourceTier) {
         const types = RESOURCE_CONFIG.TYPES;
         const type = types[Phaser.Math.Between(0, types.length - 1)];
-        const isHighDim = Math.random() < this.stats.highDimProb;
+        const tier = forcedTier ?? this.rollResourceTier();
+        const tierConfig = this.getTierConfig(tier);
+        const isHighDim = tier !== 'normal';
         
         const icon = this.getIcon(type);
         const res = this.scene.add.text(x, y, icon, { 
-            fontSize: isHighDim ? '60px' : '24px' 
+            fontSize: `${tierConfig.FONT_SIZE}px`
         }).setOrigin(0.5) as Resource;
         
         res.resourceType = type;
         res.isHighDim = isHighDim;
+        res.resourceTier = tier;
         this.scene.physics.add.existing(res);
         this.resources.add(res);
         this.worldContainer.add(res);
         
-        const radius = isHighDim ? 30 : 12;
+        const radius = tierConfig.BODY_RADIUS;
         res.body.setCircle(radius, (res.width - radius * 2) / 2, (res.height - radius * 2) / 2);
         
         const { width, height } = this.getSpawnDimensions();
@@ -203,10 +207,94 @@ export class ResourceManager {
         const offsetY = (height - this.scene.scale.height) / 2;
         const angle = isWhiteHole ? Math.random() * Math.PI * 2 : Utils.getAngle(x, y, Math.random() * width - offsetX, Math.random() * height - offsetY);
         const baseSpeed = isWhiteHole ? Phaser.Math.Between(150, 250) * 1.5 : Phaser.Math.Between(150, 250);
-        const speed = baseSpeed * (isHighDim ? 0.5 : 1);
+        const speed = baseSpeed * tierConfig.SPEED_FACTOR;
         
         res.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
         res.body.setAngularVelocity(Phaser.Math.Between(45, 180));
+    }
+
+    private rollResourceTier(): ResourceTier {
+        if (Math.random() >= this.stats.highDimProb) return 'normal';
+        return Math.random() < 0.18 ? 'massive' : 'large';
+    }
+
+    public getResourceAmount(resource: Collectible): number {
+        if (resource.resourceTier === 'massive') return RESOURCE_CONFIG.TIERS.MASSIVE.AMOUNT;
+        if (resource.resourceTier === 'large' || resource.isHighDim) return RESOURCE_CONFIG.TIERS.LARGE.AMOUNT;
+        return RESOURCE_CONFIG.TIERS.NORMAL.AMOUNT;
+    }
+
+    private getTierConfig(tier: ResourceTier) {
+        if (tier === 'massive') return RESOURCE_CONFIG.TIERS.MASSIVE;
+        if (tier === 'large') return RESOURCE_CONFIG.TIERS.LARGE;
+        return RESOURCE_CONFIG.TIERS.NORMAL;
+    }
+
+    public spawnResourceBomb() {
+        const { width, height } = this.getSpawnDimensions();
+        const offsetX = (width - this.scene.scale.width) / 2;
+        const offsetY = (height - this.scene.scale.height) / 2;
+        const { x: rawX, y: rawY } = Utils.getRandomEdgePosition(width, height);
+        const x = rawX - offsetX;
+        const y = rawY - offsetY;
+
+        const alien = this.scene.add.text(x, y, '👾', { fontSize: '44px' }).setOrigin(0.5);
+        this.worldContainer.add(alien);
+        this.aliens.push(alien);
+
+        const targetAngle = Math.random() * Math.PI * 2;
+        const targetX = this.spiralCenter.x + Math.cos(targetAngle) * Phaser.Math.Between(70, Math.max(90, this.stats.radius));
+        const targetY = this.spiralCenter.y + Math.sin(targetAngle) * Phaser.Math.Between(70, Math.max(90, this.stats.radius));
+
+        this.scene.time.delayedCall(450, () => {
+            if (!alien.active) return;
+            this.createResourceBombAt(alien.x, alien.y, targetX, targetY);
+        });
+
+        this.scene.tweens.add({
+            targets: alien,
+            x: x + Phaser.Math.Between(-120, 120),
+            y: y + Phaser.Math.Between(-120, 120),
+            alpha: 0,
+            duration: 1800,
+            ease: 'Sine.easeIn',
+            onComplete: () => {
+                alien.destroy();
+                this.aliens = this.aliens.filter(a => a !== alien);
+            }
+        });
+    }
+
+    private createResourceBombAt(x: number, y: number, targetX: number, targetY: number) {
+        const item = this.scene.add.text(x, y, this.getIcon('resourceBomb'), { fontSize: '42px' }).setOrigin(0.5) as SpecialItem;
+        item.itemType = 'special';
+        item.specialType = 'resourceBomb';
+
+        this.scene.physics.add.existing(item);
+        this.resources.add(item);
+        this.worldContainer.add(item);
+        item.body.setCircle(21);
+
+        const dir = new Phaser.Math.Vector2(targetX - x, targetY - y).normalize();
+        item.body.setVelocity(dir.x * 150, dir.y * 150);
+        item.body.setAngularVelocity(220);
+
+        this.scene.tweens.add({ targets: item, scale: 1.18, alpha: 0.78, duration: 500, yoyo: true, loop: -1 });
+        this.scene.time.delayedCall(4000, () => {
+            if (!item.active) return;
+            this.burstResourceBomb(item.x, item.y);
+            item.destroy();
+        });
+    }
+
+    public burstResourceBomb(x: number, y: number) {
+        const burstCount = Phaser.Math.Between(7, 10);
+        for (let i = 0; i < burstCount; i++) {
+            const angle = (Math.PI * 2 * i) / burstCount + Math.random() * 0.3;
+            const dist = Phaser.Math.Between(10, 45);
+            const tier: ResourceTier = i < 2 ? 'massive' : (Math.random() < 0.45 ? 'large' : 'normal');
+            this.createResourceAt(x + Math.cos(angle) * dist, y + Math.sin(angle) * dist, true, tier);
+        }
     }
 
     public spawnSpecialItem() {
@@ -366,6 +454,9 @@ export class ResourceManager {
         
         this.meteors.forEach(m => m.destroy());
         this.meteors = [];
+
+        this.aliens.forEach(a => a.destroy());
+        this.aliens = [];
         
         this.emitters.forEach(e => e.destroy());
         this.emitters = [];

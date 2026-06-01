@@ -116,7 +116,7 @@ export class UIManager {
     }
 
     public createStatsPanel() {
-        const panelX = 50, panelY = 15, panelWidth = 380, panelHeight = 65; // Height increased for fever bar
+        const panelX = 50, panelY = 15, panelWidth = 420, panelHeight = 65; // Height increased for fever bar
         this.statsContainer = this.scene.add.container(panelX, panelY).setScrollFactor(0);
 
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x1a1a1a, 0.95).setStrokeStyle(2, 0x444444).setOrigin(0);
@@ -151,7 +151,7 @@ export class UIManager {
             woodValue.setText(this.stats.collected.wood.toString());
             rockValue.setText(this.stats.collected.rock.toString());
             totalText.setText(`${I18n.t('stats.total')}: ${this.stats.totalAll}\n${I18n.t('stats.rate')}: ${this.stats.getRecentCollectionAmount()}`);
-            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('stats.arms')}: ${this.stats.maxArms}`);
+            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('stats.meta')}: ${this.stats.permanentUpgrades.level}`);
         };
 
         this.updateFeverDisplay = () => {
@@ -1042,8 +1042,10 @@ export class UIManager {
             fontSize: '56px', color: '#ff0000', fontStyle: 'bold', stroke: '#000000', strokeThickness: 8
         }).setOrigin(0.5).setDepth(3001);
 
-        const resourceInfo = this.scene.add.text(width / 2, 160, `${I18n.t('ui.total_resources')}: ${this.stats.totalAll}`, {
-            fontSize: '28px', color: '#ffffff', align: 'center', fontStyle: 'bold'
+        const resourceText = `${I18n.t('ui.total_resources')}: ${this.stats.totalAll}`;
+        const upgradeText = `${I18n.t('ui.permanent_upgrade')}: ${I18n.t('stats.meta')} ${this.stats.permanentUpgrades.level}`;
+        const resourceInfo = this.scene.add.text(width / 2, 160, `${resourceText}\n${upgradeText}`, {
+            fontSize: '26px', color: '#ffffff', align: 'center', fontStyle: 'bold', lineSpacing: 8
         }).setOrigin(0.5).setDepth(3001);
 
         this.uiContainer.add([title, resourceInfo]);

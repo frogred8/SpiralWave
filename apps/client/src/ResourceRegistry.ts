@@ -39,6 +39,13 @@ export const RESOURCE_METADATA: Record<ResourceRegistryKey, ResourceMetadata> = 
         icon: '⚡',
         tint: 0x00ffff
     },
+    resourceBomb: {
+        key: 'resourceBomb',
+        name: 'Resource Bomb',
+        description: 'Alien-thrown payload that bursts into rich resources when activated.',
+        icon: '💣',
+        tint: 0xffdd55
+    },
     satellite: {
         key: 'satellite',
         name: 'Orbital Satellite',

@@ -6,7 +6,7 @@ export type ResourceType = 'rock' | 'wood';
 /**
  * 특수 아이템 종류 정의
  */
-export type SpecialItemType = 'whitehole' | 'boost';
+export type SpecialItemType = 'whitehole' | 'boost' | 'resourceBomb';
 
 /**
  * 로봇팔 상태 정의

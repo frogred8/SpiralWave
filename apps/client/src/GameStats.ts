@@ -1,7 +1,17 @@
 import Phaser from 'phaser';
 import { SkillData } from '@shared/SkillData';
-import { DURATIONS, INITIAL_STATS } from '@shared/Constants';
+import { DURATIONS, INITIAL_STATS, META_UPGRADE_CONFIG } from '@shared/Constants';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
+
+export interface PermanentUpgradeState {
+    totalScore: number;
+    level: number;
+    startingResourceBonus: number;
+    radiusBonus: number;
+    forceBonus: number;
+    highDimProbBonus: number;
+    spawnRateBonus: number;
+}
 
 /**
  * 게임의 모든 상태와 스탯을 관리하는 클래스
@@ -17,6 +27,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public collected!: Record<ResourceType, number>;
     public totalCollected!: Record<ResourceType, number>;
     public totalAll!: number;
+    public permanentUpgrades!: PermanentUpgradeState;
     public maxResources!: number;
     public isColorUnlocked!: boolean;
     
@@ -69,7 +80,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
         SPECIAL_ITEM_INTERVAL_CHANGED: 'specialItemIntervalChanged',
         CALCULATE_BOOSTER: 'calculateBooster',
         FEVER_START: 'feverStart',
-        FEVER_END: 'feverEnd'
+        FEVER_END: 'feverEnd',
+        PERMANENT_PROGRESS_CHANGED: 'permanentProgressChanged'
     };
 
     constructor(skillTreeData: SkillData[]) {
@@ -80,12 +92,15 @@ export class GameStats extends Phaser.Events.EventEmitter {
     private initializeStats(skillTreeData: SkillData[]) {
         this.skillTreeData = skillTreeData;
         // 초기 스탯 설정 (Constants 참조)
-        this.force = INITIAL_STATS.FORCE;
-        this.radius = INITIAL_STATS.RADIUS;
-        this.highDimProb = INITIAL_STATS.HIGH_DIM_PROB;
+        this.permanentUpgrades = this.loadPermanentUpgrades();
+
+        this.force = INITIAL_STATS.FORCE + this.permanentUpgrades.forceBonus;
+        this.radius = INITIAL_STATS.RADIUS + this.permanentUpgrades.radiusBonus;
+        this.highDimProb = INITIAL_STATS.HIGH_DIM_PROB + this.permanentUpgrades.highDimProbBonus;
         this.moveSpeed = INITIAL_STATS.MOVE_SPEED;
         
-        this.collected = { rock: INITIAL_STATS.ROCK, wood: INITIAL_STATS.WOOD };
+        const startingResource = this.permanentUpgrades.startingResourceBonus;
+        this.collected = { rock: INITIAL_STATS.ROCK + startingResource, wood: INITIAL_STATS.WOOD + startingResource };
         this.totalCollected = { rock: 0, wood: 0 };
         this.totalAll = 0;
         this.maxResources = INITIAL_STATS.MAX_RESOURCES;
@@ -94,7 +109,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.maxArms = INITIAL_STATS.MAX_ARMS;
         this.isAutoArmEnabled = false;
         this.armSpeedFactor = INITIAL_STATS.ARM_SPEED_FACTOR;
-        this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
+        this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR + this.permanentUpgrades.spawnRateBonus;
         this.isNetEnabled = false;
         this.netAngle = INITIAL_STATS.NET_ANGLE;
         this.satelliteCount = 0;
@@ -124,6 +139,59 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.feverGauge = 0;
         this.isFeverMode = false;
         this.feverTimer = 0;
+    }
+
+    private loadPermanentUpgrades(): PermanentUpgradeState {
+        const totalScore = this.loadPermanentScore();
+        return this.createPermanentUpgradeState(totalScore);
+    }
+
+    private loadPermanentScore(): number {
+        if (typeof localStorage === 'undefined') return 0;
+
+        try {
+            const raw = localStorage.getItem(META_UPGRADE_CONFIG.STORAGE_KEY);
+            if (!raw) return 0;
+
+            const parsed = JSON.parse(raw) as { totalScore?: number };
+            return Math.max(0, Math.floor(parsed.totalScore || 0));
+        } catch {
+            return 0;
+        }
+    }
+
+    private savePermanentScore(totalScore: number) {
+        if (typeof localStorage === 'undefined') return;
+
+        localStorage.setItem(META_UPGRADE_CONFIG.STORAGE_KEY, JSON.stringify({ totalScore }));
+    }
+
+    private createPermanentUpgradeState(totalScore: number): PermanentUpgradeState {
+        const level = Math.min(
+            META_UPGRADE_CONFIG.MAX_LEVEL,
+            Math.floor(totalScore / META_UPGRADE_CONFIG.SCORE_PER_LEVEL)
+        );
+
+        return {
+            totalScore,
+            level,
+            startingResourceBonus: level * META_UPGRADE_CONFIG.STARTING_RESOURCE_PER_LEVEL,
+            radiusBonus: level * META_UPGRADE_CONFIG.RADIUS_PER_LEVEL,
+            forceBonus: level * META_UPGRADE_CONFIG.FORCE_PER_LEVEL,
+            highDimProbBonus: level * META_UPGRADE_CONFIG.HIGH_DIM_PROB_PER_LEVEL,
+            spawnRateBonus: level * META_UPGRADE_CONFIG.SPAWN_RATE_PER_LEVEL
+        };
+    }
+
+    public grantPermanentProgressFromScore(score: number): PermanentUpgradeState {
+        const awardedScore = Math.max(0, Math.floor(score));
+        if (awardedScore <= 0) return this.permanentUpgrades;
+
+        const totalScore = this.permanentUpgrades.totalScore + awardedScore;
+        this.savePermanentScore(totalScore);
+        this.permanentUpgrades = this.createPermanentUpgradeState(totalScore);
+        this.emit(GameStats.EVENTS.PERMANENT_PROGRESS_CHANGED, this.permanentUpgrades);
+        return this.permanentUpgrades;
     }
 
     /**

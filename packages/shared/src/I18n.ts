@@ -13,6 +13,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'stats.radius': 'Radius',
         'stats.arms': 'Arms',
         'stats.speed': 'Speed',
+        'stats.meta': 'Meta Lv',
         
         // Skill Tree UI
         'skill.level': 'Lv.',
@@ -54,6 +55,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.play_time_minutes': '{minutes} min',
         'ui.game_over': 'TIME\'S UP!',
         'ui.total_resources': 'Total Resources Collected',
+        'ui.permanent_upgrade': 'Permanent Upgrade',
         'ui.restart': 'RESTART GAME',
         'ui.reroll': 'REROLL',
         'ui.click_to_select': 'CLICK TO SELECT',
@@ -130,6 +132,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'stats.radius': '반지름',
         'stats.arms': '로봇팔',
         'stats.speed': '배속',
+        'stats.meta': '영구 레벨',
         
         // Skill Tree UI
         'skill.level': '레벨',
@@ -172,6 +175,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.play_time_minutes': '{minutes}분',
         'ui.game_over': '시간 종료!',
         'ui.total_resources': '총 수집 자원',
+        'ui.permanent_upgrade': '영구 강화',
         'ui.restart': '다시 시작',
         'ui.reroll': '다시 선택',
         'ui.click_to_select': '클릭하여 선택',
@@ -248,6 +252,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'stats.radius': '半径',
         'stats.arms': '机械臂',
         'stats.speed': '倍速',
+        'stats.meta': '永久等级',
         
         // Skill Tree UI
         'skill.level': '等级',
@@ -289,6 +294,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.play_time_minutes': '{minutes}分钟',
         'ui.game_over': '时间到!',
         'ui.total_resources': '总共收集的资源',
+        'ui.permanent_upgrade': '永久强化',
         'ui.restart': '重新开始',
         'ui.reroll': '重新选择',
         'ui.click_to_select': '点击选择',
@@ -365,6 +371,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'stats.radius': '半径',
         'stats.arms': 'アーム',
         'stats.speed': '倍速',
+        'stats.meta': '永続Lv',
         
         // Skill Tree UI
         'skill.level': 'Lv.',
@@ -406,6 +413,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.play_time_minutes': '{minutes}分',
         'ui.game_over': 'タイムアップ！',
         'ui.total_resources': '合計獲得資源',
+        'ui.permanent_upgrade': '永続強化',
         'ui.restart': '最初からやり直す',
         'ui.reroll': '再選択',
         'ui.click_to_select': 'クリックして選択',

@@ -231,6 +231,13 @@ export class GameScene extends Phaser.Scene {
             loop: true 
         });
 
+        this.time.addEvent({
+            delay: DURATIONS.RESOURCE_BOMB_INTERVAL,
+            callback: () => this.resourceManager.spawnResourceBomb(),
+            callbackScope: this,
+            loop: true
+        });
+
         this.scheduleSmallBlackHoleSpawn();
     }
 
@@ -459,6 +466,7 @@ export class GameScene extends Phaser.Scene {
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, async () => {
+            this.gameStats.grantPermanentProgressFromScore(this.gameStats.totalAll);
             const ranks = await this.uiManager.fetchLeaderboardRanks(true);
             if (this.shouldSubmitScore(this.gameStats.totalAll, ranks)) this.uiManager.showInputForm();
             else this.uiManager.showGameOverScreen(ranks);
@@ -648,7 +656,9 @@ export class GameScene extends Phaser.Scene {
                 Utils.applyGravityToPoint(res, dist, effectiveRadius, centerX, centerY, this.gameStats.force, PHYSICS_CONFIG.ACCEL_BASE, PHYSICS_CONFIG.DRAG_BASE);
             }
 
-            const collectionRadius = res.isHighDim ? RESOURCE_CONFIG.COLLECTION_RADIUS.HIGH_DIM : RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL;
+            const collectionRadius = res.resourceTier === 'massive'
+                ? RESOURCE_CONFIG.COLLECTION_RADIUS.MASSIVE
+                : (res.isHighDim ? RESOURCE_CONFIG.COLLECTION_RADIUS.HIGH_DIM : RESOURCE_CONFIG.COLLECTION_RADIUS.NORMAL);
             if (dist < collectionRadius) {
                 this.collectResource(res);
                 return;
@@ -720,7 +730,7 @@ export class GameScene extends Phaser.Scene {
         
         if (!silent) SoundManager.getInstance().play('gather');
         
-        const amount = isHighDim ? RESOURCE_CONFIG.HIGH_DIM_MULTIPLIER : 1;
+        const amount = this.resourceManager.getResourceAmount(collectible);
         this.gameStats.addCollected(collectible.resourceType, amount, collectible.x, collectible.y);
         
         if (byArm && this.gameStats.researchReduction > 0) {
@@ -790,9 +800,19 @@ export class GameScene extends Phaser.Scene {
 
         if (item.specialType === 'whitehole') this.resourceManager.spawnWhiteHole(undefined, undefined, true);
         else if (item.specialType === 'boost') this.triggerRadiusBoost();
+        else if (item.specialType === 'resourceBomb') this.activateResourceBomb(item);
         
         item.destroy();
         this.cameras.main.shake(100, 0.005);
+    }
+
+    private activateResourceBomb(item: SpecialItem) {
+        this.resourceManager.burstResourceBomb(item.x, item.y);
+
+        const bonusType = Math.random() > 0.5 ? 'wood' : 'rock';
+        const bonusAmount = 15;
+        this.gameStats.addCollected(bonusType, bonusAmount, item.x, item.y);
+        this.gameRenderer.emitCollectionParticles(item.x, item.y, true, this.resourceManager.getParticleTint(item));
     }
 
     private triggerRadiusBoost() {

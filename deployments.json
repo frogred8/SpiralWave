@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260602_1000",
+    "type": "preview",
+    "title": "20260602_1000 Build",
+    "url": "http://134.185.103.3:3301",
+    "branch": "20260602_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260602_1000:latest",
+    "container": "spiralwave",
+    "port": 3301,
+    "status": "active",
+    "released_at": "2026-06-02T01:00:17.798Z",
+    "release_note": {
+      "en": "Modify the game to implement the following functional requirements:\n\n1. **Endless Play Mode**: Add a new game mode that allows for unlimited gameplay without time constraints or predefined end conditions.\n2. **Enhanced Skill Selection System**:\n    - Implement a starting phase where players choose one passive skill from a pool of 3 randomized options.\n    - Implement a mid-game mechanic that triggers at specific intervals, offering a choice of 2 or more random skills.\n3. **Automated Net Aiming**: Develop an auto-aim functionality for the net weapon to automatically target valid objectives or entities.\n4. **Dynamic Main Black Hole**: Add movement logic to the \"Main Black Hole\" entity so it moves slowly across the game field rather than remaining stationary.",
+      "ko": "다음 기능 요구 사항을 구현하기 위해 게임을 수정했습니다:\n\n1. 무한 플레이 모드: 시간 제한이나 사전에 정의된 종료 조건 없이 무제한으로 플레이할 수 있는 새로운 게임 모드를 추가했습니다.\n2. 강화된 스킬 선택 시스템:\n    - 시작 단계에서 무작위로 제공되는 3가지 옵션 중 하나의 패시브 스킬을 선택하는 기능을 구현했습니다.\n    - 게임 진행 중 특정 간격마다 발생하며, 2개 이상의 무작위 스킬 중 하나를 선택할 수 있는 시스템을 구현했습니다.\n3. 자동 그물 조준: 그물 무기가 유효한 목표물이나 개체를 자동으로 조준하는 오토 에임 기능을 개발했습니다.\n4. 다이내믹 메인 블랙홀: '메인 블랙홀' 개체가 정지해 있지 않고 게임 필드를 천천히 가로질러 이동하도록 이동 로직을 추가했습니다.",
+      "zh": "修改游戏以实现以下功能需求：\n\n1. 无尽模式：添加了全新的游戏模式，允许在没有时间限制或预设结束条件的情况下进行无限游戏。\n2. 增强的技能选择系统：\n    - 实现了初始阶段，玩家可以从 3 个随机选项中选择一个被动技能。\n    - 实现了局中机制，在特定间隔触发，提供 2 个或更多随机技能供选择。\n3. 自动网枪瞄准：为网状武器开发了自动瞄准功能，可自动锁定有效目标或实体。\n4. 动态主黑洞：为“主黑洞”实体添加了移动逻辑，使其在游戏场地上缓慢移动，而非保持静止。",
+      "ja": "以下の機能要件を実装するためにゲームを修正しました：\n\n1. エンドレスプレイモード：時間制限や定義済みの終了条件がなく、無制限にプレイできる新しいゲームモードを追加しました。\n2. 強化されたスキル選択システム：\n    - 開始フェーズにおいて、ランダムに提示される3つの選択肢から1つのパッシブスキルを選択する機能を実装しました。\n    - ゲームプレイ中の特定のタイミングで、2つ以上のランダムなスキルから選択できるメカニクスを導入しました。\n3. ネットの自動照準：ネット武器が有効な目標やエンティティを自動的に狙うオートエイム機能を開発しました。\n4. ダイナミック・メインブラックホール：「メインブラックホール」エンティティが静止せず、ゲームフィールド上をゆっくりと移動する移動ロジックを追加しました。"
+    }
+  },
+  {
     "id": "20260601_1000",
     "type": "preview",
     "title": "20260601_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "다음 게임플레이 기능 및 개선 사항을 구현했습니다:\n\n1. 피버 모드 강화: 활성화 시 점수 2배 배율을 적용하고 소량의 시간을 회복하도록 피버 모드 로직을 업데이트했습니다.\n2. 스킬 선택 시스템: 게임 시작 시 스킬을 무작위로 받는 대신 플레이어가 직접 선택할 수 있도록 수정했습니다.\n3. 유니크 아티팩트 시스템: 다양한 패시브 효과나 게임플레이 보정치를 부여하는 유니크 아티팩트의 로직 프레임워크를 구현했습니다.\n4. 연구 알림: 연구 과제 완료 시 플레이어에게 짧은 알림이나 메시지를 표시하는 알림 시스템을 추가했습니다.\n5. 기본 자동화: '자동 로봇 팔'을 게임 시작부터 사용 가능한 기본 핵심 기능으로 활성화했습니다.\n6. 블랙홀 스킬: 로봇 팔이 상호작용하는 특정 좌표에 '블랙홀' 효과를 생성하여 해당 위치의 물체를 끌어당기거나 영향을 주는 새로운 스킬을 제작했습니다.",
       "zh": "实现了以下游戏功能和改进：\n\n1. 狂热模式增强：更新狂热模式逻辑，在激活时应用 2 倍分数乘数并提供少量时间恢复。\n2. 技能选择系统：修改游戏初始化过程，允许玩家手动选择初始技能，而非随机获得。\n3. 独特神器系统：实现独特神器的逻辑框架，用于提供各种被动效果或游戏调整参数。\n4. 研究通知：添加通知系统，在研究任务完成时触发并向玩家发送简短警报或消息。\n5. 基础自动化：将“自动机械臂”设为游戏开始时即可使用的默认核心功能。\n6. 黑洞技能：创建一项新技能，在机械臂交互的特定坐标生成“黑洞”效果，吸引或影响该位置的物体。",
       "ja": "以下のゲームプレイ機能の実装および改善を行いました：\n\n1. フィーバーモードの強化：フィーバーモード中にスコア2倍マルチプライヤーを適用し、少量の時間を回復するようロジックを更新しました。\n2. スキル選択システム：ゲーム開始時にスキルをランダムに受け取るのではなく、プレイヤーが手動で選択できるように変更しました。\n3. ユニークアーティファクトシステム：様々なパッシブ効果やゲームプレイ修飾子を付与するユニークアーティファクトのロジックフレームワークを実装しました。\n4. 研究通知：研究タスク完了時にプレイヤーに短いアラートやメッセージを表示する通知システムを追加しました。\n5. 基本オートメーション：「自動ロボットアーム」をゲーム開始時から利用可能なデフォルトのコア機能として有効化しました。\n6. ブラックホールスキル：ロボットアームが相互作用する特定の座標に「ブラックホール」効果を生成し、その場所のオブジェクトを引き寄せたり影響を与えたりする新しいスキルを作成しました。"
-    }
-  },
-  {
-    "id": "20260529_1442",
-    "type": "preview",
-    "title": "20260529_1442 Build",
-    "url": "http://134.185.103.3:3301",
-    "branch": "20260529_1442",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260529_1442:latest",
-    "container": "spiralwave",
-    "port": 3301,
-    "status": "active",
-    "released_at": "2026-05-29T05:42:49.126Z",
-    "release_note": {
-      "en": "Add a game pause feature to the project. The implementation should include:\n- A mechanism to toggle the game's execution state between 'Running' and 'Paused'.\n- Logic to suspend all real-time updates, including entity movements, physics simulations, and time-based events, when the game is paused.\n- A method to resume the game, ensuring all game states and variables remain consistent with the moment the pause was triggered.",
-      "ko": "프로젝트에 게임 일시정지 기능을 추가했습니다. 구현 내용은 다음과 같습니다:\n- 게임 실행 상태를 '실행 중'과 '일시정지'로 전환하는 메커니즘.\n- 일시정지 시 엔티티 이동, 물리 시뮬레이션, 시간 기반 이벤트를 포함한 모든 실시간 업데이트를 중단하는 로직.\n- 일시정지 시점의 모든 게임 상태와 변수를 일관되게 유지하며 게임을 재개하는 방법.",
-      "zh": "为项目添加了游戏暂停功能。实现内容包括：\n- 在“运行”与“暂停”状态之间切换的机制。\n- 游戏暂停时挂起所有实时更新（包括实体移动、物理模拟和基于时间的事件）的逻辑。\n- 恢复游戏的方法，确保所有游戏状态和变量与触发暂停时保持一致。",
-      "ja": "プロジェクトにゲームの一時停止機能を追加しました。実装内容は以下の通りです：\n- ゲームの実行状態を「実行中」と「一時停止」の間で切り替えるメカニズム。\n- ゲームの一時停止時に、エンティティの移動、物理シミュレーション、時間ベースのイベントを含むすべてのリアルタイム更新を停止するロジック。\n- 一時停止した瞬間のゲーム状態と変数の整合性を維持したまま、ゲームを再開する方法。"
     }
   }
 ]

@@ -228,7 +228,7 @@ export class UIManager {
         let selectedSkills = preservedSkills;
         if (!selectedSkills) {
             const candidateSkills = skillData.filter(s => s.row <= 1 && !excludeSkillIds.includes(s.id));
-            selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 2);
+            selectedSkills = Phaser.Utils.Array.Shuffle([...candidateSkills]).slice(0, 3);
             this.currentUIState.selectedInitialSkills = selectedSkills;
         }
 
@@ -239,9 +239,39 @@ export class UIManager {
         }
 
         selectedSkills.forEach((skill, index) => {
-            const x = width / 2 + (index === 0 ? -180 : 180);
+            const spacing = Math.min(300, Math.max(220, (width - 120) / Math.max(1, selectedSkills.length)));
+            const x = width / 2 + (index - (selectedSkills.length - 1) / 2) * spacing;
             const y = height / 2 + 100;
             this.createSkillCard(x, y, skill, overlay, title);
+        });
+    }
+
+    public showMidGameSkillSelection(skills: any[], onSelect: (skill: any) => void) {
+        if (skills.length === 0) return;
+        const { width, height } = this.scene.scale;
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.72)
+            .setOrigin(0).setInteractive().setDepth(2500);
+        const title = this.scene.add.text(width / 2, Math.max(80, height / 2 - 245), I18n.t('ui.choose_mid_game_skill'), {
+            fontSize: '30px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 6
+        }).setOrigin(0.5).setDepth(2501);
+        this.uiContainer.add([overlay, title]);
+
+        const cardWidth = 260;
+        const spacing = Math.min(290, Math.max(210, (width - 80) / Math.max(1, skills.length)));
+        skills.forEach((skill, index) => {
+            const x = width / 2 + (index - (skills.length - 1) / 2) * spacing;
+            const y = height / 2 + 45;
+            const btn = this.createChoiceSkillCard(x, y, skill, 2501, cardWidth, () => {
+                onSelect(skill);
+                SoundManager.getInstance().play('skillupgrade');
+                this.scene.tweens.add({
+                    targets: [overlay, title, btn],
+                    alpha: 0,
+                    duration: 250,
+                    onComplete: () => this.clearUIByDepth(2500)
+                });
+            });
+            this.uiContainer.add(btn);
         });
     }
 
@@ -689,19 +719,26 @@ export class UIManager {
     }
 
     private createSkillCard(x: number, y: number, skill: any, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
-        const btn = this.scene.add.container(x, y).setDepth(2001);
-        const bg = this.scene.add.rectangle(0, 0, 280, 320, 0x1a1a1a, 0.95)
+        const btn = this.createChoiceSkillCard(x, y, skill, 2001, 260, () => {
+            this.handleInitialSkillSelection(skill, btn, overlay, title);
+        });
+        this.uiContainer.add(btn);
+    }
+
+    private createChoiceSkillCard(x: number, y: number, skill: any, depth: number, width: number, onSelect: () => void) {
+        const btn = this.scene.add.container(x, y).setDepth(depth);
+        const bg = this.scene.add.rectangle(0, 0, width, 320, 0x1a1a1a, 0.95)
             .setStrokeStyle(3, 0x444444)
             .setInteractive({ useHandCursor: true });
 
         const skillName = I18n.t(`skill.${skill.id}.name`) || skill.id;
         const nameText = this.scene.add.text(0, -100, skillName, {
-            fontSize: '24px', color: '#00ff00', fontStyle: 'bold', align: 'center', wordWrap: { width: 240 }
+            fontSize: '23px', color: '#00ff00', fontStyle: 'bold', align: 'center', wordWrap: { width: width - 36 }
         }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
 
         const desc = I18n.t(`skill.${skill.id}.desc`) || '';
         const descText = this.scene.add.text(0, 0, desc, {
-            fontSize: '18px', color: '#ffffff', align: 'center', lineSpacing: 8, wordWrap: { width: 240 }
+            fontSize: '17px', color: '#ffffff', align: 'center', lineSpacing: 8, wordWrap: { width: width - 36 }
         }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
 
         const hintText = this.scene.add.text(0, 110, I18n.t('ui.click_to_select'), {
@@ -709,7 +746,6 @@ export class UIManager {
         }).setOrigin(0.5);
 
         btn.add([bg, nameText, descText, hintText]);
-        this.uiContainer.add(btn);
 
         bg.on('pointerover', () => {
             bg.setStrokeStyle(4, 0x00ff00);
@@ -720,8 +756,9 @@ export class UIManager {
             this.scene.tweens.add({ targets: btn, scale: 1.0, duration: 200, ease: 'Back.easeOut' });
         });
         bg.on('pointerdown', () => {
-            this.handleInitialSkillSelection(skill, btn, overlay, title);
+            onSelect();
         });
+        return btn;
     }
 
     private handleInitialSkillSelection(skill: any, btn: Phaser.GameObjects.Container, overlay: Phaser.GameObjects.Rectangle, title: Phaser.GameObjects.Text) {
@@ -755,9 +792,9 @@ export class UIManager {
         const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
         overlay.setVisible(true).setAlpha(0.8).setDepth(2000);
         const container = this.scene.add.container(width / 2, height / 2).setDepth(2001);
-        const panel = this.scene.add.rectangle(0, 0, 460, 250, 0x222222, 0.96)
+        const panel = this.scene.add.rectangle(0, 0, 460, 330, 0x222222, 0.96)
             .setStrokeStyle(3, 0x00aa00);
-        const title = this.scene.add.text(0, -82, I18n.t('ui.choose_play_time'), {
+        const title = this.scene.add.text(0, -122, I18n.t('ui.choose_play_time'), {
             fontSize: '28px',
             color: '#ffffff',
             fontStyle: 'bold',
@@ -778,6 +815,15 @@ export class UIManager {
             });
             container.add(option);
         });
+        const endlessOption = this.createPlayTimeButton(0, 110, 0, () => {
+            const playTimeSeconds = 0;
+            this.callbacks.onSendStartSignal(skillIndex, playTimeSeconds);
+            this.callbacks.onStartGame(playTimeSeconds);
+            overlay.destroy();
+            container.destroy();
+            this.clearUIByDepth(2000);
+        });
+        container.add(endlessOption);
 
         this.uiContainer.add(container);
     }
@@ -787,7 +833,8 @@ export class UIManager {
         const bg = this.scene.add.rectangle(0, 0, 110, 70, 0x222222, 0.9)
             .setStrokeStyle(3, 0x00aa00)
             .setInteractive({ useHandCursor: true });
-        const text = this.scene.add.text(0, 0, I18n.t('ui.play_time_minutes').replace('{minutes}', minutes.toString()), {
+        const label = minutes <= 0 ? I18n.t('ui.play_time_endless') : I18n.t('ui.play_time_minutes').replace('{minutes}', minutes.toString());
+        const text = this.scene.add.text(0, 0, label, {
             fontSize: '22px',
             color: '#00ff00',
             fontStyle: 'bold'

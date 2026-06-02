@@ -47,6 +47,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     private gameStarted: boolean = false;
     public isGameOver: boolean = false;
     public timeLimit: number = INITIAL_STATS.TIME_LIMIT;
+    public isEndlessMode: boolean = false;
     public timeSpawnMultiplier: number = 1.0;
     
     public isBoosterCalculating: boolean = false;
@@ -113,6 +114,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.researchQueue = [];
         this.playtime = 0;
         this.timeLimit = INITIAL_STATS.TIME_LIMIT;
+        this.isEndlessMode = false;
         this.gameStarted = false;
         this.isGameOver = false;
         this.collectionHistory = [];
@@ -138,7 +140,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 게임 시작 처리
      */
     startGame(playTimeSeconds: number = INITIAL_STATS.TIME_LIMIT) {
-        this.timeLimit = playTimeSeconds;
+        this.isEndlessMode = playTimeSeconds <= 0;
+        this.timeLimit = this.isEndlessMode ? Number.POSITIVE_INFINITY : playTimeSeconds;
         this.gameStarted = true;
         this.isGameOver = false;
         this.lastUpdateTime = Date.now();
@@ -179,7 +182,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
 
         // 제한시간 체크 (부스터 시간 포함)
         const totalLimit = this.timeLimit + this.boosterTimeAdded;
-        if (this.playtime >= totalLimit) {
+        if (!this.isEndlessMode && this.playtime >= totalLimit) {
             this.playtime = totalLimit;
             if (!this.isBoosterTime && !this.isBoosterCalculating) {
                 this.isBoosterCalculating = true;
@@ -280,6 +283,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 남은 시간(초) 반환
      */
     getRemainingTime(): number {
+        if (this.isEndlessMode) return Number.POSITIVE_INFINITY;
         return Math.max(0, (this.timeLimit + this.boosterTimeAdded) - this.playtime);
     }
 
@@ -287,6 +291,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 남은 시간을 MM:SS 형식으로 반환
      */
     getFormattedRemainingTime(): string {
+        if (this.isEndlessMode) return `∞ ${this.getFormattedPlaytime()}`;
         const remaining = this.getRemainingTime();
         const m = Math.floor(remaining / 60);
         const s = Math.floor(remaining % 60);

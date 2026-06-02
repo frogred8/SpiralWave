@@ -33,6 +33,9 @@ export class GameScene extends Phaser.Scene {
     private isGameStarted: boolean = false;
     private isRestarted: boolean = false;
     private canReroll: boolean = false;
+    private nextMidGameSkillChoiceAt: number = DURATIONS.MID_GAME_SKILL_CHOICE_INTERVAL;
+    private isSkillChoiceOpen: boolean = false;
+    private mainBlackHoleDrift: Phaser.Math.Vector2 = new Phaser.Math.Vector2(1, 0.35).normalize();
 
     private getServerUrl() {
         return (import.meta.env.VITE_SERVER_URL || '127.0.0.1:3001').replace(/\/$/, '');
@@ -272,6 +275,7 @@ export class GameScene extends Phaser.Scene {
     private startGame(playTimeSeconds: number) {
         this.gameStats.startGame(playTimeSeconds);
         this.isGameStarted = true;
+        this.nextMidGameSkillChoiceAt = DURATIONS.MID_GAME_SKILL_CHOICE_INTERVAL;
         this.setupTimers();
         this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
         const soundManager = SoundManager.getInstance();
@@ -352,6 +356,9 @@ export class GameScene extends Phaser.Scene {
         this.orbitSystem.resetResourceState();
         this.radiusMultiplier = 1.0;
         this.netTimerAccumulator = 0;
+        this.nextMidGameSkillChoiceAt = DURATIONS.MID_GAME_SKILL_CHOICE_INTERVAL;
+        this.isSkillChoiceOpen = false;
+        this.mainBlackHoleDrift.set(1, Phaser.Math.FloatBetween(-0.6, 0.6)).normalize();
         if (this.boostTimerEvent) {
             this.boostTimerEvent.remove();
             this.boostTimerEvent = undefined;
@@ -558,7 +565,8 @@ export class GameScene extends Phaser.Scene {
         
         this.uiManager.updateTimerDisplay(time, this.isGameStarted);
         this.uiManager.updateFeverDisplay();
-        this.handleBlackHoleMovement();
+        this.handleBlackHoleMovement(cappedDelta);
+        this.maybeShowMidGameSkillChoice();
         this.updateAutoNet(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);
         this.orbitSystem.update(cappedDelta);
@@ -569,17 +577,51 @@ export class GameScene extends Phaser.Scene {
         this.processResources();
     }
 
-    private handleBlackHoleMovement() {
-        if (!this.cursors) return;
-        const moveSpeed = this.gameStats.moveSpeed;
-        if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
-        if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
-        if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
-        if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
+    private handleBlackHoleMovement(delta: number) {
+        const driftDistance = DURATIONS.MAIN_BLACK_HOLE_DRIFT_SPEED * delta;
+        this.spiralCenter.x += this.mainBlackHoleDrift.x * driftDistance;
+        this.spiralCenter.y += this.mainBlackHoleDrift.y * driftDistance;
+
+        if (this.cursors) {
+            const moveSpeed = this.gameStats.moveSpeed;
+            if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
+            if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
+            if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
+            if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
+        }
         
-        this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
-        this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
+        const minX = 50;
+        const maxX = this.scale.width - 50;
+        const minY = 50;
+        const maxY = this.scale.height - 50;
+        if (this.spiralCenter.x <= minX || this.spiralCenter.x >= maxX) this.mainBlackHoleDrift.x *= -1;
+        if (this.spiralCenter.y <= minY || this.spiralCenter.y >= maxY) this.mainBlackHoleDrift.y *= -1;
+        this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, minX, maxX);
+        this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, minY, maxY);
         this.gameRenderer.updateSpiralPosition();
+    }
+
+    private maybeShowMidGameSkillChoice() {
+        if (this.isSkillChoiceOpen || this.gameStats.playtime * 1000 < this.nextMidGameSkillChoiceAt) return;
+
+        const skills = this.getRandomUpgradeableSkills(3);
+        this.nextMidGameSkillChoiceAt += DURATIONS.MID_GAME_SKILL_CHOICE_INTERVAL;
+        if (skills.length < 2) return;
+
+        this.isSkillChoiceOpen = true;
+        this.uiManager.showMidGameSkillSelection(skills, (skill) => {
+            this.gameStats.grantSkill(skill);
+            this.isSkillChoiceOpen = false;
+        });
+    }
+
+    private getRandomUpgradeableSkills(count: number) {
+        const candidates = this.gameStats.skillTreeData.filter(skill => {
+            const level = this.gameStats.skillLevels[skill.id] || 0;
+            return level < skill.maxLevel && this.gameStats.isSkillUnlocked(skill, true);
+        });
+
+        return Phaser.Utils.Array.Shuffle([...candidates]).slice(0, count);
     }
 
     private updateAutoNet(delta: number) {
@@ -592,18 +634,47 @@ export class GameScene extends Phaser.Scene {
         this.netTimerAccumulator += delta;
         const chargeStartTime = Math.max(0, DURATIONS.NET_COOLDOWN - 3000);
         
+        const target = this.findBestNetTarget(this.gameStats.netDistance);
+        const targetX = target?.x ?? this.input.activePointer.worldX;
+        const targetY = target?.y ?? this.input.activePointer.worldY;
+
         if (this.netTimerAccumulator >= chargeStartTime) {
             const chargeProgress = (this.netTimerAccumulator - chargeStartTime) / 3000;
-            this.gameRenderer.drawNetCharge(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance, chargeProgress);
+            this.gameRenderer.drawNetCharge(targetX, targetY, this.gameStats.netDistance, chargeProgress);
         } else {
             this.gameRenderer.clearNetCharge();
         }
 
         if (this.netTimerAccumulator >= DURATIONS.NET_COOLDOWN) {
             this.gameRenderer.clearNetCharge();
-            this.fireNet(this.input.activePointer.worldX, this.input.activePointer.worldY, this.gameStats.netDistance);
+            this.fireNet(targetX, targetY, this.gameStats.netDistance);
             this.netTimerAccumulator = 0;
         }
+    }
+
+    private findBestNetTarget(distance: number): Collectible | null {
+        let bestTarget: Collectible | null = null;
+        let bestScore = -Infinity;
+
+        this.resourceManager.getGroup().getChildren().forEach(child => {
+            const res = child as Collectible;
+            if (!res.active || res.isBeingPulled || this.arms.some(a => a.grabbedResource === res)) return;
+
+            const dist = Utils.getDistance(this.spiralCenter.x, this.spiralCenter.y, res.x, res.y);
+            if (dist > distance) return;
+
+            let priority = 0;
+            if (res.itemType === 'special') priority = 3000;
+            else if (res.isHighDim) priority = 1500;
+
+            const score = priority + (distance - dist);
+            if (score > bestScore) {
+                bestScore = score;
+                bestTarget = res;
+            }
+        });
+
+        return bestTarget;
     }
 
     private updateArms(time: number, delta: number) {

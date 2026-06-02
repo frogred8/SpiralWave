@@ -22,6 +22,7 @@ export interface Collectible extends Phaser.GameObjects.GameObject {
     isHighDim?: boolean;
     itemType?: 'special';
     specialType?: SpecialItemType;
+    isBeingPulled?: boolean;
 }
 
 /**

@@ -43,6 +43,7 @@ const initDb = async () => {
         table.timestamp('created_at').notNullable();
         table.timestamp('end_at').notNullable();
         table.index(['score'], 'wish_score_idx');
+        table.index(['play_time_seconds', 'score'], 'wish_play_time_score_idx');
       });
     } else if (!(await db.schema.hasColumn('wish', 'play_time_seconds'))) {
       await db.schema.alterTable('wish', (table) => {

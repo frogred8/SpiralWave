@@ -11,7 +11,7 @@ type SkillWithPrerequisites = SkillData & { prerequisites: SkillPrerequisite[] }
  */
 export const Utils = {
     /**
-     * 스킬 트리 데이터를 랜덤하게 배치하고 의존성을 설정합니다.
+     * 스킬 트리 데이터를 예측 가능한 고정 배치로 만들고 의존성을 설정합니다.
      */
     generateRandomSkillTree(skillData: SkillData[]): SkillData[] {
         if (!skillData || skillData.length < SKILL_TREE_CONFIG.TOTAL_SKILLS) return skillData;
@@ -24,8 +24,8 @@ export const Utils = {
             }
         }
 
-        // 2. 스킬 데이터 셔플 및 선택
-        const shuffledSkills = Phaser.Utils.Array.Shuffle([...skillData]).slice(0, SKILL_TREE_CONFIG.TOTAL_SKILLS) as SkillWithPrerequisites[];
+        // 2. 원본 데이터 순서를 유지해 매 판 같은 트리와 같은 성장 계획을 제공합니다.
+        const shuffledSkills = [...skillData].slice(0, SKILL_TREE_CONFIG.TOTAL_SKILLS) as SkillWithPrerequisites[];
 
         // 3. 스킬에 위치 할당 및 초기 Prerequisites 제거
         shuffledSkills.forEach((skill, index) => {
@@ -42,8 +42,7 @@ export const Utils = {
             // 바로 위 row에 있는 스킬들
             const upperRows = shuffledSkills.filter((s) => s.row === r - 1);
 
-            // 해당 row에서 랜덤하게 하나 선택하여 추가 의존성(2개)을 부여할 대상 선정
-            const multiPrereqIndex = Phaser.Math.Between(0, currentRows.length - 1);
+            const multiPrereqIndex = r % currentRows.length;
 
             currentRows.forEach((skill, index) => {
                 // 기본 규칙: 자신의 바로 위 tree의 스킬을 선행 조건으로 포함
@@ -59,8 +58,7 @@ export const Utils = {
                         !skill.prerequisites.some((p) => p.id === s.id)
                     );
                     if (otherUpper.length > 0) {
-                        const randomUpper = Phaser.Utils.Array.GetRandom(otherUpper);
-                        skill.prerequisites.push({ id: randomUpper.id, level: 1 });
+                        skill.prerequisites.push({ id: otherUpper[0].id, level: 1 });
                     }
                 }
             });
@@ -75,12 +73,12 @@ export const Utils = {
                 );
 
                 if (potentialSkills.length > 0) {
-                    const randomSkill = Phaser.Utils.Array.GetRandom(potentialSkills);
+                    const randomSkill = potentialSkills[0];
                     const otherUpper = upperRows.filter((s) =>
                         Math.abs(s.tree - randomSkill.tree) === 1 &&
                         !randomSkill.prerequisites.some((p) => p.id === s.id)
                     );
-                    const extraUpper = Phaser.Utils.Array.GetRandom(otherUpper);
+                    const extraUpper = otherUpper[0];
                     if (extraUpper) {
                         randomSkill.prerequisites.push({ id: extraUpper.id, level: 1 });
                     }

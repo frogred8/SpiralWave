@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { GameService } from '../services/game.service';
-import type { StartRequest, EndRequest, LeaderboardResetRequest } from '@repo/shared';
+import { PLAY_TIME_OPTIONS_SECONDS, type StartRequest, type EndRequest, type LeaderboardResetRequest } from '@repo/shared';
 
 function isValidSeqIdList(seqIds: unknown): seqIds is number[] {
   return Array.isArray(seqIds)
@@ -23,7 +23,7 @@ function isValidResetSecret(secretKey: unknown) {
 export const GameController = {
   async handleStart(request: FastifyRequest, reply: FastifyReply) {
     const body = request.body as StartRequest;
-    if (![60, 180, 300].includes(body.play_time_seconds)) {
+    if (!(PLAY_TIME_OPTIONS_SECONDS as readonly number[]).includes(body.play_time_seconds)) {
       return reply.code(400).send({ status: 'error', message: 'Invalid play_time_seconds' });
     }
 
@@ -38,8 +38,10 @@ export const GameController = {
   },
 
   async handleGetLeaderboard(request: FastifyRequest) {
-    request.log.info('Leaderboard data requested');
-    return await GameService.getLeaderboard();
+    const query = request.query as { play_time_seconds?: string };
+    const playTimeSeconds = Number(query.play_time_seconds || 300);
+    request.log.info({ play_time_seconds: playTimeSeconds }, 'Leaderboard data requested');
+    return await GameService.getLeaderboard(playTimeSeconds);
   },
 
   async handleResetLeaderboard(request: FastifyRequest, reply: FastifyReply) {

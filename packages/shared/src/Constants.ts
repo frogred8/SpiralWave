@@ -27,6 +27,14 @@ export const INITIAL_STATS = {
     MAX_FEVER_GAUGE: 100
 };
 
+export const PLAY_TIME_OPTIONS_SECONDS = [60, 180, 300, 0] as const;
+export const INFINITE_MODE_PLAY_TIME_SECONDS = 0;
+
+export const RESEARCH_SLOT_MILESTONES = [
+    { totalResources: 120, slots: 2 },
+    { totalResources: 320, slots: 3 }
+] as const;
+
 export const SKILL_TREE_CONFIG = {
     TOTAL_SKILLS: 15,
     TREES: 3,
@@ -145,6 +153,10 @@ export const UI_CONFIG = {
     SKILL_TREE: {
         START_X: 100,
         START_Y: 130
+    },
+    SPECIAL_ITEMS: {
+        X: 50,
+        Y: 88
     }
 };
 

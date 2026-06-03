@@ -27,10 +27,12 @@ export interface RankEntry {
     name: string;
     msg: string;
     emoji: string;
+    play_time_seconds: number;
 }
 
 export interface LeaderboardResponse {
     ranks: RankEntry[];
+    play_time_seconds: number;
 }
 
 // POST /leaderboard/reset

@@ -1,25 +1,34 @@
-import { INITIAL_STATS, type LeaderboardResponse } from '@repo/shared';
+import { INITIAL_STATS, INFINITE_MODE_PLAY_TIME_SECONDS, PLAY_TIME_OPTIONS_SECONDS, type LeaderboardResponse } from '@repo/shared';
 import db from '../config/db';
 
 /**
  * Leaderboard Cache Interface
  */
-interface LeaderboardCache {
+interface LeaderboardCacheEntry {
   data: LeaderboardResponse | null;
   lastUpdated: number;
   minScore: number;
   isInvalid: boolean;
 }
 
-const cache: LeaderboardCache = {
-  data: null,
-  lastUpdated: 0,
-  minScore: 0,
-  isInvalid: true,
-};
+const cacheByDuration = new Map<number, LeaderboardCacheEntry>();
 
 const CACHE_TTL = 60 * 1000; // 1 minute
-const ALLOWED_PLAY_TIME_SECONDS = new Set([60, 180, 300]);
+const ALLOWED_PLAY_TIME_SECONDS = new Set<number>(PLAY_TIME_OPTIONS_SECONDS);
+
+function getCache(playTimeSeconds: number): LeaderboardCacheEntry {
+  let cache = cacheByDuration.get(playTimeSeconds);
+  if (!cache) {
+    cache = { data: null, lastUpdated: 0, minScore: 0, isInvalid: true };
+    cacheByDuration.set(playTimeSeconds, cache);
+  }
+  return cache;
+}
+
+function normalizePlayTimeSeconds(value: unknown) {
+  const numeric = Number(value);
+  return ALLOWED_PLAY_TIME_SECONDS.has(numeric) ? numeric : INITIAL_STATS.TIME_LIMIT;
+}
 
 /**
  * @param {number} prefix_n - 타임스탬프 기반 접두사 길이
@@ -59,9 +68,9 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
 
   // 3. 제한 시간보다 이르게 종료 요청이 들어온 경우
   const createdAt = new Date(gameRecord.created_at);
-  const playTimeSeconds = Number(gameRecord.play_time_seconds) || INITIAL_STATS.TIME_LIMIT;
+  const playTimeSeconds = normalizePlayTimeSeconds(gameRecord.play_time_seconds);
   const earliestValidEndAt = new Date(createdAt.getTime() + playTimeSeconds * 1000);
-  if (earliestValidEndAt > endAt) { 
+  if (playTimeSeconds !== INFINITE_MODE_PLAY_TIME_SECONDS && earliestValidEndAt > endAt) { 
     console.log(`Validation failed (3): Time validation error. Play time: ${playTimeSeconds}s, Earliest valid end: ${earliestValidEndAt.toISOString()}, EndAt: ${endAt.toISOString()}`); 
     return null; 
   }
@@ -78,10 +87,16 @@ async function validateGameSession(gameId: string, selectSkillId: number, ip: st
 /**
  * 리더보드 데이터 생성 (wish 테이블에서 score 기준 top 10 추출)
  */
-async function generateLeaderboard(): Promise<LeaderboardResponse> {
+function appendPlayerHash(name: string, gameId: string) {
+  const cleanName = (name || 'PLAYER').trim().slice(0, 10) || 'PLAYER';
+  return `${cleanName}#${gameId.slice(-4)}`;
+}
+
+async function generateLeaderboard(playTimeSeconds: number): Promise<LeaderboardResponse> {
   try {
     const rows = await db('wish')
-      .select('seq_id', 'score', 'name', 'msg', 'emoji')
+      .select('seq_id', 'score', 'name', 'msg', 'emoji', 'play_time_seconds')
+      .where('play_time_seconds', playTimeSeconds)
       .orderBy('score', 'desc')
       .limit(10);
     
@@ -90,33 +105,38 @@ async function generateLeaderboard(): Promise<LeaderboardResponse> {
       score: parseInt(row.score),
       name: row.name,
       msg: row.msg,
-      emoji: row.emoji || ''
+      emoji: row.emoji || '',
+      play_time_seconds: normalizePlayTimeSeconds(row.play_time_seconds)
     }));
 
-    const result = { ranks };
+    const result = { ranks, play_time_seconds: playTimeSeconds };
     return result;
   } catch (err) {
     console.error('Failed to generate leaderboard:', err);
-    return { ranks: [] };
+    return { ranks: [], play_time_seconds: playTimeSeconds };
   }
 }
 
-function isExpiredCache() {
+function isExpiredCache(cache: LeaderboardCacheEntry) {
   const now = Date.now();
   const isExpired = now - cache.lastUpdated > CACHE_TTL;
   return !cache.data || cache.isInvalid || isExpired;
 }
 
-async function updateCache() {
-  cache.data = await generateLeaderboard();
+async function updateCache(playTimeSeconds: number) {
+  const cache = getCache(playTimeSeconds);
+  cache.data = await generateLeaderboard(playTimeSeconds);
   cache.lastUpdated = Date.now();
   cache.minScore = cache.data.ranks.length > 0 ? cache.data.ranks[cache.data.ranks.length - 1].score : 0;
   cache.isInvalid = false;
 }
 
-function invalidateLeaderboardCache() {
-  cache.isInvalid = true;
-  cache.minScore = 0;
+function invalidateLeaderboardCache(playTimeSeconds?: number) {
+  const caches = playTimeSeconds === undefined ? cacheByDuration.values() : [getCache(playTimeSeconds)];
+  for (const cache of caches) {
+    cache.isInvalid = true;
+    cache.minScore = 0;
+  }
 }
 
 export const GameService = {
@@ -152,19 +172,21 @@ export const GameService = {
           .del();
         
         // wish 테이블에 저장
+        const playTimeSeconds = normalizePlayTimeSeconds(gameRecord.play_time_seconds);
         await db('wish').insert({
-          name: name,
+          name: appendPlayerHash(name, gameId),
           game_id: gameId,
           ip: ip,
           emoji: emoji,
           score: score,
-          play_time_seconds: Number(gameRecord.play_time_seconds) || INITIAL_STATS.TIME_LIMIT,
+          play_time_seconds: playTimeSeconds,
           msg: msg,
           created_at: gameRecord.created_at,
           end_at: endAt
         });
 
         // 캐시 만료 정책: 들어오는 스코어가 캐시에 있는 10위값보다 클 때 캐시 만료 플래그를 키고
+        const cache = getCache(playTimeSeconds);
         if (score > cache.minScore) {
           cache.isInvalid = true;
         }
@@ -177,11 +199,15 @@ export const GameService = {
     }
   },
 
-  async getLeaderboard(): Promise<LeaderboardResponse> {
-    if (isExpiredCache()) {
-      await updateCache();
+  async getLeaderboard(playTimeSeconds: number = INITIAL_STATS.TIME_LIMIT): Promise<LeaderboardResponse> {
+    if (!ALLOWED_PLAY_TIME_SECONDS.has(playTimeSeconds)) {
+      playTimeSeconds = INITIAL_STATS.TIME_LIMIT;
     }
-    return cache.data || { ranks: [] };
+    const cache = getCache(playTimeSeconds);
+    if (isExpiredCache(cache)) {
+      await updateCache(playTimeSeconds);
+    }
+    return cache.data || { ranks: [], play_time_seconds: playTimeSeconds };
   },
 
   async resetLeaderboard(seqIds?: number[], all = false) {

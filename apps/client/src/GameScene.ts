@@ -64,9 +64,10 @@ export class GameScene extends Phaser.Scene {
             onRestartGame: (canReroll) => this.restartGame(canReroll),
             onSendStartSignal: (id, playTimeSeconds) => this.sendStartGameSignal(id, playTimeSeconds),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
-            onFetchLeaderboard: () => this.fetchLeaderboardData(),
+            onFetchLeaderboard: (playTimeSeconds) => this.fetchLeaderboardData(playTimeSeconds),
             onFetchDeployments: () => this.fetchDeploymentsData(),
-            onRefreshUI: () => this.handleRefreshUI()
+            onRefreshUI: () => this.handleRefreshUI(),
+            onEndInfiniteMode: () => this.endInfiniteMode()
         });
 
         this.initSystems(skillData);
@@ -279,6 +280,10 @@ export class GameScene extends Phaser.Scene {
         soundManager.play('gamestart');
     }
 
+    private endInfiniteMode() {
+        this.gameStats.endInfiniteGame();
+    }
+
     private async sendStartGameSignal(skillId: number, playTimeSeconds: number) {
         this.currentSelectSkillId = skillId;
         const serverUrl = this.getServerUrl();
@@ -459,7 +464,7 @@ export class GameScene extends Phaser.Scene {
         }, this);
         
         this.gameStats.on(GameStats.EVENTS.GAME_OVER, async () => {
-            const ranks = await this.uiManager.fetchLeaderboardRanks(true);
+            const ranks = await this.uiManager.fetchLeaderboardRanks(true, this.gameStats.timeLimit);
             if (this.shouldSubmitScore(this.gameStats.totalAll, ranks)) this.uiManager.showInputForm();
             else this.uiManager.showGameOverScreen(ranks);
             // Fever Overlay 초기화
@@ -676,9 +681,9 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    private async fetchLeaderboardData(): Promise<RankEntry[]> {
+    private async fetchLeaderboardData(playTimeSeconds: number = this.gameStats.timeLimit): Promise<RankEntry[]> {
         try {
-            const response = await fetch(`/leaderboard`);
+            const response = await fetch(`/leaderboard?play_time_seconds=${playTimeSeconds}`);
             const data: LeaderboardResponse = await response.json();
             return data.ranks || [];
         } catch (err) {

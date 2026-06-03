@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from './GameStats';
-import { INITIAL_STATS, RESOURCE_CONFIG, UPDATE_HISTORY } from '@shared/Constants';
+import { INITIAL_STATS, RESOURCE_CONFIG, UPDATE_HISTORY, INFINITE_MODE_PLAY_TIME_SECONDS } from '@shared/Constants';
 import { DeploymentEntry, RankEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { Utils } from './Utils';
+import { getResourceMetadata } from './ResourceRegistry';
 
 export interface UIState {
     overlay: 'initialSkill' | 'inputForm' | 'gameOver' | null;
@@ -23,9 +24,10 @@ export interface UICallbacks {
     onRestartGame: (canReroll: boolean) => void;
     onSendStartSignal: (skillId: number, playTimeSeconds: number) => void;
     onSendEndSignal: (name: string, msg: string) => void;
-    onFetchLeaderboard: () => Promise<RankEntry[]>;
+    onFetchLeaderboard: (playTimeSeconds: number) => Promise<RankEntry[]>;
     onFetchDeployments: () => Promise<DeploymentEntry[]>;
     onRefreshUI: () => void;
+    onEndInfiniteMode: () => void;
 }
 
 export class UIManager {
@@ -46,12 +48,14 @@ export class UIManager {
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
     private leaderboardOverlayElement: Phaser.GameObjects.Container | null = null;
     private updateHistoryElement: Phaser.GameObjects.Container | null = null;
+    private endInfiniteButton: Phaser.GameObjects.Container | null = null;
     private stableReleaseNoteMask: Phaser.GameObjects.Graphics | null = null;
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
     private skillTreeUI: import('./SkillTreeUI').SkillTreeUI | null = null;
     private gameOverRenderId: number = 0;
     private isInitialSkillSelectionLocked: boolean = false;
     private leaderboardFetchPromise: Promise<RankEntry[]> | null = null;
+    private leaderboardFetchDuration: number | null = null;
 
     private statsUpdateListener: (() => void) | null = null;
 
@@ -94,6 +98,8 @@ export class UIManager {
         this.uiContainer.add(this.timerText);
 
         this.createStatsPanel();
+        this.createSpecialItemsPanel();
+        this.createEndInfiniteButton();
         this.setupLanguageSelector();
     }
 
@@ -102,7 +108,13 @@ export class UIManager {
         this.timerText.setText(this.stats.getFormattedRemainingTime());
         const remainingTime = this.stats.getRemainingTime();
 
-        if (this.stats.isBoosterTime) {
+        if (this.endInfiniteButton) {
+            this.endInfiniteButton.setVisible(isGameStarted && this.stats.isInfiniteMode && !this.stats.isGameOver);
+        }
+
+        if (this.stats.isInfiniteMode) {
+            this.timerText.setColor('#00ffff').setAlpha(1);
+        } else if (this.stats.isBoosterTime) {
             this.timerText.setColor('#ffff00').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
         } else if (remainingTime < 30) {
             this.timerText.setColor('#ff0000').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
@@ -151,7 +163,11 @@ export class UIManager {
             woodValue.setText(this.stats.collected.wood.toString());
             rockValue.setText(this.stats.collected.rock.toString());
             totalText.setText(`${I18n.t('stats.total')}: ${this.stats.totalAll}\n${I18n.t('stats.rate')}: ${this.stats.getRecentCollectionAmount()}`);
-            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('stats.arms')}: ${this.stats.maxArms}`);
+            const slotProgress = this.stats.getResearchSlotProgress();
+            const nextSlot = slotProgress.nextTotal === null
+                ? I18n.t('ui.max_slots')
+                : `${I18n.t('ui.next_slot')}: ${this.stats.totalAll}/${slotProgress.nextTotal}`;
+            gameStatsText.setText(`${I18n.t('stats.radius')}: ${Math.floor(this.stats.radius)}\n${I18n.t('ui.research_slots')}: ${slotProgress.current} (${nextSlot})`);
         };
 
         this.updateFeverDisplay = () => {
@@ -167,6 +183,53 @@ export class UIManager {
         };
 
         this.stats.on(GameStats.EVENTS.UPDATE_SCORE, this.statsUpdateListener);
+    }
+
+    private createSpecialItemsPanel() {
+        const panel = this.scene.add.container(50, 88).setScrollFactor(0);
+        const bg = this.scene.add.rectangle(0, 0, 300, 44, 0x111111, 0.88).setStrokeStyle(1, 0x444444).setOrigin(0);
+        const title = this.scene.add.text(12, 22, I18n.t('ui.special_items'), {
+            fontSize: '13px', color: '#00ffff', fontStyle: 'bold'
+        }).setOrigin(0, 0.5);
+
+        const whitehole = this.createSpecialItemInfo(126, 22, 'whitehole', I18n.t('ui.special_whitehole_effect'));
+        const boost = this.createSpecialItemInfo(190, 22, 'boost', I18n.t('ui.special_boost_effect'));
+        const layout = this.scene.add.text(248, 22, I18n.t('ui.skill_tree_deterministic'), {
+            fontSize: '12px', color: '#aaaaaa'
+        }).setOrigin(0, 0.5);
+        Utils.adjustFontSize(layout, 42, 8, 12);
+
+        panel.add([bg, title, whitehole, boost, layout]);
+        this.uiContainer.add(panel);
+    }
+
+    private createSpecialItemInfo(x: number, y: number, key: 'whitehole' | 'boost', effect: string) {
+        const metadata = getResourceMetadata(key);
+        const item = this.scene.add.text(x, y, metadata.icon, { fontSize: '22px' })
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true });
+        item.on('pointerover', (p: Phaser.Input.Pointer) => {
+            this.showTooltip(p.x, p.y, `${metadata.name}\n${metadata.description}\n${effect}`);
+        });
+        item.on('pointerout', () => this.hideTooltip());
+        return item;
+    }
+
+    private createEndInfiniteButton() {
+        const { width } = this.scene.scale;
+        const button = this.scene.add.container(width - 92, 40).setScrollFactor(0).setDepth(1001).setVisible(false);
+        const bg = this.scene.add.rectangle(0, 0, 132, 42, 0x441111, 0.94)
+            .setStrokeStyle(2, 0xff6666)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.end_run'), {
+            fontSize: '16px', color: '#ffffff', fontStyle: 'bold'
+        }).setOrigin(0.5);
+        button.add([bg, text]);
+        bg.on('pointerover', () => bg.setFillStyle(0x662222));
+        bg.on('pointerout', () => bg.setFillStyle(0x441111));
+        bg.on('pointerdown', () => this.callbacks.onEndInfiniteMode());
+        this.endInfiniteButton = button;
+        this.uiContainer.add(button);
     }
 
     public showFloatingText(x: number, y: number, text: string, color: string, isInWorld: boolean = false, fontSize: string = '14px', worldContainer: Phaser.GameObjects.Container) {
@@ -755,7 +818,7 @@ export class UIManager {
         const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
         overlay.setVisible(true).setAlpha(0.8).setDepth(2000);
         const container = this.scene.add.container(width / 2, height / 2).setDepth(2001);
-        const panel = this.scene.add.rectangle(0, 0, 460, 250, 0x222222, 0.96)
+        const panel = this.scene.add.rectangle(0, 0, 560, 250, 0x222222, 0.96)
             .setStrokeStyle(3, 0x00aa00);
         const title = this.scene.add.text(0, -82, I18n.t('ui.choose_play_time'), {
             fontSize: '28px',
@@ -766,10 +829,10 @@ export class UIManager {
         }).setOrigin(0.5);
 
         container.add([panel, title]);
-        [1, 3, 5].forEach((minutes, index) => {
-            const x = (index - 1) * 130;
+        [1, 3, 5, 0].forEach((minutes, index) => {
+            const x = (index - 1.5) * 125;
             const option = this.createPlayTimeButton(x, 42, minutes, () => {
-                const playTimeSeconds = minutes * 60;
+                const playTimeSeconds = minutes === 0 ? INFINITE_MODE_PLAY_TIME_SECONDS : minutes * 60;
                 this.callbacks.onSendStartSignal(skillIndex, playTimeSeconds);
                 this.callbacks.onStartGame(playTimeSeconds);
                 overlay.destroy();
@@ -787,7 +850,8 @@ export class UIManager {
         const bg = this.scene.add.rectangle(0, 0, 110, 70, 0x222222, 0.9)
             .setStrokeStyle(3, 0x00aa00)
             .setInteractive({ useHandCursor: true });
-        const text = this.scene.add.text(0, 0, I18n.t('ui.play_time_minutes').replace('{minutes}', minutes.toString()), {
+        const label = minutes === 0 ? I18n.t('ui.infinite_mode') : I18n.t('ui.play_time_minutes').replace('{minutes}', minutes.toString());
+        const text = this.scene.add.text(0, 0, label, {
             fontSize: '22px',
             color: '#00ff00',
             fontStyle: 'bold'
@@ -963,16 +1027,17 @@ export class UIManager {
         });
     }
 
-    public async fetchLeaderboardRanks(forceRefresh: boolean = false) {
-        if (!forceRefresh && this.currentUIState.leaderBoardRanks) {
+    public async fetchLeaderboardRanks(forceRefresh: boolean = false, playTimeSeconds: number = this.stats.timeLimit) {
+        if (!forceRefresh && this.currentUIState.leaderBoardRanks && this.leaderboardFetchDuration === playTimeSeconds) {
             return this.currentUIState.leaderBoardRanks;
         }
 
-        if (this.leaderboardFetchPromise) {
+        if (this.leaderboardFetchPromise && this.leaderboardFetchDuration === playTimeSeconds) {
             return this.leaderboardFetchPromise;
         }
 
-        this.leaderboardFetchPromise = this.callbacks.onFetchLeaderboard();
+        this.leaderboardFetchDuration = playTimeSeconds;
+        this.leaderboardFetchPromise = this.callbacks.onFetchLeaderboard(playTimeSeconds);
         const ranks = await this.leaderboardFetchPromise;
         this.leaderboardFetchPromise = null;
 
@@ -1004,7 +1069,7 @@ export class UIManager {
 
         overlay.on('pointerdown', () => this.destroyLeaderboardOverlay());
 
-        const ranks = await this.fetchLeaderboardRanks();
+        const ranks = await this.fetchLeaderboardRanks(false, this.stats.timeLimit);
         if (this.leaderboardOverlayElement !== overlayContainer) return;
 
         loadingText.destroy();
@@ -1054,7 +1119,10 @@ export class UIManager {
         this.uiContainer.add(container);
 
         const bg = this.scene.add.rectangle(0, 0, 600, 400, 0x222222, 0.9).setStrokeStyle(2, 0x558855);
-        const title = this.scene.add.text(0, -170, I18n.t('ui.leaderboard'), {
+        const bracketTitle = this.stats.timeLimit === INFINITE_MODE_PLAY_TIME_SECONDS
+            ? I18n.t('ui.leaderboard_bracket_infinite')
+            : I18n.t('ui.leaderboard_bracket').replace('{minutes}', Math.floor(this.stats.timeLimit / 60).toString());
+        const title = this.scene.add.text(0, -170, bracketTitle, {
             fontSize: '24px', color: '#00ff00', fontStyle: 'bold'
         }).setOrigin(0.5);
         container.add([bg, title]);

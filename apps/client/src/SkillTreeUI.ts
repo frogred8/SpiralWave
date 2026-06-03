@@ -57,21 +57,27 @@ export class SkillTreeUI {
             const bg = this.scene.add.rectangle(0, 0, UI_CONFIG.BUTTON.WIDTH, UI_CONFIG.BUTTON.HEIGHT, UI_CONFIG.BUTTON.BG_COLOR).setStrokeStyle(3, UI_CONFIG.BUTTON.STROKE_COLOR);
             
             const skillName = I18n.t(`skill.${skill.id}.name`);
-            const nameTxt = this.scene.add.text(0, -10, skillName, { fontSize: '14px', fontStyle: 'bold' })
+            const nameTxt = this.scene.add.text(0, -16, skillName, { fontSize: '14px', fontStyle: 'bold' })
                 .setOrigin(0.5)
                 .setPadding({ top: 2, bottom: 2 });
             Utils.adjustFontSize(nameTxt, UI_CONFIG.BUTTON.WIDTH - 10);
 
-            const lvTxt = this.scene.add.text(0, 15, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { 
+            const lvTxt = this.scene.add.text(0, 8, `${I18n.t('skill.level')} 0/${skill.maxLevel}`, { 
                 fontSize: '14px', 
                 color: '#00ff00',
                 align: 'center'
             })
                 .setOrigin(0.5)
                 .setPadding({ top: 2, bottom: 2 });
+
+            const costTxt = this.scene.add.text(0, 25, '', {
+                fontSize: '11px',
+                color: '#dddddd',
+                align: 'center'
+            }).setOrigin(0.5).setPadding({ top: 1, bottom: 1 });
             
-            (btn as any).skillButtonData = { bg, nameTxt, lvTxt };
-            btn.add([bg, nameTxt, lvTxt]);
+            (btn as any).skillButtonData = { bg, nameTxt, lvTxt, costTxt };
+            btn.add([bg, nameTxt, lvTxt, costTxt]);
             btn.setSize(UI_CONFIG.BUTTON.WIDTH, UI_CONFIG.BUTTON.HEIGHT).setInteractive({ useHandCursor: true });
 
             btn.on('pointerdown', () => this.handleSkillUpgrade(skill));
@@ -291,6 +297,9 @@ export class SkillTreeUI {
             }
             
             const { bg, nameTxt, lvTxt } = data;
+            const costSummary = this.getCostSummary(currentCosts);
+            data.costTxt.setText(isMaxLevel ? I18n.t('skill.max_level') : costSummary);
+            data.costTxt.setColor(canAfford || isMaxLevel ? '#dddddd' : '#ff8888');
 
             if (isResearching) {
                 btn.setAlpha(1);
@@ -376,6 +385,13 @@ export class SkillTreeUI {
         const isQueued = queueIndex !== -1;
 
         return { isActiveResearch, isResearching, isQueued, activeIndex, queueIndex };
+    }
+
+    private getCostSummary(costs: any): string {
+        const parts: string[] = [];
+        if (costs?.wood) parts.push(`${RESOURCE_CONFIG.ICONS.wood}${costs.wood}`);
+        if (costs?.rock) parts.push(`${RESOURCE_CONFIG.ICONS.rock}${costs.rock}`);
+        return parts.length > 0 ? parts.join(' ') : '-';
     }
 
     private getEdgePoint(from: Phaser.GameObjects.Container, to: Phaser.GameObjects.Container) {

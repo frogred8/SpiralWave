@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { SkillData } from '@shared/SkillData';
-import { DURATIONS, INITIAL_STATS } from '@shared/Constants';
+import { DURATIONS, INITIAL_STATS, INFINITE_MODE_PLAY_TIME_SECONDS, RESEARCH_SLOT_MILESTONES } from '@shared/Constants';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
 /**
@@ -39,6 +39,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public skillLevels!: Record<string, number>;
     public researchReduction!: number; // 기존 researchBonus 명칭 변경 (의미 명확화)
     public maxResearchSlots!: number;
+    public milestoneResearchSlots!: number;
     public activeResearches: ActiveResearch[] = [];
     public researchQueue: ActiveResearch[] = [];
     
@@ -47,6 +48,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     private gameStarted: boolean = false;
     public isGameOver: boolean = false;
     public timeLimit: number = INITIAL_STATS.TIME_LIMIT;
+    public isInfiniteMode: boolean = false;
     public timeSpawnMultiplier: number = 1.0;
     
     public isBoosterCalculating: boolean = false;
@@ -103,7 +105,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
         this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
 
-        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
+        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;
+        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
+        this.milestoneResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
         this.skillLevels = {};
         this.skillTreeData.forEach(skill => {
@@ -113,6 +117,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.researchQueue = [];
         this.playtime = 0;
         this.timeLimit = INITIAL_STATS.TIME_LIMIT;
+        this.isInfiniteMode = false;
         this.gameStarted = false;
         this.isGameOver = false;
         this.collectionHistory = [];
@@ -139,9 +144,16 @@ export class GameStats extends Phaser.Events.EventEmitter {
      */
     startGame(playTimeSeconds: number = INITIAL_STATS.TIME_LIMIT) {
         this.timeLimit = playTimeSeconds;
+        this.isInfiniteMode = playTimeSeconds === INFINITE_MODE_PLAY_TIME_SECONDS;
         this.gameStarted = true;
         this.isGameOver = false;
         this.lastUpdateTime = Date.now();
+    }
+
+    endInfiniteGame() {
+        if (!this.gameStarted || this.isGameOver || !this.isInfiniteMode) return;
+        this.isGameOver = true;
+        this.emit(GameStats.EVENTS.GAME_OVER);
     }
 
     /**
@@ -171,15 +183,16 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.playtime += elapsedSeconds;
         const newMinutes = Math.floor(this.playtime / 60);
 
-        // 1분마다 자원 생성량 30% 증가 (배율 업데이트)
+        // 1분마다 자원 생성량 증가. 무한 모드는 더 빠르게 난이도를 높입니다.
         if (newMinutes > oldMinutes && newMinutes > 0) {
-            this.timeSpawnMultiplier = 1 + (newMinutes * 0.3);
+            const scale = this.isInfiniteMode ? 0.45 : 0.3;
+            this.timeSpawnMultiplier = 1 + (newMinutes * scale);
             this.emit(GameStats.EVENTS.SPAWN_RATE_CHANGED);
         }
 
         // 제한시간 체크 (부스터 시간 포함)
         const totalLimit = this.timeLimit + this.boosterTimeAdded;
-        if (this.playtime >= totalLimit) {
+        if (!this.isInfiniteMode && this.playtime >= totalLimit) {
             this.playtime = totalLimit;
             if (!this.isBoosterTime && !this.isBoosterCalculating) {
                 this.isBoosterCalculating = true;
@@ -280,6 +293,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 남은 시간(초) 반환
      */
     getRemainingTime(): number {
+        if (this.isInfiniteMode) return this.playtime;
         return Math.max(0, (this.timeLimit + this.boosterTimeAdded) - this.playtime);
     }
 
@@ -432,6 +446,7 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
     this.totalCollected[type] += amount;
     this.totalAll += amount;
     this.collectionHistory.push({ timestamp: Date.now(), amount });
+    this.updateMilestoneResearchSlots();
     
     // 피버 게이지 상승
     if (!this.isFeverMode) {
@@ -456,6 +471,27 @@ getRecentCollectionAmount(): number {
     const tenSecondsAgo = now - 10000;
     this.collectionHistory = this.collectionHistory.filter(h => h.timestamp >= tenSecondsAgo);
     return this.collectionHistory.reduce((sum, h) => sum + h.amount, 0);
+}
+
+getResearchSlotProgress(): { current: number; nextTotal: number | null; nextSlots: number | null } {
+    const next = RESEARCH_SLOT_MILESTONES.find((milestone) => this.totalAll < milestone.totalResources);
+    return {
+        current: this.maxResearchSlots,
+        nextTotal: next?.totalResources ?? null,
+        nextSlots: next?.slots ?? null
+    };
+}
+
+private updateMilestoneResearchSlots() {
+    const unlocked = RESEARCH_SLOT_MILESTONES
+        .filter((milestone) => this.totalAll >= milestone.totalResources)
+        .reduce((slots, milestone) => Math.max(slots, milestone.slots), INITIAL_STATS.MAX_RESEARCH_SLOTS);
+
+    if (unlocked > this.milestoneResearchSlots) {
+        this.milestoneResearchSlots = unlocked;
+        this.maxResearchSlots = Math.max(this.maxResearchSlots, unlocked);
+        this.promoteFromQueue();
+    }
 }
 
     /**

@@ -21,12 +21,20 @@ const initDb = async () => {
         table.string('ip', 45).notNullable();
         table.integer('select_skill_id');
         table.integer('play_time_seconds').notNullable().defaultTo(300);
+        table.string('game_mode', 20).notNullable().defaultTo('standard');
         table.timestamp('created_at').defaultTo(db.fn.now());
       });
-    } else if (!(await db.schema.hasColumn('game', 'play_time_seconds'))) {
-      await db.schema.alterTable('game', (table) => {
-        table.integer('play_time_seconds').notNullable().defaultTo(300);
-      });
+    } else {
+      if (!(await db.schema.hasColumn('game', 'play_time_seconds'))) {
+        await db.schema.alterTable('game', (table) => {
+          table.integer('play_time_seconds').notNullable().defaultTo(300);
+        });
+      }
+      if (!(await db.schema.hasColumn('game', 'game_mode'))) {
+        await db.schema.alterTable('game', (table) => {
+          table.string('game_mode', 20).notNullable().defaultTo('standard');
+        });
+      }
     }
 
     const hasWishTable = await db.schema.hasTable('wish');
@@ -39,15 +47,25 @@ const initDb = async () => {
         table.string('emoji', 10);
         table.integer('score').notNullable();
         table.integer('play_time_seconds').notNullable().defaultTo(300);
+        table.string('game_mode', 20).notNullable().defaultTo('standard');
         table.text('msg');
         table.timestamp('created_at').notNullable();
         table.timestamp('end_at').notNullable();
         table.index(['score'], 'wish_score_idx');
+        table.index(['game_mode', 'score'], 'wish_game_mode_score_idx');
       });
-    } else if (!(await db.schema.hasColumn('wish', 'play_time_seconds'))) {
-      await db.schema.alterTable('wish', (table) => {
-        table.integer('play_time_seconds').notNullable().defaultTo(300);
-      });
+    } else {
+      if (!(await db.schema.hasColumn('wish', 'play_time_seconds'))) {
+        await db.schema.alterTable('wish', (table) => {
+          table.integer('play_time_seconds').notNullable().defaultTo(300);
+        });
+      }
+      if (!(await db.schema.hasColumn('wish', 'game_mode'))) {
+        await db.schema.alterTable('wish', (table) => {
+          table.string('game_mode', 20).notNullable().defaultTo('standard');
+          table.index(['game_mode', 'score'], 'wish_game_mode_score_idx');
+        });
+      }
     }
 
     console.log('Database initialized');

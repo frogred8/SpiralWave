@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from './GameStats';
 import { INITIAL_STATS, RESOURCE_CONFIG, UPDATE_HISTORY } from '@shared/Constants';
-import { DeploymentEntry, RankEntry } from '@shared/ApiTypes';
+import { DeploymentEntry, GameMode, RankEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { Utils } from './Utils';
@@ -13,19 +13,21 @@ export interface UIState {
     excludeSkillIds?: string[];
     selectedInitialSkills?: any[];
     leaderBoardRanks?: RankEntry[];
+    leaderboardMode?: GameMode;
     deployments?: DeploymentEntry[];
     isRestarted?: boolean;
     canReroll?: boolean;
 }
 
 export interface UICallbacks {
-    onStartGame: (playTimeSeconds: number) => void;
+    onStartGame: (playTimeSeconds: number, isEndlessMode: boolean) => void;
     onRestartGame: (canReroll: boolean) => void;
-    onSendStartSignal: (skillId: number, playTimeSeconds: number) => void;
+    onSendStartSignal: (skillId: number, playTimeSeconds: number, gameMode: GameMode) => void;
     onSendEndSignal: (name: string, msg: string) => void;
     onFetchLeaderboard: () => Promise<RankEntry[]>;
     onFetchDeployments: () => Promise<DeploymentEntry[]>;
     onRefreshUI: () => void;
+    onEndRun: () => void;
 }
 
 export class UIManager {
@@ -40,6 +42,7 @@ export class UIManager {
     private langSelectorContainer!: Phaser.GameObjects.Container;
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
+    private endRunButton: Phaser.GameObjects.Container | null = null;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
@@ -94,13 +97,57 @@ export class UIManager {
         this.uiContainer.add(this.timerText);
 
         this.createStatsPanel();
+        this.createEndRunButton();
         this.setupLanguageSelector();
+    }
+
+    private createEndRunButton() {
+        const button = this.scene.add.container(0, 0).setScrollFactor(0).setDepth(1000).setVisible(false);
+        const bg = this.scene.add.rectangle(0, 0, 118, 34, 0x222222, 0.92)
+            .setStrokeStyle(2, 0x00aa88)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.end_run'), {
+            fontSize: '14px',
+            color: '#00ffcc',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(3, 0x00ffcc);
+            bg.setFillStyle(0x333333);
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(2, 0x00aa88);
+            bg.setFillStyle(0x222222);
+        });
+        bg.on('pointerdown', () => this.callbacks.onEndRun());
+
+        this.endRunButton = button;
+        this.uiContainer.add(button);
+        this.updateEndRunButtonPosition();
+    }
+
+    private updateEndRunButtonVisibility(isGameStarted: boolean) {
+        if (!this.endRunButton) return;
+        this.endRunButton.setVisible(isGameStarted && this.stats.isEndlessMode && !this.stats.isGameOver);
+    }
+
+    private updateEndRunButtonPosition() {
+        if (!this.endRunButton) return;
+        this.endRunButton.setPosition(this.scene.scale.width / 2, 92);
     }
 
     public updateTimerDisplay(time: number, isGameStarted: boolean) {
         this.timerText.setVisible(isGameStarted);
-        this.timerText.setText(this.stats.getFormattedRemainingTime());
+        this.timerText.setText(this.stats.isEndlessMode ? `${I18n.t('ui.endless')}\n${this.stats.getFormattedPlaytime()}` : this.stats.getFormattedRemainingTime());
         const remainingTime = this.stats.getRemainingTime();
+        this.updateEndRunButtonVisibility(isGameStarted);
+
+        if (this.stats.isEndlessMode) {
+            this.timerText.setColor('#00ffcc').setAlpha(1);
+            return;
+        }
 
         if (this.stats.isBoosterTime) {
             this.timerText.setColor('#ffff00').setAlpha(Math.floor(time / 500) % 2 === 0 ? 1 : 0.5);
@@ -112,6 +159,10 @@ export class UIManager {
     }
 
     public setGameOverTimerStyle() {
+        if (this.stats.isEndlessMode) {
+            this.timerText.setText(this.stats.getFormattedPlaytime()).setColor('#00ffcc').setAlpha(1);
+            return;
+        }
         this.timerText.setText('00:00').setColor('#ff0000').setAlpha(1);
     }
 
@@ -755,9 +806,9 @@ export class UIManager {
         const skillIndex = (skillTreeData as any[]).findIndex((s: any) => s.id === skill.id);
         overlay.setVisible(true).setAlpha(0.8).setDepth(2000);
         const container = this.scene.add.container(width / 2, height / 2).setDepth(2001);
-        const panel = this.scene.add.rectangle(0, 0, 460, 250, 0x222222, 0.96)
+        const panel = this.scene.add.rectangle(0, 0, 520, 290, 0x222222, 0.96)
             .setStrokeStyle(3, 0x00aa00);
-        const title = this.scene.add.text(0, -82, I18n.t('ui.choose_play_time'), {
+        const title = this.scene.add.text(0, -102, I18n.t('ui.choose_play_time'), {
             fontSize: '28px',
             color: '#ffffff',
             fontStyle: 'bold',
@@ -768,16 +819,25 @@ export class UIManager {
         container.add([panel, title]);
         [1, 3, 5].forEach((minutes, index) => {
             const x = (index - 1) * 130;
-            const option = this.createPlayTimeButton(x, 42, minutes, () => {
+            const option = this.createPlayTimeButton(x, 22, minutes, () => {
                 const playTimeSeconds = minutes * 60;
-                this.callbacks.onSendStartSignal(skillIndex, playTimeSeconds);
-                this.callbacks.onStartGame(playTimeSeconds);
+                this.callbacks.onSendStartSignal(skillIndex, playTimeSeconds, 'standard');
+                this.callbacks.onStartGame(playTimeSeconds, false);
                 overlay.destroy();
                 container.destroy();
                 this.clearUIByDepth(2000);
             });
             container.add(option);
         });
+
+        const endlessOption = this.createModeButton(0, 102, I18n.t('ui.endless_mode'), () => {
+            this.callbacks.onSendStartSignal(skillIndex, 0, 'endless');
+            this.callbacks.onStartGame(0, true);
+            overlay.destroy();
+            container.destroy();
+            this.clearUIByDepth(2000);
+        });
+        container.add(endlessOption);
 
         this.uiContainer.add(container);
     }
@@ -801,6 +861,30 @@ export class UIManager {
         bg.on('pointerout', () => {
             bg.setStrokeStyle(3, 0x00aa00);
             bg.setFillStyle(0x222222);
+        });
+        bg.on('pointerdown', onSelect);
+        return button;
+    }
+
+    private createModeButton(x: number, y: number, label: string, onSelect: () => void) {
+        const button = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, 370, 52, 0x112d2a, 0.94)
+            .setStrokeStyle(3, 0x00aa88)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, label, {
+            fontSize: '20px',
+            color: '#00ffcc',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setPadding({ top: 2, bottom: 2 });
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(4, 0x00ffcc);
+            bg.setFillStyle(0x1b4540);
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(3, 0x00aa88);
+            bg.setFillStyle(0x112d2a);
         });
         bg.on('pointerdown', onSelect);
         return button;
@@ -964,7 +1048,8 @@ export class UIManager {
     }
 
     public async fetchLeaderboardRanks(forceRefresh: boolean = false) {
-        if (!forceRefresh && this.currentUIState.leaderBoardRanks) {
+        const currentMode: GameMode = this.stats.isEndlessMode ? 'endless' : 'standard';
+        if (!forceRefresh && this.currentUIState.leaderBoardRanks && this.currentUIState.leaderboardMode === currentMode) {
             return this.currentUIState.leaderBoardRanks;
         }
 
@@ -978,6 +1063,7 @@ export class UIManager {
 
         if (ranks) {
             this.currentUIState.leaderBoardRanks = ranks;
+            this.currentUIState.leaderboardMode = currentMode;
             return ranks;
         }
 
@@ -1038,8 +1124,10 @@ export class UIManager {
     }
 
     private createGameOverText(width: number) {
-        const title = this.scene.add.text(width / 2, 80, I18n.t('ui.game_over'), {
-            fontSize: '56px', color: '#ff0000', fontStyle: 'bold', stroke: '#000000', strokeThickness: 8
+        const titleText = this.stats.isEndlessMode ? I18n.t('ui.run_ended') : I18n.t('ui.game_over');
+        const titleColor = this.stats.isEndlessMode ? '#00ffcc' : '#ff0000';
+        const title = this.scene.add.text(width / 2, 80, titleText, {
+            fontSize: '56px', color: titleColor, fontStyle: 'bold', stroke: '#000000', strokeThickness: 8
         }).setOrigin(0.5).setDepth(3001);
 
         const resourceInfo = this.scene.add.text(width / 2, 160, `${I18n.t('ui.total_resources')}: ${this.stats.totalAll}`, {
@@ -1054,7 +1142,8 @@ export class UIManager {
         this.uiContainer.add(container);
 
         const bg = this.scene.add.rectangle(0, 0, 600, 400, 0x222222, 0.9).setStrokeStyle(2, 0x558855);
-        const title = this.scene.add.text(0, -170, I18n.t('ui.leaderboard'), {
+        const leaderboardTitle = this.stats.isEndlessMode ? I18n.t('ui.endless_leaderboard') : I18n.t('ui.leaderboard');
+        const title = this.scene.add.text(0, -170, leaderboardTitle, {
             fontSize: '24px', color: '#00ff00', fontStyle: 'bold'
         }).setOrigin(0.5);
         container.add([bg, title]);
@@ -1351,6 +1440,7 @@ export class UIManager {
     public handleResize() {
         const { width } = this.scene.scale;
         if (this.timerText) this.timerText.setPosition(width / 2, 40);
+        this.updateEndRunButtonPosition();
         this.updateUIPositions();
     }
 
@@ -1388,6 +1478,7 @@ export class UIManager {
         this.destroyLeaderboardOverlay();
         this.destroyUpdateHistoryOverlay();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
+        if (this.endRunButton) this.endRunButton.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);
         this.topUiContainer.removeAll(true);

@@ -6,7 +6,7 @@ import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Cons
 import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
 import { SpecialItem, Collectible } from './Types';
-import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse } from '@shared/ApiTypes';
+import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse, GameMode } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
@@ -60,13 +60,14 @@ export class GameScene extends Phaser.Scene {
         
         // UI Manager 초기화
         this.uiManager = new UIManager(this, this.uiContainer, this.topUiContainer, this.gameStats, {
-            onStartGame: (playTimeSeconds) => this.startGame(playTimeSeconds),
+            onStartGame: (playTimeSeconds, isEndlessMode) => this.startGame(playTimeSeconds, isEndlessMode),
             onRestartGame: (canReroll) => this.restartGame(canReroll),
-            onSendStartSignal: (id, playTimeSeconds) => this.sendStartGameSignal(id, playTimeSeconds),
+            onSendStartSignal: (id, playTimeSeconds, gameMode) => this.sendStartGameSignal(id, playTimeSeconds, gameMode),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
             onFetchDeployments: () => this.fetchDeploymentsData(),
-            onRefreshUI: () => this.handleRefreshUI()
+            onRefreshUI: () => this.handleRefreshUI(),
+            onEndRun: () => this.endRun()
         });
 
         this.initSystems(skillData);
@@ -269,8 +270,8 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private startGame(playTimeSeconds: number) {
-        this.gameStats.startGame(playTimeSeconds);
+    private startGame(playTimeSeconds: number, isEndlessMode: boolean = false) {
+        this.gameStats.startGame(playTimeSeconds, isEndlessMode);
         this.isGameStarted = true;
         this.setupTimers();
         this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
@@ -279,7 +280,7 @@ export class GameScene extends Phaser.Scene {
         soundManager.play('gamestart');
     }
 
-    private async sendStartGameSignal(skillId: number, playTimeSeconds: number) {
+    private async sendStartGameSignal(skillId: number, playTimeSeconds: number, gameMode: GameMode) {
         this.currentSelectSkillId = skillId;
         const serverUrl = this.getServerUrl();
 
@@ -287,7 +288,7 @@ export class GameScene extends Phaser.Scene {
             if (!this.userInfo) {
                 this.userInfo = await Utils.getUserInfo();
             }
-            const body: StartRequest = { select_skill_id: skillId, play_time_seconds: playTimeSeconds, ip: this.userInfo.ip };
+            const body: StartRequest = { select_skill_id: skillId, play_time_seconds: playTimeSeconds, ip: this.userInfo.ip, game_mode: gameMode };
             const response = await fetch(`/start`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -317,7 +318,8 @@ export class GameScene extends Phaser.Scene {
                 score: this.gameStats.totalAll,
                 msg: msg,
                 emoji: this.userInfo.emoji,
-                ip: this.userInfo.ip
+                ip: this.userInfo.ip,
+                game_mode: this.gameStats.isEndlessMode ? 'endless' : 'standard'
             };
 
             await fetch(`/end`, {
@@ -342,6 +344,11 @@ export class GameScene extends Phaser.Scene {
         
         this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
         this.uiManager.refreshUIAfterLanguageChange();
+    }
+
+    private endRun() {
+        if (!this.isGameStarted || this.gameStats.isGameOver || !this.gameStats.isEndlessMode) return;
+        this.gameStats.endGame();
     }
 
     private cleanupForRestart() {
@@ -678,7 +685,8 @@ export class GameScene extends Phaser.Scene {
 
     private async fetchLeaderboardData(): Promise<RankEntry[]> {
         try {
-            const response = await fetch(`/leaderboard`);
+            const mode = this.gameStats.isEndlessMode ? 'endless' : 'standard';
+            const response = await fetch(`/leaderboard?mode=${mode}`);
             const data: LeaderboardResponse = await response.json();
             return data.ranks || [];
         } catch (err) {

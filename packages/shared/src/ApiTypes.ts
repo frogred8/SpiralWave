@@ -3,10 +3,13 @@
  */
 
 // POST /start
+export type GameMode = 'standard' | 'endless';
+
 export interface StartRequest {
     select_skill_id: number;
     play_time_seconds: number;
     ip: string;
+    game_mode?: GameMode;
 }
 
 // POST /end
@@ -18,6 +21,7 @@ export interface EndRequest {
     msg: string;
     emoji: string;
     ip: string;
+    game_mode?: GameMode;
 }
 
 // GET /leaderboard

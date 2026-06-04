@@ -48,6 +48,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public isGameOver: boolean = false;
     public timeLimit: number = INITIAL_STATS.TIME_LIMIT;
     public timeSpawnMultiplier: number = 1.0;
+    public isEndlessMode: boolean = false;
     
     public isBoosterCalculating: boolean = false;
     public isBoosterTime: boolean = false;
@@ -113,6 +114,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.researchQueue = [];
         this.playtime = 0;
         this.timeLimit = INITIAL_STATS.TIME_LIMIT;
+        this.isEndlessMode = false;
         this.gameStarted = false;
         this.isGameOver = false;
         this.collectionHistory = [];
@@ -137,8 +139,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
     /**
      * 게임 시작 처리
      */
-    startGame(playTimeSeconds: number = INITIAL_STATS.TIME_LIMIT) {
+    startGame(playTimeSeconds: number = INITIAL_STATS.TIME_LIMIT, isEndlessMode: boolean = false) {
         this.timeLimit = playTimeSeconds;
+        this.isEndlessMode = isEndlessMode;
         this.gameStarted = true;
         this.isGameOver = false;
         this.lastUpdateTime = Date.now();
@@ -177,19 +180,21 @@ export class GameStats extends Phaser.Events.EventEmitter {
             this.emit(GameStats.EVENTS.SPAWN_RATE_CHANGED);
         }
 
-        // 제한시간 체크 (부스터 시간 포함)
-        const totalLimit = this.timeLimit + this.boosterTimeAdded;
-        if (this.playtime >= totalLimit) {
-            this.playtime = totalLimit;
-            if (!this.isBoosterTime && !this.isBoosterCalculating) {
-                this.isBoosterCalculating = true;
-                this.emit(GameStats.EVENTS.CALCULATE_BOOSTER);
-            } else if (this.isBoosterTime) {
-                this.isGameOver = true;
-                this.emit(GameStats.EVENTS.GAME_OVER);
+        if (!this.isEndlessMode) {
+            // 제한시간 체크 (부스터 시간 포함)
+            const totalLimit = this.timeLimit + this.boosterTimeAdded;
+            if (this.playtime >= totalLimit) {
+                this.playtime = totalLimit;
+                if (!this.isBoosterTime && !this.isBoosterCalculating) {
+                    this.isBoosterCalculating = true;
+                    this.emit(GameStats.EVENTS.CALCULATE_BOOSTER);
+                } else if (this.isBoosterTime) {
+                    this.isGameOver = true;
+                    this.emit(GameStats.EVENTS.GAME_OVER);
+                }
+                this.emit(GameStats.EVENTS.UPDATE_SCORE);
+                return;
             }
-            this.emit(GameStats.EVENTS.UPDATE_SCORE);
-            return;
         }
 
         // 1. 큐에서 연구 가능한 스킬을 활성 슬롯으로 이동
@@ -276,6 +281,13 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.emit(GameStats.EVENTS.UPDATE_SCORE);
     }
 
+    endGame() {
+        if (this.isGameOver) return;
+        this.isGameOver = true;
+        this.emit(GameStats.EVENTS.GAME_OVER);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
     /**
      * 남은 시간(초) 반환
      */
@@ -287,6 +299,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
      * 남은 시간을 MM:SS 형식으로 반환
      */
     getFormattedRemainingTime(): string {
+        if (this.isEndlessMode) return this.getFormattedPlaytime();
         const remaining = this.getRemainingTime();
         const m = Math.floor(remaining / 60);
         const s = Math.floor(remaining % 60);

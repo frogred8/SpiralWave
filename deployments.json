@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260604_1000",
+    "type": "preview",
+    "title": "20260604_1000 Build",
+    "url": "http://134.185.103.3:3303",
+    "branch": "20260604_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260604_1000:latest",
+    "container": "spiralwave",
+    "port": 3303,
+    "status": "active",
+    "released_at": "2026-06-04T01:00:13.667Z",
+    "release_note": {
+      "en": "Implement an 'Endless Mode' feature for the game to allow gameplay without time constraints. The plan includes:\n\n1. **State Management Update**: Add a new game mode state (e.g., `isEndlessMode`) to the global state controller.\n2. **Game Logic Modification**:\n    - Update the timer logic to stop counting down or switch to a count-up timer when `isEndlessMode` is active.\n    - Disable the time-based 'Game Over' condition.\n    - Ensure the game loop continues until manual exit or other non-time-based fail conditions are met.\n3. **UI Integration**:\n    - Add a toggle or button in the Main Menu or Level Selection screen to enable 'Endless Mode'.\n    - Update the in-game HUD to display \"Endless\" or a stopwatch instead of a countdown timer.\n4. **Scoring System Adjustments**: \n    - Implement a separate high-score tracking system specifically for Endless Mode to maintain balance with the standard mode.",
+      "ko": "게임에 시간 제한 없이 플레이할 수 있는 '무한 모드' 기능을 구현합니다. 계획은 다음과 같습니다:\n\n1. 상태 관리 업데이트: 글로벌 상태 컨트롤러에 새로운 게임 모드 상태(예: isEndlessMode)를 추가합니다.\n2. 게임 로직 수정:\n    - isEndlessMode가 활성화되면 타이머 카운트다운을 중지하거나 카운트업 타이머로 전환하도록 로직을 업데이트합니다.\n    - 시간 기반 '게임 오버' 조건을 비활성화합니다.\n    - 수동 종료 또는 기타 시간이 아닌 실패 조건이 충족될 때까지 게임 루프가 계속되도록 합니다.\n3. UI 통합:\n    - 메인 메뉴 또는 레벨 선택 화면에 '무한 모드'를 활성화할 수 있는 토글이나 버튼을 추가합니다.\n    - 게임 내 HUD를 업데이트하여 카운트다운 타이머 대신 '무한' 또는 스톱워치를 표시합니다.\n4. 점수 시스템 조정:\n    - 표준 모드와의 균형을 유지하기 위해 무한 모드 전용의 별도 최고 점수 기록 시스템을 구현합니다.",
+      "zh": "为游戏实现“无尽模式”功能，允许在没有时间限制的情况下进行游戏。计划包括：\n\n1. 状态管理更新：在全局状态控制器中添加新的游戏模式状态（例如 isEndlessMode）。\n2. 游戏逻辑修改：\n    - 更新计时逻辑，在 isEndlessMode 激活时停止倒计时或切换为正计时。\n    - 禁用基于时间的“游戏结束”条件。\n    - 确保游戏循环继续，直到手动退出或满足其他非时间相关的失败条件。\n3. UI 集成：\n    - 在主菜单或关卡选择界面添加切换开关或按钮以启用“无尽模式”。\n    - 更新游戏内 HUD，以显示“无尽”或秒表，而不是倒计时器。\n4. 评分系统调整：\n    - 为无尽模式实施单独的高分追踪系统，以保持与标准模式的平衡。",
+      "ja": "時間制限なしでプレイできる「エンドレスモード」機能を実装します。計画は以下の通りです：\n\n1. 状態管理の更新：グローバル状態コントローラーに新しいゲームモードの状態（例：isEndlessMode）を追加します。\n2. ゲームロジックの修正：\n    - isEndlessModeが有効な場合、タイマーのカウントダウンを停止するか、カウントアップタイマーに切り替えるようロジックを更新します。\n    - 時間制限による「ゲームオーバー」条件を無効化します。\n    - 手動で終了するか、時間以外の失敗条件が満たされるまでゲームループが継続するようにします。\n3. UIの統合：\n    - メインメニューまたはレベル選択画面に「エンドレスモード」を有効にするトグルまたはボタンを追加します。\n    - ゲーム内HUDを更新し、カウントダウンタイマーの代わりに「エンドレス」またはストップウォッチを表示します。\n4. スコアシステムの調整：\n    - 標準モードとのバランスを維持するため、エンドレスモード専用の別個のハイスコア記録システムを実装します。"
+    }
+  },
+  {
     "id": "20260603_1000",
     "type": "preview",
     "title": "20260603_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "다음 기능을 구현하여 게임을 강화했습니다:\n\n1. 영구 능력치 업그레이드 시스템: 세션 종료 시 획득한 점수를 사용하여 이후 플레이 시 영구적인 기본 능력치 강화를 제공하는 메타 진행 메커니즘을 개발했습니다.\n2. 자원 생성 투사체: 개체(에일리언)가 '자원 폭탄'을 던져 아이템을 방출하거나 활성화 시 자원 보너스를 제공하는 기능을 구현했습니다.\n3. 고가치 자원 등급: 일반 자원에 비해 훨씬 높은 획득량을 제공하는 대형 자원 오브젝트를 도입했습니다.",
       "zh": "通过实现以下功能来增强游戏体验：\n\n1. 永久属性升级系统：开发了一种元进度机制，利用每局游戏结束时获得的得分，为后续游戏提供永久的基础属性增强。\n2. 资源生成投射物：实现了实体（外星人）投掷“资源炸弹”的功能，该炸弹在激活时会释放可收集物品或提供资源奖励。\n3. 高价值资源层级：引入了大型资源对象，与标准资源相比，其产出量显著更高。",
       "ja": "以下の機能を実装することでゲームを強化しました：\n\n1. 恒久ステータスアップグレードシステム：セッション終了時のスコアを使用して、次回以降のプレイで永続的な基本ステータス強化を提供するメタプログレッションメカニズムを開発しました。\n2. リソース生成発射体：エンティティ（エイリアン）が「リソースボム」を投げ、起動時に収集可能なアイテムを放出したり、リソースボーナスを付与したりする機能を実装しました。\n3. 高価値リソースティア：標準的なリソースに比べて獲得量が大幅に多い、大型のリソースオブジェクトを導入しました。"
-    }
-  },
-  {
-    "id": "20260531_1010",
-    "type": "preview",
-    "title": "20260531_1010 Build",
-    "url": "http://134.185.103.3:3303",
-    "branch": "20260531_1010",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260531_1010:latest",
-    "container": "spiralwave",
-    "port": 3303,
-    "status": "active",
-    "released_at": "2026-05-31T01:10:26.777Z",
-    "release_note": {
-      "en": "Implement the following functional requirements and game logic updates:\n\n- **Resource & Progression System**: \n    - Expand the variety of resource collection tools.\n    - Introduce 'Special Resource' types to the collection pool.\n    - Increase the maximum player level cap.\n    - Remove the player movement mechanic and all associated movement speed skills/upgrades.\n\n- **New Entities & Obstacles**:\n    - Implement 'Resource-Destroying Enemies' that target and eliminate resources; ensure they can be countered or blocked by 'Robotic Arms'.\n    - Add 'Space Junk' obstacles: \n        - They provide no currency upon interaction.\n        - They draw 'Robotic Arm' aggro/targeting 3 times before disappearing.\n        - They are instantly removed when interacting with 'Black Holes' or 'Nets'.\n\n- **UI & Accessibility Features**:\n    - Add a 'Full-screen' toggle button to the interface, optimized for mobile browser environments.\n    - Implement a 'Public Suggestions' section on the main menu that allows all players to view community update proposals regardless of their ranking status.\n    - Create an 'Update History' page that lists all implemented changes and patches, organized chronologically by date.",
-      "ko": "다음의 기능 요구 사항 및 게임 로직 업데이트를 구현했습니다:\n\n자원 및 진행 시스템:\n- 자원 수집 도구의 종류를 다양화했습니다.\n- 수집 풀에 '특수 자원' 유형을 도입했습니다.\n- 플레이어 최대 레벨 제한을 상향했습니다.\n- 플레이어 이동 메커니즘 및 관련된 모든 이동 속도 스킬과 업그레이드를 제거했습니다.\n\n새로운 개체 및 장애물:\n- 자원을 목표로 삼아 제거하는 '자원 파괴 적'을 구현했습니다. 이들은 '로봇 팔'로 대응하거나 차단할 수 있습니다.\n- '우주 쓰레기' 장애물을 추가했습니다:\n    - 상호작용 시 재화를 제공하지 않습니다.\n    - 소멸 전까지 '로봇 팔'의 타겟팅(어그로)을 3회 유도합니다.\n    - '블랙홀' 또는 '그물'과 상호작용 시 즉시 제거됩니다.\n\nUI 및 편의 기능:\n- 모바일 브라우저 환경에 최적화된 '전체 화면' 전환 버튼을 인터페이스에 추가했습니다.\n- 메인 메뉴에 '공개 제안' 섹션을 구현하여 순위와 관계없이 모든 플레이어가 커뮤니티 업데이트 제안을 볼 수 있도록 했습니다.\n- 모든 변경 사항과 패치 내역을 날짜순으로 정리하여 보여주는 '업데이트 내역' 페이지를 생성했습니다.",
-      "zh": "实施了以下功能需求和游戏逻辑更新：\n\n资源与进度系统：\n- 扩展了资源收集工具的种类。\n- 在收集池中引入了“特殊资源”类型。\n- 提高了玩家的最大等级上限。\n- 移除了玩家移动机制及所有相关的移动速度技能和升级。\n\n新实体与障碍物：\n- 实现了专门针对并消除资源的“资源破坏型敌人”；确保它们可以被“机械臂”反制或阻挡。\n- 添加了“太空垃圾”障碍物：\n    - 交互时不提供任何货币。\n    - 在消失前会吸引“机械臂”的仇恨/目标 3 次。\n    - 与“黑洞”或“网”交互时会立即被移除。\n\nUI 与辅助功能：\n- 在界面中添加了“全屏”切换按钮，针对移动浏览器环境进行了优化。\n- 在主菜单中实现了“公开建议”板块，允许所有玩家查看社区更新提案，无论其排名如何。\n- 创建了“更新历史”页面，按日期顺序列出所有已实施的更改和补丁。",
-      "ja": "以下の機能要件およびゲームロジックのアップデートを実装しました：\n\nリソースと進行システム：\n- リソース収集ツールの種類を拡張しました。\n- 収集プールに「特殊リソース」タイプを導入しました。\n- プレイヤーの最大レベル上限を引き上げました。\n- プレイヤーの移動メカニズムおよび関連するすべての移動速度スキル/アップグレードを削除しました。\n\n新しいエンティティと障害物：\n- リソースを標的にして排除する「リソース破壊敵」を実装しました。「ロボットアーム」で対抗または阻止可能です。\n- 「スペースジャンク（宇宙ゴミ）」障害物を追加しました：\n    - インタラクション時に通貨を提供しません。\n    - 消滅する前に「ロボットアーム」のヘイト/ターゲットを3回引きます。\n    - 「ブラックホール」または「ネット」とのインタラクションで即座に削除されます。\n\nUIおよびアクセシビリティ機能：\n- モバイルブラウザ環境に最適化された「全画面」切り替えボタンをインターフェースに追加しました。\n- メインメニューに「公開提案」セクションを実装し、ランキングに関係なくすべてのプレイヤーがコミュニティの更新提案を閲覧できるようにしました。\n- 実装されたすべての変更とパッチを日付順にリストする「更新履歴」ページを作成しました。"
     }
   }
 ]

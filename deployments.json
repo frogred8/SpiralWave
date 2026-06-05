@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260605_1000",
+    "type": "preview",
+    "title": "20260605_1000 Build",
+    "url": "http://134.185.103.3:3304",
+    "branch": "20260605_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260605_1000:latest",
+    "container": "spiralwave",
+    "port": 3304,
+    "status": "active",
+    "released_at": "2026-06-05T01:00:20.148Z",
+    "release_note": {
+      "en": "Develop a feature update for the game based on the following technical requirements:\n\n1. **Tutorial and Manual System**:\n    - Implement a `TutorialManager` to guide new players through basic controls and game objectives.\n    - Create a Manual UI overlay that displays a summary of control mappings and the primary win/loss conditions.\n\n2. **Robotic Arm Upgrade Logic (Black Hole Effect)**:\n    - Port the 'Black Hole' mechanic to the stable build. When the robotic arm performs a 'grab' action, instantiate a `BlackHoleEffect` entity at the specific interaction coordinates.\n    - Define the `BlackHoleEffect` properties: a localized pull force (vector math toward center) and a specific duration before despawning.\n\n3. **Movement Speed Upgrade Rebalancing**:\n    - Review the `UpgradeManager` logic for movement speed. Increase the scaling coefficient or add a secondary utility (e.g., reduced dash cooldown or increased agility) to ensure the upgrade provides a perceptible gameplay advantage.\n\n4. **Unified Progression Structure**:\n    - Refactor the versioning/session logic to ensure all gameplay updates and player progression are consolidated into a single continuous update path, rather than maintaining isolated feature branches.",
+      "ko": "1. 튜토리얼 및 매뉴얼 시스템: 신규 플레이어를 위한 TutorialManager를 구현하여 기본 조작과 게임 목표를 안내합니다. 조작 매핑 요약 및 주요 승리/패배 조건을 표시하는 매뉴얼 UI 레이어를 추가했습니다. 2. 로봇 팔 업그레이드 로직 (블랙홀 효과): '블랙홀' 기능을 안정 버전에 이식했습니다. 로봇 팔이 '잡기' 액션을 수행할 때 특정 상호작용 좌표에 BlackHoleEffect 엔티티를 생성합니다. 중심부를 향한 당기는 힘(벡터 계산)과 소멸 전 지속 시간을 정의했습니다. 3. 이동 속도 업그레이드 밸런스 조정: UpgradeManager의 이동 속도 로직을 검토했습니다. 스케일링 계수를 상향하거나 대시 재사용 대기시간 감소 또는 민첩성 증가와 같은 보조 유틸리티를 추가하여 업그레이드 체감이 명확하도록 개선했습니다. 4. 통합 진행 구조: 버전 및 세션 로직을 리팩토링하여, 개별 피처 브랜치를 유지하는 대신 모든 게임플레이 업데이트와 플레이어 진행 상황이 단일 업데이트 경로로 통합되도록 구성했습니다.",
+      "zh": "1. 教程与手册系统：实现 TutorialManager 以引导新玩家了解基础操作和游戏目标。创建手册 UI 叠加层，显示控制映射摘要及主要胜负条件。 2. 机械臂升级逻辑（黑洞效果）：将“黑洞”机制移植到稳定版本。当机械臂执行“抓取”动作时，在特定交互坐标处实例化 BlackHoleEffect 实体。定义了局部拉力（指向中心的向量计算）和消失前的持续时间。 3. 移动速度升级平衡调整：审查 UpgradeManager 的移动速度逻辑。增加缩放系数或添加辅助功能（如缩短冲刺冷却时间或提高灵敏度），以确保升级能带来明显的游戏优势。 4. 统一进度结构：重构版本/会话逻辑，确保所有游戏更新和玩家进度都整合到单一的持续更新路径中，而非维护独立的特性分支。",
+      "ja": "1. チュートリアルとマニュアルシステム：新規プレイヤーに基本操作とゲーム目的を案内する TutorialManager を実装しました。操作設定の概要と主要な勝敗条件を表示するマニュアルUIオーバーレイを作成しました。 2. ロボットアームのアップグレードロジック（ブラックホール効果）：「ブラックホール」メカニクスを安定版に移植しました。ロボットアームが「掴む」アクションを実行した際、特定のインタラクション座標に BlackHoleEffect エンティティを生成します。中心への引き寄せ力（ベクトル計算）と消滅までの持続時間を定義しました。 3. 移動速度アップグレードのバランス調整：UpgradeManager の移動速度ロジックを見直しました。スケーリング係数の引き上げ、またはダッシュのクールタイム短縮や敏捷性の向上などの二次的なユーティリティを追加し、アップグレードによるメリットを実感できるようにしました。 4. 統合された進行構造：バージョン/セッションロジックをリファクタリングし、個別の機能ブランチを維持するのではなく、すべてのゲームプレイアップデートとプレイヤーの進行状況を単一の継続的なアップデートパスに統合しました。"
+    }
+  },
+  {
     "id": "20260604_1000",
     "type": "preview",
     "title": "20260604_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "다음 기능 요구 사항을 구현하기 위해 게임을 수정했습니다:\n\n1. 무한 플레이 모드: 시간 제한이나 사전에 정의된 종료 조건 없이 무제한으로 플레이할 수 있는 새로운 게임 모드를 추가했습니다.\n2. 강화된 스킬 선택 시스템:\n    - 시작 단계에서 무작위로 제공되는 3가지 옵션 중 하나의 패시브 스킬을 선택하는 기능을 구현했습니다.\n    - 게임 진행 중 특정 간격마다 발생하며, 2개 이상의 무작위 스킬 중 하나를 선택할 수 있는 시스템을 구현했습니다.\n3. 자동 그물 조준: 그물 무기가 유효한 목표물이나 개체를 자동으로 조준하는 오토 에임 기능을 개발했습니다.\n4. 다이내믹 메인 블랙홀: '메인 블랙홀' 개체가 정지해 있지 않고 게임 필드를 천천히 가로질러 이동하도록 이동 로직을 추가했습니다.",
       "zh": "修改游戏以实现以下功能需求：\n\n1. 无尽模式：添加了全新的游戏模式，允许在没有时间限制或预设结束条件的情况下进行无限游戏。\n2. 增强的技能选择系统：\n    - 实现了初始阶段，玩家可以从 3 个随机选项中选择一个被动技能。\n    - 实现了局中机制，在特定间隔触发，提供 2 个或更多随机技能供选择。\n3. 自动网枪瞄准：为网状武器开发了自动瞄准功能，可自动锁定有效目标或实体。\n4. 动态主黑洞：为“主黑洞”实体添加了移动逻辑，使其在游戏场地上缓慢移动，而非保持静止。",
       "ja": "以下の機能要件を実装するためにゲームを修正しました：\n\n1. エンドレスプレイモード：時間制限や定義済みの終了条件がなく、無制限にプレイできる新しいゲームモードを追加しました。\n2. 強化されたスキル選択システム：\n    - 開始フェーズにおいて、ランダムに提示される3つの選択肢から1つのパッシブスキルを選択する機能を実装しました。\n    - ゲームプレイ中の特定のタイミングで、2つ以上のランダムなスキルから選択できるメカニクスを導入しました。\n3. ネットの自動照準：ネット武器が有効な目標やエンティティを自動的に狙うオートエイム機能を開発しました。\n4. ダイナミック・メインブラックホール：「メインブラックホール」エンティティが静止せず、ゲームフィールド上をゆっくりと移動する移動ロジックを追加しました。"
-    }
-  },
-  {
-    "id": "20260601_1000",
-    "type": "preview",
-    "title": "20260601_1000 Build",
-    "url": "http://134.185.103.3:3304",
-    "branch": "20260601_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260601_1000:latest",
-    "container": "spiralwave",
-    "port": 3304,
-    "status": "active",
-    "released_at": "2026-06-01T01:00:30.502Z",
-    "release_note": {
-      "en": "Enhance the game by implementing the following features:\n\n1. Permanent Stat Upgrade System: Develop a meta-progression mechanic where the score achieved at the end of a session is used to provide permanent base stat enhancements for subsequent playthroughs.\n2. Resource-Generating Projectile: Implement a feature where an entity (alien) throws \"Resource Bombs\" that release collectible items or grant resource bonuses upon activation.\n3. High-Value Resource Tiers: Introduce larger resource objects that yield significantly higher acquisition amounts compared to standard resources.",
-      "ko": "다음 기능을 구현하여 게임을 강화했습니다:\n\n1. 영구 능력치 업그레이드 시스템: 세션 종료 시 획득한 점수를 사용하여 이후 플레이 시 영구적인 기본 능력치 강화를 제공하는 메타 진행 메커니즘을 개발했습니다.\n2. 자원 생성 투사체: 개체(에일리언)가 '자원 폭탄'을 던져 아이템을 방출하거나 활성화 시 자원 보너스를 제공하는 기능을 구현했습니다.\n3. 고가치 자원 등급: 일반 자원에 비해 훨씬 높은 획득량을 제공하는 대형 자원 오브젝트를 도입했습니다.",
-      "zh": "通过实现以下功能来增强游戏体验：\n\n1. 永久属性升级系统：开发了一种元进度机制，利用每局游戏结束时获得的得分，为后续游戏提供永久的基础属性增强。\n2. 资源生成投射物：实现了实体（外星人）投掷“资源炸弹”的功能，该炸弹在激活时会释放可收集物品或提供资源奖励。\n3. 高价值资源层级：引入了大型资源对象，与标准资源相比，其产出量显著更高。",
-      "ja": "以下の機能を実装することでゲームを強化しました：\n\n1. 恒久ステータスアップグレードシステム：セッション終了時のスコアを使用して、次回以降のプレイで永続的な基本ステータス強化を提供するメタプログレッションメカニズムを開発しました。\n2. リソース生成発射体：エンティティ（エイリアン）が「リソースボム」を投げ、起動時に収集可能なアイテムを放出したり、リソースボーナスを付与したりする機能を実装しました。\n3. 高価値リソースティア：標準的なリソースに比べて獲得量が大幅に多い、大型のリソースオブジェクトを導入しました。"
     }
   }
 ]

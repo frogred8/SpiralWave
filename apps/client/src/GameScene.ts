@@ -11,6 +11,8 @@ import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
 import { OrbitSystem } from './OrbitSystem';
+import { BlackHoleEffect } from './BlackHoleEffect';
+import { TutorialManager } from './TutorialManager';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -22,7 +24,9 @@ export class GameScene extends Phaser.Scene {
     private resourceManager!: ResourceManager;
     private uiManager!: UIManager;
     private orbitSystem!: OrbitSystem;
+    private tutorialManager!: TutorialManager;
     private arms: RoboticArm[] = [];
+    private armBlackHoleEffects: BlackHoleEffect[] = [];
     private uiUpdateTimer?: Phaser.Time.TimerEvent;
     
     private radiusMultiplier: number = 1.0;
@@ -70,6 +74,7 @@ export class GameScene extends Phaser.Scene {
         });
 
         this.initSystems(skillData);
+        this.tutorialManager = new TutorialManager(this, this.topUiContainer);
         this.initCameras(width, height);
 
         this.setupPhysics();
@@ -79,6 +84,7 @@ export class GameScene extends Phaser.Scene {
 
         if (this.input.keyboard) {
             this.cursors = this.input.keyboard.createCursorKeys();
+            this.input.keyboard.on('keydown-H', () => this.uiManager.showManualOverlay());
         }
     }
 
@@ -272,6 +278,7 @@ export class GameScene extends Phaser.Scene {
     private startGame(playTimeSeconds: number) {
         this.gameStats.startGame(playTimeSeconds);
         this.isGameStarted = true;
+        this.tutorialManager.start();
         this.setupTimers();
         this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
         const soundManager = SoundManager.getInstance();
@@ -346,6 +353,8 @@ export class GameScene extends Phaser.Scene {
 
     private cleanupForRestart() {
         this.resourceManager.clear();
+        this.armBlackHoleEffects.forEach(effect => effect.destroy());
+        this.armBlackHoleEffects = [];
         this.time.removeAllEvents();
         this.tweens.killAll();
         this.arms.forEach(arm => arm.reset());
@@ -401,7 +410,7 @@ export class GameScene extends Phaser.Scene {
 
     private syncArmsCount() {
         while (this.arms.length < this.gameStats.maxArms) {
-            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter));
+            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter, (x, y) => this.spawnArmBlackHoleEffect(x, y)));
         }
     }
 
@@ -454,6 +463,7 @@ export class GameScene extends Phaser.Scene {
             if (this.isGameStarted && skill?.effectProperty === 'smallBlackHole') {
                 this.spawnSmallBlackHoles(skill.effectValue);
             }
+            this.tutorialManager.recordSkillUpgrade();
 
             SoundManager.getInstance().play('skilllevelup');
         }, this);
@@ -558,7 +568,8 @@ export class GameScene extends Phaser.Scene {
         
         this.uiManager.updateTimerDisplay(time, this.isGameStarted);
         this.uiManager.updateFeverDisplay();
-        this.handleBlackHoleMovement();
+        this.handleBlackHoleMovement(cappedDelta);
+        this.updateArmBlackHoleEffects(cappedDelta);
         this.updateAutoNet(cappedDelta);
         this.resourceManager.updateWhiteHoles(time);
         this.orbitSystem.update(cappedDelta);
@@ -569,17 +580,42 @@ export class GameScene extends Phaser.Scene {
         this.processResources();
     }
 
-    private handleBlackHoleMovement() {
+    private handleBlackHoleMovement(delta: number) {
         if (!this.cursors) return;
         const moveSpeed = this.gameStats.moveSpeed;
-        if (this.cursors.left.isDown) this.spiralCenter.x -= moveSpeed;
-        if (this.cursors.right.isDown) this.spiralCenter.x += moveSpeed;
-        if (this.cursors.up.isDown) this.spiralCenter.y -= moveSpeed;
-        if (this.cursors.down.isDown) this.spiralCenter.y += moveSpeed;
+        const moveStep = moveSpeed * (delta / 16.6667);
+        const moveVector = new Phaser.Math.Vector2(
+            (this.cursors.right.isDown ? 1 : 0) - (this.cursors.left.isDown ? 1 : 0),
+            (this.cursors.down.isDown ? 1 : 0) - (this.cursors.up.isDown ? 1 : 0)
+        );
+        if (moveVector.lengthSq() > 0 && moveStep > 0) {
+            moveVector.normalize().scale(moveStep);
+            this.spiralCenter.add(moveVector);
+            this.tutorialManager.recordMovement();
+        }
         
         this.spiralCenter.x = Phaser.Math.Clamp(this.spiralCenter.x, 50, this.scale.width - 50);
         this.spiralCenter.y = Phaser.Math.Clamp(this.spiralCenter.y, 50, this.scale.height - 50);
         this.gameRenderer.updateSpiralPosition();
+    }
+
+    private updateArmBlackHoleEffects(delta: number) {
+        const resources = this.resourceManager.getGroup().getChildren();
+        this.armBlackHoleEffects.forEach(effect => effect.update(delta, resources));
+        this.armBlackHoleEffects = this.armBlackHoleEffects.filter(effect => effect.isActive());
+    }
+
+    private spawnArmBlackHoleEffect(x: number, y: number) {
+        const effect = new BlackHoleEffect(
+            this,
+            this.worldContainer,
+            x,
+            y,
+            DURATIONS.ARM_BLACK_HOLE_RADIUS,
+            this.gameStats.force
+        );
+        this.armBlackHoleEffects.push(effect);
+        this.tutorialManager.recordArmGrab();
     }
 
     private updateAutoNet(delta: number) {

@@ -17,6 +17,7 @@ export const INITIAL_STATS = {
     SPAWN_RATE_FACTOR: 1.0,
     RESEARCH_BONUS: 0,
     MOVE_SPEED: 0,
+    MOVE_SPEED_UPGRADE_SCALE: 2,
     MAX_RESEARCH_SLOTS: 1,
     TIME_LIMIT: 300,
     NET_ANGLE: 45,
@@ -55,6 +56,8 @@ export const DURATIONS = {
     ARM_AUTO_FIRE_SEARCH_RADIUS: 600,
     ARM_RETRACT_BASE: 800,
     ARM_EXTEND_BASE: 600,
+    ARM_BLACK_HOLE_ACTIVE: 1200,
+    ARM_BLACK_HOLE_RADIUS: 170,
     FEVER_MODE_DURATION: 8000
 };
 
@@ -93,6 +96,16 @@ export const RESOURCE_CONFIG = {
 
 export const UPDATE_HISTORY = [
     {
+        date: '2026-06-05',
+        title: 'Stable tutorial and arm black-hole update',
+        changes: [
+            'Added the tutorial manager and manual overlay for controls and run objectives.',
+            'Added robotic-arm black-hole pull effects at grab contact points.',
+            'Rebalanced movement speed upgrades so each level is easier to feel.',
+            'Consolidated current build progression under the stable update path.'
+        ]
+    },
+    {
         date: '2026-05-31',
         title: 'Resource ecosystem update',
         changes: [
@@ -118,6 +131,7 @@ export const PHYSICS_CONFIG = {
     MIN_SPEED_NORMAL: 30,
     MIN_SPEED_NEAR_CENTER: 10,
     ACCEL_BASE: 90,
+    ARM_BLACK_HOLE_ACCEL_BASE: 150,
     PUSH_FORCE: 150,
     OVERLAP_BIAS: 100,
     BOUNCE: 0.8,

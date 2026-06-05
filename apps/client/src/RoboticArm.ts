@@ -16,11 +16,13 @@ export class RoboticArm {
     private scene: Phaser.Scene;
     private stats: GameStats;
     private spiralCenter: Phaser.Math.Vector2;
+    private onGrab?: (x: number, y: number) => void;
 
-    constructor(scene: Phaser.Scene, stats: GameStats, spiralCenter: Phaser.Math.Vector2) {
+    constructor(scene: Phaser.Scene, stats: GameStats, spiralCenter: Phaser.Math.Vector2, onGrab?: (x: number, y: number) => void) {
         this.scene = scene;
         this.stats = stats;
         this.spiralCenter = spiralCenter;
+        this.onGrab = onGrab;
         this.target = new Phaser.Math.Vector2(spiralCenter.x, spiralCenter.y);
     }
 
@@ -96,6 +98,7 @@ export class RoboticArm {
         this.state = 'retracting';
         if (!this.grabbedResource) return;
 
+        this.onGrab?.(this.grabbedResource.x, this.grabbedResource.y);
         this.grabbedResource.body.setEnable(false);
     }
 

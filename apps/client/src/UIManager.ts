@@ -40,7 +40,9 @@ export class UIManager {
     private langSelectorContainer!: Phaser.GameObjects.Container;
     private langMenuContainer!: Phaser.GameObjects.Container;
     private soundBtnContainer!: Phaser.GameObjects.Container;
+    private manualBtnContainer!: Phaser.GameObjects.Container;
     private activeDOMElement: Phaser.GameObjects.DOMElement | null = null;
+    private manualOverlayElement: Phaser.GameObjects.Container | null = null;
     private coffeeBannerElement: Phaser.GameObjects.DOMElement | null = null;
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
@@ -379,25 +381,16 @@ export class UIManager {
         this.uiContainer.add(text);
     }
 
-    private getCurrentBranch() {
-        return (import.meta.env.VITE_BUILD_BRANCH || 'local').trim();
+    private getProgressionChannel() {
+        return 'stable';
     }
 
     private getCurrentVersionLabel() {
-        const branch = this.getCurrentBranch();
-        return branch === 'main' ? 'stable' : branch;
+        return this.getProgressionChannel();
     }
 
     private isCurrentDeployment(deployment: DeploymentEntry) {
-        const branch = this.getCurrentBranch();
-        const version = this.getCurrentVersionLabel();
-
-        console.log('isCurrentDeployment check:', { deployment, branch, version });
-        if (branch === 'main' || branch === 'local') {
-            return deployment.branch === 'main' || deployment.id === 'main';
-        }
-
-        return deployment.branch === branch || deployment.id === version;
+        return this.isStableDeployment(deployment);
     }
 
     private isStableDeployment(deployment: DeploymentEntry) {
@@ -1313,10 +1306,79 @@ export class UIManager {
             const isMuted = SoundManager.getInstance().isMuted();
             soundBg.setStrokeStyle(1, isMuted ? 0xaa0000 : 0x444444);
         });
+
+        this.setupManualButton(x, y + height + 5, width, height);
+    }
+
+    private setupManualButton(x: number, y: number, width: number, height: number) {
+        this.manualBtnContainer = this.scene.add.container(x, y);
+        const manualBg = this.scene.add.rectangle(0, 0, width, height, 0x1a1a1a, 0.95)
+            .setStrokeStyle(1, 0x444444)
+            .setOrigin(0);
+        const manualText = this.scene.add.text(width / 2, height / 2, I18n.t('ui.manual_short'), {
+            fontSize: '12px',
+            color: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        this.manualBtnContainer.add([manualBg, manualText]);
+        this.manualBtnContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+        this.topUiContainer.add(this.manualBtnContainer);
+
+        this.manualBtnContainer.on('pointerdown', () => this.showManualOverlay());
+        this.manualBtnContainer.on('pointerover', () => manualBg.setStrokeStyle(1, 0xaaaaaa));
+        this.manualBtnContainer.on('pointerout', () => manualBg.setStrokeStyle(1, 0x444444));
+    }
+
+    public showManualOverlay() {
+        if (this.manualOverlayElement) {
+            this.destroyManualOverlay();
+            return;
+        }
+
+        const { width, height } = this.scene.scale;
+        const overlayContainer = this.scene.add.container(0, 0).setDepth(3600);
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.72)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true });
+        const panelWidth = Math.min(560, width - 40);
+        const panelHeight = Math.min(420, height - 80);
+        const panel = this.scene.add.rectangle(width / 2, height / 2, panelWidth, panelHeight, 0x151515, 0.98)
+            .setStrokeStyle(2, 0x22c55e);
+        const title = this.scene.add.text(width / 2, height / 2 - panelHeight / 2 + 34, I18n.t('ui.manual_title'), {
+            fontSize: '24px',
+            color: '#22c55e',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        const body = this.scene.add.text(width / 2 - panelWidth / 2 + 28, height / 2 - panelHeight / 2 + 78, I18n.t('ui.manual_body'), {
+            fontSize: '16px',
+            color: '#f3f4f6',
+            lineSpacing: 8,
+            wordWrap: { width: panelWidth - 56, useAdvancedWrap: true }
+        }).setOrigin(0).setPadding({ top: 2, bottom: 2 });
+
+        const closeButton = this.scene.add.container(width / 2, height / 2 + panelHeight / 2 - 40);
+        const closeBg = this.scene.add.rectangle(0, 0, 180, 44, 0x222222, 0.9)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const closeText = this.scene.add.text(0, 0, I18n.t('ui.close'), {
+            fontSize: '18px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        closeButton.add([closeBg, closeText]);
+
+        overlayContainer.add([overlay, panel, title, body, closeButton]);
+        this.topUiContainer.add(overlayContainer);
+        this.manualOverlayElement = overlayContainer;
+
+        overlay.on('pointerdown', () => this.destroyManualOverlay());
+        closeBg.on('pointerdown', () => this.destroyManualOverlay());
     }
 
     public async refreshUIAfterLanguageChange() {
         this.hideTooltip();
+        this.destroyManualOverlay();
         const currentSkillData = this.stats.skillTreeData;
         this.destroyCoffeeBanner();
         this.destroyDeploymentsPanel();
@@ -1345,6 +1407,10 @@ export class UIManager {
         if (this.soundBtnContainer) {
             const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
             this.soundBtnContainer.setPosition(startX, startY + btnHeight + 5 + menuOffset);
+        }
+        if (this.manualBtnContainer) {
+            const menuOffset = this.isLanguageMenuOpen ? (btnHeight + 1) * 4 + 5 : 0;
+            this.manualBtnContainer.setPosition(startX, startY + (btnHeight + 5) * 2 + menuOffset);
         }
     }
 
@@ -1378,6 +1444,10 @@ export class UIManager {
         if (this.updateHistoryElement && this.updateHistoryElement.depth >= minDepth) {
             this.destroyUpdateHistoryOverlay();
         }
+
+        if (this.manualOverlayElement && this.manualOverlayElement.depth >= minDepth) {
+            this.destroyManualOverlay();
+        }
     }
 
     public destroy() {
@@ -1387,6 +1457,7 @@ export class UIManager {
         this.destroyStableReleasePanel();
         this.destroyLeaderboardOverlay();
         this.destroyUpdateHistoryOverlay();
+        this.destroyManualOverlay();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);
@@ -1428,6 +1499,13 @@ export class UIManager {
         if (this.updateHistoryElement) {
             this.updateHistoryElement.destroy();
             this.updateHistoryElement = null;
+        }
+    }
+
+    private destroyManualOverlay() {
+        if (this.manualOverlayElement) {
+            this.manualOverlayElement.destroy();
+            this.manualOverlayElement = null;
         }
     }
 }

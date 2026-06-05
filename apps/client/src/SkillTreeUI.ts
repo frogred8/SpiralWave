@@ -451,7 +451,10 @@ export class SkillTreeUI {
 
     private getFormattedValue(skill: SkillData, level: number): string {
         const base = this.getInitialValue(skill.effectProperty);
-        const total = base + (skill.effectValue * level);        
+        const effectValue = skill.effectProperty === 'moveSpeed'
+            ? skill.effectValue * INITIAL_STATS.MOVE_SPEED_UPGRADE_SCALE
+            : skill.effectValue;
+        const total = base + (effectValue * level);
         return Utils.formatStatValue(skill.effectProperty, total, level);
     }
 
@@ -494,7 +497,10 @@ export class SkillTreeUI {
     }
 
     private getFormattedBonus(skill: SkillData, level: number): string {
-        const bonus = skill.effectValue * level;
+        const effectValue = skill.effectProperty === 'moveSpeed'
+            ? skill.effectValue * INITIAL_STATS.MOVE_SPEED_UPGRADE_SCALE
+            : skill.effectValue;
+        const bonus = effectValue * level;
         return Utils.formatBonusValue(skill.effectProperty, bonus, level);
     }
 

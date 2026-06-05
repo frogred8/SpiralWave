@@ -103,7 +103,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
         this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
 
-        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
+        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;
+        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
         this.skillLevels = {};
         this.skillTreeData.forEach(skill => {
@@ -500,7 +501,7 @@ getRecentCollectionAmount(): number {
             case 'maxResearchSlots': this.maxResearchSlots += val; break;
             case 'spawnRate': this.spawnRateFactor += val; break;
             case 'researchBonus': this.researchReduction += val; break;
-            case 'moveSpeed': this.moveSpeed += val; break;
+            case 'moveSpeed': this.moveSpeed += val * INITIAL_STATS.MOVE_SPEED_UPGRADE_SCALE; break;
             case 'net': this.isNetEnabled = true; break;
             case 'netAngle': this.netAngle += val; break;
             case 'satelliteCount': this.satelliteCount += val; break;

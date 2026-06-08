@@ -221,5 +221,126 @@
         "effectProperty": "specialItemBooster",
         "effectValue": -1,
         "maxLevel": 3
+    },
+    {
+        "id": "void_pulse",
+        "tree": 0,
+        "row": 0,
+        "costs": [
+            { "wood": 20, "rock": 20 },
+            { "wood": 60, "rock": 60 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [8, 14],
+        "effectProperty": "activeCombatSkill",
+        "effectValue": 0,
+        "maxLevel": 2,
+        "kind": "active",
+        "active": {
+            "damage": 3,
+            "manaCost": 35,
+            "cooldownMs": 10000,
+            "range": 260,
+            "effect": "areaHarvest"
+        }
+    },
+    {
+        "id": "gravity_lance",
+        "tree": 1,
+        "row": 1,
+        "costs": [
+            { "wood": 25, "rock": 40 },
+            { "wood": 70, "rock": 90 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [10, 16],
+        "effectProperty": "activeCombatSkill",
+        "effectValue": 0,
+        "maxLevel": 2,
+        "kind": "active",
+        "active": {
+            "damage": 2,
+            "manaCost": 25,
+            "cooldownMs": 7000,
+            "range": 440,
+            "effect": "focusedHarvest"
+        }
+    },
+    {
+        "id": "mana_core",
+        "tree": 2,
+        "row": 1,
+        "costs": [
+            { "wood": 30 },
+            { "wood": 80 },
+            { "wood": 140 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [6, 10, 14],
+        "effectProperty": "maxMana",
+        "effectValue": 25,
+        "maxLevel": 3,
+        "kind": "passive"
+    },
+    {
+        "id": "stellar_focus",
+        "tree": 0,
+        "row": 2,
+        "costs": [
+            { "wood": 25, "rock": 20 },
+            { "wood": 65, "rock": 50 },
+            { "wood": 120, "rock": 100 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [6, 10, 14],
+        "effectProperty": "manaRegen",
+        "effectValue": 2,
+        "maxLevel": 3,
+        "kind": "passive"
+    },
+    {
+        "id": "singularity_mastery",
+        "tree": 1,
+        "row": 3,
+        "costs": [
+            { "wood": 80, "rock": 80 },
+            { "wood": 150, "rock": 150 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [12, 18],
+        "effectProperty": "activeSkillDamage",
+        "effectValue": 1,
+        "maxLevel": 2,
+        "kind": "passive"
+    },
+    {
+        "id": "event_horizon",
+        "tree": 2,
+        "row": 3,
+        "costs": [
+            { "wood": 60, "rock": 90 },
+            { "wood": 120, "rock": 160 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [12, 18],
+        "effectProperty": "activeSkillRange",
+        "effectValue": 45,
+        "maxLevel": 2,
+        "kind": "passive"
+    },
+    {
+        "id": "coolant_loop",
+        "tree": 0,
+        "row": 4,
+        "costs": [
+            { "wood": 70, "rock": 60 },
+            { "wood": 140, "rock": 120 }
+        ],
+        "prerequisites": [],
+        "researchTimes": [12, 18],
+        "effectProperty": "activeSkillCooldownReduction",
+        "effectValue": 0.08,
+        "maxLevel": 2,
+        "kind": "passive"
     }
 ]

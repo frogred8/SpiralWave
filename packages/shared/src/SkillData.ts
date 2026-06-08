@@ -1,4 +1,4 @@
-import { EffectProperty, SkillCosts } from './Types';
+import { ActiveSkillStats, EffectProperty, SkillCosts, SkillKind } from './Types';
 
 export interface SkillData {
     id: string;
@@ -12,4 +12,6 @@ export interface SkillData {
     effectProperty: EffectProperty; // 어떤 스탯을 변경할지
     effectValue: number; // 얼마나 변경할지
     maxLevel: number; // 최대 레벨
+    kind?: SkillKind; // passive 기본값, active는 마나/쿨다운 기반 전투 스킬
+    active?: ActiveSkillStats; // active 스킬의 전투 메타데이터
 }

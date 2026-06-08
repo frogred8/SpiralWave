@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GameStats } from './GameStats';
+import { ActiveSkillActivation, GameStats } from './GameStats';
 import { GameRenderer } from './GameRenderer';
 import { RoboticArm } from './RoboticArm';
 import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Constants';
@@ -564,6 +564,7 @@ export class GameScene extends Phaser.Scene {
         this.orbitSystem.update(cappedDelta);
         this.updateArms(time, cappedDelta);
         this.updateAutoArms(time);
+        this.updateActiveCombatSkills();
 
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
         this.processResources();
@@ -620,6 +621,66 @@ export class GameScene extends Phaser.Scene {
             const bestTarget = this.findBestArmTarget(this.spiralCenter.x, this.spiralCenter.y, currRadius, currRadius + DURATIONS.ARM_AUTO_FIRE_SEARCH_RADIUS);
             if (bestTarget) arm.fire(bestTarget, time);
         }
+    }
+
+    private updateActiveCombatSkills() {
+        this.gameStats.getUnlockedActiveSkills().forEach(skill => {
+            const activation = this.gameStats.activateActiveSkill(skill.id);
+            if (!activation) return;
+
+            this.resolveActiveCombatSkill(activation);
+        });
+    }
+
+    private resolveActiveCombatSkill(activation: ActiveSkillActivation) {
+        const effect = activation.skill.active?.effect;
+        if (!effect) return;
+
+        if (effect === 'focusedHarvest') {
+            this.harvestFocusedTargets(activation);
+            return;
+        }
+
+        this.harvestAreaTargets(activation);
+    }
+
+    private harvestAreaTargets(activation: ActiveSkillActivation) {
+        const targets = this.getCombatTargetsInRange(activation.range)
+            .sort((a, b) => Utils.getDistance(a.x, a.y, this.spiralCenter.x, this.spiralCenter.y) - Utils.getDistance(b.x, b.y, this.spiralCenter.x, this.spiralCenter.y))
+            .slice(0, Math.max(1, Math.floor(activation.damage)));
+
+        targets.forEach((target, index) => {
+            this.collectResource(target, false, false, this.spiralCenter.x, this.spiralCenter.y, index > 0);
+        });
+    }
+
+    private harvestFocusedTargets(activation: ActiveSkillActivation) {
+        const targets = this.getCombatTargetsInRange(activation.range)
+            .sort((a, b) => {
+                const priorityDiff = this.getCombatTargetPriority(b) - this.getCombatTargetPriority(a);
+                if (priorityDiff !== 0) return priorityDiff;
+
+                return Utils.getDistance(a.x, a.y, this.spiralCenter.x, this.spiralCenter.y) - Utils.getDistance(b.x, b.y, this.spiralCenter.x, this.spiralCenter.y);
+            })
+            .slice(0, Math.max(1, Math.floor(activation.damage)));
+
+        targets.forEach((target, index) => {
+            this.collectResource(target, false, false, this.spiralCenter.x, this.spiralCenter.y, index > 0);
+        });
+    }
+
+    private getCombatTargetsInRange(range: number): Collectible[] {
+        return this.resourceManager.getGroup().getChildren().filter(child => {
+            const res = child as Collectible;
+            if (!res.active || res.itemType === 'special' || this.arms.some(a => a.grabbedResource === res) || (res as any).isBeingPulled) return false;
+
+            return Utils.getDistance(res.x, res.y, this.spiralCenter.x, this.spiralCenter.y) <= range;
+        }) as Collectible[];
+    }
+
+    private getCombatTargetPriority(target: Collectible): number {
+        if (target.isHighDim) return 2;
+        return 1;
     }
 
     private getCurrentRadius() {

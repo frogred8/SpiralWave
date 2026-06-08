@@ -152,6 +152,11 @@ export const Utils = {
             case 'moveSpeed': return `${value.toFixed(2)}`;
             case 'netAngle': return `${value}°`;
             case 'satelliteCount': return `${value}`;
+            case 'maxMana': return `${value}`;
+            case 'manaRegen': return `${value.toFixed(1)}/s`;
+            case 'activeSkillDamage': return `${value}`;
+            case 'activeSkillRange': return `${value}`;
+            case 'activeSkillCooldownReduction': return `${(value * 100).toFixed(0)}%`;
             default: return `${value}`;
         }
     },
@@ -170,6 +175,8 @@ export const Utils = {
             case 'researchBonus': return `${bonus}${I18n.t('unit.second')}`;
             case 'netAngle': return `${sign}${bonus}°`;
             case 'satelliteCount': return `${sign}${bonus}`;
+            case 'manaRegen': return `${sign}${bonus.toFixed(1)}/s`;
+            case 'activeSkillCooldownReduction': return `${sign}${(bonus * 100).toFixed(0)}%`;
             default: return `${sign}${bonus % 1 === 0 ? bonus : bonus.toFixed(2)}`;
         }
     },

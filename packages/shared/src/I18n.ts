@@ -41,6 +41,12 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': 'Small Black Hole Range',
         'prop.netLength': 'Net Length',
         'prop.specialItemBooster': 'Special Item Interval',
+        'prop.maxMana': 'Max Mana',
+        'prop.manaRegen': 'Mana Regen',
+        'prop.activeSkillDamage': 'Active Skill Damage',
+        'prop.activeSkillRange': 'Active Skill Range',
+        'prop.activeSkillCooldownReduction': 'Active Cooldown Reduction',
+        'prop.activeCombatSkill': 'Active Combat Skill',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -116,7 +122,21 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': 'Net Length',
         'skill.net_length.desc': 'Net Length +100',
         'skill.special_item_booster.name': 'Special Item Booster',
-        'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s'
+        'skill.special_item_booster.desc': 'Special Item Spawn Interval -1s',
+        'skill.void_pulse.name': 'Void Pulse',
+        'skill.void_pulse.desc': 'Active: Spend 35 mana to harvest up to 3 resources within range 260 every 10s',
+        'skill.gravity_lance.name': 'Gravity Lance',
+        'skill.gravity_lance.desc': 'Active: Spend 25 mana to harvest up to 2 priority resources within range 440 every 7s',
+        'skill.mana_core.name': 'Mana Core',
+        'skill.mana_core.desc': 'Max Mana +25',
+        'skill.stellar_focus.name': 'Stellar Focus',
+        'skill.stellar_focus.desc': 'Mana Regen +2/s',
+        'skill.singularity_mastery.name': 'Singularity Mastery',
+        'skill.singularity_mastery.desc': 'Active Skill Damage +1',
+        'skill.event_horizon.name': 'Event Horizon',
+        'skill.event_horizon.desc': 'Active Skill Range +45',
+        'skill.coolant_loop.name': 'Coolant Loop',
+        'skill.coolant_loop.desc': 'Active Skill Cooldown -8%'
     },
     ko: {
         // Resources
@@ -159,6 +179,12 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': '작은 블랙홀 범위',
         'prop.netLength': '그물 길이',
         'prop.specialItemBooster': '특수 아이템 주기',
+        'prop.maxMana': '최대 마나',
+        'prop.manaRegen': '마나 회복',
+        'prop.activeSkillDamage': '액티브 스킬 피해',
+        'prop.activeSkillRange': '액티브 스킬 범위',
+        'prop.activeSkillCooldownReduction': '액티브 쿨다운 감소',
+        'prop.activeCombatSkill': '액티브 전투 스킬',
         
         // Utils / Formatting
         'ui.on': '켬',
@@ -234,7 +260,21 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': '그물 길이',
         'skill.net_length.desc': '그물 길이 +100',
         'skill.special_item_booster.name': '특수 아이템 부스터',
-        'skill.special_item_booster.desc': '특수 아이템 생성 간격 -1초'
+        'skill.special_item_booster.desc': '특수 아이템 생성 간격 -1초',
+        'skill.void_pulse.name': '공허 파동',
+        'skill.void_pulse.desc': '액티브: 마나 35를 소모해 10초마다 범위 260 안의 자원 최대 3개 수확',
+        'skill.gravity_lance.name': '중력 창',
+        'skill.gravity_lance.desc': '액티브: 마나 25를 소모해 7초마다 범위 440 안의 우선 자원 최대 2개 수확',
+        'skill.mana_core.name': '마나 코어',
+        'skill.mana_core.desc': '최대 마나 +25',
+        'skill.stellar_focus.name': '성운 집중',
+        'skill.stellar_focus.desc': '마나 회복 +2/s',
+        'skill.singularity_mastery.name': '특이점 숙련',
+        'skill.singularity_mastery.desc': '액티브 스킬 피해 +1',
+        'skill.event_horizon.name': '사건의 지평선',
+        'skill.event_horizon.desc': '액티브 스킬 범위 +45',
+        'skill.coolant_loop.name': '냉각 순환',
+        'skill.coolant_loop.desc': '액티브 스킬 쿨다운 -8%'
     },
     zh: {
         // Resources
@@ -276,6 +316,12 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': '小黑洞范围',
         'prop.netLength': '网长度',
         'prop.specialItemBooster': '特殊物品间隔',
+        'prop.maxMana': '最大魔力',
+        'prop.manaRegen': '魔力恢复',
+        'prop.activeSkillDamage': '主动技能伤害',
+        'prop.activeSkillRange': '主动技能范围',
+        'prop.activeSkillCooldownReduction': '主动冷却缩减',
+        'prop.activeCombatSkill': '主动战斗技能',
         
         // Utils / Formatting
         'ui.on': '开',
@@ -351,7 +397,21 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': '网长度',
         'skill.net_length.desc': '网长度 +100',
         'skill.special_item_booster.name': '特殊物品助推器',
-        'skill.special_item_booster.desc': '特殊物品生成间隔 -1秒'
+        'skill.special_item_booster.desc': '特殊物品生成间隔 -1秒',
+        'skill.void_pulse.name': '虚空脉冲',
+        'skill.void_pulse.desc': '主动：消耗35魔力，每10秒收获范围260内最多3个资源',
+        'skill.gravity_lance.name': '重力长枪',
+        'skill.gravity_lance.desc': '主动：消耗25魔力，每7秒收获范围440内最多2个优先资源',
+        'skill.mana_core.name': '魔力核心',
+        'skill.mana_core.desc': '最大魔力 +25',
+        'skill.stellar_focus.name': '星辰专注',
+        'skill.stellar_focus.desc': '魔力恢复 +2/s',
+        'skill.singularity_mastery.name': '奇点精通',
+        'skill.singularity_mastery.desc': '主动技能伤害 +1',
+        'skill.event_horizon.name': '事件视界',
+        'skill.event_horizon.desc': '主动技能范围 +45',
+        'skill.coolant_loop.name': '冷却循环',
+        'skill.coolant_loop.desc': '主动技能冷却 -8%'
     },
     ja: {
         // Resources
@@ -393,6 +453,12 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'prop.smallBlackHoleRange': '小型ブラックホール範囲',
         'prop.netLength': 'ネットの長さ',
         'prop.specialItemBooster': '特殊アイテム間隔',
+        'prop.maxMana': '最大マナ',
+        'prop.manaRegen': 'マナ回復',
+        'prop.activeSkillDamage': 'アクティブスキルダメージ',
+        'prop.activeSkillRange': 'アクティブスキル範囲',
+        'prop.activeSkillCooldownReduction': 'アクティブクールダウン短縮',
+        'prop.activeCombatSkill': 'アクティブ戦闘スキル',
         
         // Utils / Formatting
         'ui.on': 'ON',
@@ -468,7 +534,21 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'skill.net_length.name': 'ネットの長さ',
         'skill.net_length.desc': 'ネットの長さ +100',
         'skill.special_item_booster.name': '特殊アイテムブースター',
-        'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒'
+        'skill.special_item_booster.desc': '特殊アイテム出現間隔 -1秒',
+        'skill.void_pulse.name': '虚空パルス',
+        'skill.void_pulse.desc': 'アクティブ: マナ35を消費し、10秒ごとに範囲260内の資源を最大3個回収',
+        'skill.gravity_lance.name': '重力ランス',
+        'skill.gravity_lance.desc': 'アクティブ: マナ25を消費し、7秒ごとに範囲440内の優先資源を最大2個回収',
+        'skill.mana_core.name': 'マナコア',
+        'skill.mana_core.desc': '最大マナ +25',
+        'skill.stellar_focus.name': '星の集中',
+        'skill.stellar_focus.desc': 'マナ回復 +2/s',
+        'skill.singularity_mastery.name': '特異点熟練',
+        'skill.singularity_mastery.desc': 'アクティブスキルダメージ +1',
+        'skill.event_horizon.name': '事象の地平線',
+        'skill.event_horizon.desc': 'アクティブスキル範囲 +45',
+        'skill.coolant_loop.name': '冷却ループ',
+        'skill.coolant_loop.desc': 'アクティブスキルクールダウン -8%'
     }
 };
 

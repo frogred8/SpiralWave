@@ -31,6 +31,21 @@ export interface SkillCosts {
 }
 
 /**
+ * 스킬 분류 및 전투형 액티브 스킬 메타데이터
+ */
+export type SkillKind = 'passive' | 'active';
+
+export type ActiveSkillEffect = 'areaHarvest' | 'focusedHarvest';
+
+export interface ActiveSkillStats {
+    damage: number;
+    manaCost: number;
+    cooldownMs: number;
+    range: number;
+    effect: ActiveSkillEffect;
+}
+
+/**
  * 스탯 속성 리스트
  */
 export type EffectProperty = 
@@ -50,4 +65,10 @@ export type EffectProperty =
     | 'smallBlackHole'
     | 'smallBlackHoleRange'
     | 'netLength'
-    | 'specialItemBooster';
+    | 'specialItemBooster'
+    | 'maxMana'
+    | 'manaRegen'
+    | 'activeSkillDamage'
+    | 'activeSkillRange'
+    | 'activeSkillCooldownReduction'
+    | 'activeCombatSkill';

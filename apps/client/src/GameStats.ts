@@ -3,6 +3,17 @@ import { SkillData } from '@shared/SkillData';
 import { DURATIONS, INITIAL_STATS } from '@shared/Constants';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
+export interface ActiveSkillState {
+    skillId: string;
+    remainingCooldownMs: number;
+}
+
+export interface ActiveSkillActivation {
+    skill: SkillData;
+    damage: number;
+    range: number;
+}
+
 /**
  * 게임의 모든 상태와 스탯을 관리하는 클래스
  */
@@ -34,6 +45,15 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public smallBlackHoleRadius: number = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
     public netDistance: number = 600;
     public specialItemInterval: number = 15000;
+
+    // 액티브 전투 스킬 자원 및 보정치
+    public mana!: number;
+    public maxMana!: number;
+    public manaRegen!: number;
+    public activeSkillDamageBonus!: number;
+    public activeSkillRangeBonus!: number;
+    public activeSkillCooldownReduction!: number;
+    public activeSkillStates: Record<string, ActiveSkillState> = {};
     
     // 연구 및 스킬 트리 상태
     public skillLevels!: Record<string, number>;
@@ -67,6 +87,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         GAME_OVER: 'gameOver',
         SPAWN_RATE_CHANGED: 'spawnRateChanged',
         SPECIAL_ITEM_INTERVAL_CHANGED: 'specialItemIntervalChanged',
+        ACTIVE_SKILL_USED: 'activeSkillUsed',
         CALCULATE_BOOSTER: 'calculateBooster',
         FEVER_START: 'feverStart',
         FEVER_END: 'feverEnd'
@@ -102,12 +123,25 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.smallBlackHoleRadius = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
         this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
+        this.maxMana = INITIAL_STATS.MAX_MANA;
+        this.mana = this.maxMana;
+        this.manaRegen = INITIAL_STATS.MANA_REGEN;
+        this.activeSkillDamageBonus = INITIAL_STATS.ACTIVE_SKILL_DAMAGE_BONUS;
+        this.activeSkillRangeBonus = INITIAL_STATS.ACTIVE_SKILL_RANGE_BONUS;
+        this.activeSkillCooldownReduction = INITIAL_STATS.ACTIVE_SKILL_COOLDOWN_REDUCTION;
+        this.activeSkillStates = {};
 
         this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
         this.skillLevels = {};
         this.skillTreeData.forEach(skill => {
             this.skillLevels[skill.id] = 0;
+            if (skill.kind === 'active') {
+                this.activeSkillStates[skill.id] = {
+                    skillId: skill.id,
+                    remainingCooldownMs: 0
+                };
+            }
         });
         this.activeResearches = [];
         this.researchQueue = [];
@@ -153,6 +187,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         // 1초(1000ms) 이상의 delta값은 무조건 1초만 누적
         const cappedDt = Math.min(dt, 1000);
         let elapsedSeconds = cappedDt / 1000;
+        this.updateActiveSkillResources(cappedDt);
         
         // 피버 모드 처리
         if (this.isFeverMode) {
@@ -236,6 +271,56 @@ export class GameStats extends Phaser.Events.EventEmitter {
         }
         
         if (updated) this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    private updateActiveSkillResources(dt: number) {
+        this.mana = Math.min(this.maxMana, this.mana + this.manaRegen * (dt / 1000));
+
+        Object.values(this.activeSkillStates).forEach(state => {
+            state.remainingCooldownMs = Math.max(0, state.remainingCooldownMs - dt);
+        });
+    }
+
+    public getUnlockedActiveSkills(): SkillData[] {
+        return this.skillTreeData.filter(skill => skill.kind === 'active' && (this.skillLevels[skill.id] || 0) > 0 && skill.active);
+    }
+
+    public canUseActiveSkill(skillId: string): boolean {
+        const skill = this.skillTreeData.find(s => s.id === skillId);
+        if (!skill?.active || (this.skillLevels[skill.id] || 0) <= 0) return false;
+
+        const state = this.activeSkillStates[skill.id];
+        if (!state || state.remainingCooldownMs > 0) return false;
+
+        return this.mana >= skill.active.manaCost;
+    }
+
+    public activateActiveSkill(skillId: string): ActiveSkillActivation | null {
+        if (!this.canUseActiveSkill(skillId)) return null;
+
+        const skill = this.skillTreeData.find(s => s.id === skillId);
+        if (!skill?.active) return null;
+
+        const state = this.activeSkillStates[skill.id] || {
+            skillId: skill.id,
+            remainingCooldownMs: 0
+        };
+
+        const level = this.skillLevels[skill.id] || 1;
+        const cooldownScale = Math.max(0.2, 1 - this.activeSkillCooldownReduction);
+        this.mana -= skill.active.manaCost;
+        state.remainingCooldownMs = skill.active.cooldownMs * cooldownScale;
+        this.activeSkillStates[skill.id] = state;
+
+        const activation = {
+            skill,
+            damage: skill.active.damage + (level - 1) + this.activeSkillDamageBonus,
+            range: skill.active.range + ((level - 1) * 25) + this.activeSkillRangeBonus
+        };
+
+        this.emit(GameStats.EVENTS.ACTIVE_SKILL_USED, activation);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+        return activation;
     }
 
     /**
@@ -510,6 +595,22 @@ getRecentCollectionAmount(): number {
             case 'specialItemBooster': 
                 this.specialItemInterval += val * 1000; // val is in seconds (-1), convert to ms (-1000)
                 this.emit(GameStats.EVENTS.SPECIAL_ITEM_INTERVAL_CHANGED);
+                break;
+            case 'maxMana':
+                this.maxMana += val;
+                this.mana = Math.min(this.maxMana, this.mana + val);
+                break;
+            case 'manaRegen': this.manaRegen += val; break;
+            case 'activeSkillDamage': this.activeSkillDamageBonus += val; break;
+            case 'activeSkillRange': this.activeSkillRangeBonus += val; break;
+            case 'activeSkillCooldownReduction': this.activeSkillCooldownReduction += val; break;
+            case 'activeCombatSkill':
+                if (skill.kind === 'active' && !this.activeSkillStates[skill.id]) {
+                    this.activeSkillStates[skill.id] = {
+                        skillId: skill.id,
+                        remainingCooldownMs: 0
+                    };
+                }
                 break;
         }
 

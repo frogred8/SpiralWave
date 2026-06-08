@@ -429,6 +429,21 @@ export class SkillTreeUI {
         const skillDescTemplate = I18n.t(`skill.${skill.id}.desc`);
         
         let text = `${skillName} (${I18n.t('skill.level')} ${level}/${skill.maxLevel})\n`;
+        if (skill.kind === 'active' && skill.active) {
+            const currentDamage = skill.active.damage + Math.max(0, level - 1);
+            const nextDamage = skill.active.damage + Math.min(skill.maxLevel - 1, level);
+            const currentRange = skill.active.range + (Math.max(0, level - 1) * 25);
+            const nextRange = skill.active.range + (Math.min(skill.maxLevel - 1, level) * 25);
+            const cooldown = (skill.active.cooldownMs / 1000).toFixed(0);
+            const manaCost = skill.active.manaCost;
+
+            if (level >= skill.maxLevel) {
+                return `${text}${skillDescTemplate}\nDMG ${currentDamage} / RNG ${currentRange} / MP ${manaCost} / CD ${cooldown}s`;
+            }
+
+            return `${text}${skillDescTemplate}\nDMG ${currentDamage} -> ${nextDamage} / RNG ${currentRange} -> ${nextRange} / MP ${manaCost} / CD ${cooldown}s`;
+        }
+
         const isMaxLevel = level >= skill.maxLevel;
         if (isMaxLevel) {
             const propertyName = this.getPropertyName(skill.effectProperty);
@@ -469,6 +484,11 @@ export class SkillTreeUI {
             case 'moveSpeed': return INITIAL_STATS.MOVE_SPEED;
             case 'net': return 0;
             case 'satelliteCount': return 0;
+            case 'maxMana': return INITIAL_STATS.MAX_MANA;
+            case 'manaRegen': return INITIAL_STATS.MANA_REGEN;
+            case 'activeSkillDamage': return INITIAL_STATS.ACTIVE_SKILL_DAMAGE_BONUS;
+            case 'activeSkillRange': return INITIAL_STATS.ACTIVE_SKILL_RANGE_BONUS;
+            case 'activeSkillCooldownReduction': return INITIAL_STATS.ACTIVE_SKILL_COOLDOWN_REDUCTION;
             default: return 0;
         }
     }
@@ -489,6 +509,15 @@ export class SkillTreeUI {
             case 'netAngle': return I18n.t('prop.netAngle');
             case 'satelliteCount': return I18n.t('prop.satelliteCount');
             case 'smallBlackHole': return I18n.t('prop.smallBlackHole');
+            case 'smallBlackHoleRange': return I18n.t('prop.smallBlackHoleRange');
+            case 'netLength': return I18n.t('prop.netLength');
+            case 'specialItemBooster': return I18n.t('prop.specialItemBooster');
+            case 'maxMana': return I18n.t('prop.maxMana');
+            case 'manaRegen': return I18n.t('prop.manaRegen');
+            case 'activeSkillDamage': return I18n.t('prop.activeSkillDamage');
+            case 'activeSkillRange': return I18n.t('prop.activeSkillRange');
+            case 'activeSkillCooldownReduction': return I18n.t('prop.activeSkillCooldownReduction');
+            case 'activeCombatSkill': return I18n.t('prop.activeCombatSkill');
             default: return property;
         }
     }

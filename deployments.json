@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260611_1000",
+    "type": "preview",
+    "title": "20260611_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260611_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260611_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-06-11T01:00:15.905Z",
+    "release_note": {
+      "en": "Implement a UI component on the main title screen or start menu that allows users to view the \"Top 10 Next Update Suggestions\" list. This feature must ensure that the information is accessible before the user initiates the game session. The implementation should include a data fetching mechanism to retrieve the current top 10 suggestions and a dedicated UI element (such as a modal or a sidebar) to display these items clearly.",
+      "ko": "메인 타이틀 화면 또는 시작 메뉴에 사용자가 '다음 업데이트 제안 Top 10' 목록을 확인할 수 있는 UI 구성 요소를 구현했습니다. 이 기능은 사용자가 게임 세션을 시작하기 전에 해당 정보를 확인할 수 있도록 보장합니다. 구현 사항에는 현재 상위 10개 제안을 가져오는 데이터 페칭 메커니즘과 이를 명확하게 표시하기 위한 전용 UI 요소(모달 또는 사이드바 등)가 포함됩니다.",
+      "zh": "在主界面或开始菜单上实现了一个 UI 组件，允许用户查看“下一次更新建议 Top 10”列表。此功能确保用户在开始游戏会话之前即可访问该信息。实现内容包括用于检索当前前 10 条建议的数据获取机制，以及用于清晰显示这些项目的专用 UI 元素（如模态框或侧边栏）。",
+      "ja": "メインタイトル画面またはスタートメニューに、「次回のアップデート提案トップ10」リストを表示できるUIコンポーネントを実装しました。この機能により、ユーザーはゲームセッションを開始する前に情報を確認できるようになります。実装には、現在のトップ10候補を取得するためのデータ取得メカニズムと、これらを明確に表示するための専用UI要素（モーダルやサイドバーなど）が含まれています。"
+    }
+  },
+  {
     "id": "20260608_1000",
     "type": "preview",
     "title": "20260608_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "게임에 시간 제한 없이 플레이할 수 있는 '무한 모드' 기능을 구현합니다. 계획은 다음과 같습니다:\n\n1. 상태 관리 업데이트: 글로벌 상태 컨트롤러에 새로운 게임 모드 상태(예: isEndlessMode)를 추가합니다.\n2. 게임 로직 수정:\n    - isEndlessMode가 활성화되면 타이머 카운트다운을 중지하거나 카운트업 타이머로 전환하도록 로직을 업데이트합니다.\n    - 시간 기반 '게임 오버' 조건을 비활성화합니다.\n    - 수동 종료 또는 기타 시간이 아닌 실패 조건이 충족될 때까지 게임 루프가 계속되도록 합니다.\n3. UI 통합:\n    - 메인 메뉴 또는 레벨 선택 화면에 '무한 모드'를 활성화할 수 있는 토글이나 버튼을 추가합니다.\n    - 게임 내 HUD를 업데이트하여 카운트다운 타이머 대신 '무한' 또는 스톱워치를 표시합니다.\n4. 점수 시스템 조정:\n    - 표준 모드와의 균형을 유지하기 위해 무한 모드 전용의 별도 최고 점수 기록 시스템을 구현합니다.",
       "zh": "为游戏实现“无尽模式”功能，允许在没有时间限制的情况下进行游戏。计划包括：\n\n1. 状态管理更新：在全局状态控制器中添加新的游戏模式状态（例如 isEndlessMode）。\n2. 游戏逻辑修改：\n    - 更新计时逻辑，在 isEndlessMode 激活时停止倒计时或切换为正计时。\n    - 禁用基于时间的“游戏结束”条件。\n    - 确保游戏循环继续，直到手动退出或满足其他非时间相关的失败条件。\n3. UI 集成：\n    - 在主菜单或关卡选择界面添加切换开关或按钮以启用“无尽模式”。\n    - 更新游戏内 HUD，以显示“无尽”或秒表，而不是倒计时器。\n4. 评分系统调整：\n    - 为无尽模式实施单独的高分追踪系统，以保持与标准模式的平衡。",
       "ja": "時間制限なしでプレイできる「エンドレスモード」機能を実装します。計画は以下の通りです：\n\n1. 状態管理の更新：グローバル状態コントローラーに新しいゲームモードの状態（例：isEndlessMode）を追加します。\n2. ゲームロジックの修正：\n    - isEndlessModeが有効な場合、タイマーのカウントダウンを停止するか、カウントアップタイマーに切り替えるようロジックを更新します。\n    - 時間制限による「ゲームオーバー」条件を無効化します。\n    - 手動で終了するか、時間以外の失敗条件が満たされるまでゲームループが継続するようにします。\n3. UIの統合：\n    - メインメニューまたはレベル選択画面に「エンドレスモード」を有効にするトグルまたはボタンを追加します。\n    - ゲーム内HUDを更新し、カウントダウンタイマーの代わりに「エンドレス」またはストップウォッチを表示します。\n4. スコアシステムの調整：\n    - 標準モードとのバランスを維持するため、エンドレスモード専用の別個のハイスコア記録システムを実装します。"
-    }
-  },
-  {
-    "id": "20260603_1000",
-    "type": "preview",
-    "title": "20260603_1000 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260603_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260603_1000:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-06-03T01:00:23.894Z",
-    "release_note": {
-      "en": "Act as a senior game developer. Implement the following features and improvements based on the analyzed user requirements:\n\n1. **Information Transparency Enhancement**\n   - Update the Tech Tree UI to explicitly display the types and quantities of resources required for each node without requiring deep navigation.\n   - Implement a tooltip or detail panel for \"Special Items\" that provides clear functional descriptions and stat effects.\n\n2. **Progression & Balance Adjustment**\n   - Refactor the research slot unlock mechanics to ensure more predictable growth acceleration; clearly communicate the unlock criteria to the player.\n   - Adjust the Skill Tree logic to reduce RNG (randomness) and allow for more strategic, deterministic planning.\n\n3. **New Game Mode: Infinite Mode**\n   - Develop a standalone \"Infinite Mode\" with specialized scoring and scaling difficulty.\n\n4. **Advanced Leaderboard System**\n   - Implement a categorized ranking system that separates leaderboards based on session duration (e.g., 1-minute bracket vs. 5-minute bracket).\n   - Create a post-game flow that prompts players to enter their name whenever a new record is achieved.\n   - Implement a unique identifier logic (e.g., short hash suffix) for player names to distinguish between identical entries in the database.\n   - Ensure the ranking logic updates and fetches data based on these specific time-based categories.",
-      "ko": "1. 정보 투명성 강화\n- 테크 트리 UI를 업데이트하여 각 노드에 필요한 자원의 종류와 수량을 별도의 탐색 없이 즉시 확인할 수 있도록 개선했습니다.\n- '특수 아이템'의 기능 설명과 능력치 효과를 명확하게 제공하는 툴팁 및 상세 패널을 구현했습니다.\n\n2. 진행 및 밸런스 조정\n- 보다 예측 가능한 성장을 위해 연구 슬롯 해금 메커니즘을 개편하고, 해금 조건을 플레이어에게 명확하게 전달합니다.\n- 스킬 트리 로직을 조정하여 무작위성(RNG)을 줄이고, 전략적이고 결정적인 계획이 가능하도록 개선했습니다.\n\n3. 신규 게임 모드: 무한 모드\n- 전용 점수 체계와 난이도 스케일링이 적용된 독립형 '무한 모드'를 개발했습니다.\n\n4. 고급 리더보드 시스템\n- 세션 시간(예: 1분 부문 vs 5분 부문)에 따라 순위표를 분리하는 카테고리별 랭킹 시스템을 구현했습니다.\n- 신기록 달성 시 플레이어가 이름을 입력할 수 있는 게임 종료 후 프로세스를 추가했습니다.\n- 데이터베이스 내 동일한 이름의 항목을 구분하기 위해 고유 식별자(짧은 해시 접미사 등) 로직을 구현했습니다.\n- 설정된 시간 카테고리에 따라 데이터를 업데이트하고 호출하도록 랭킹 로직을 최적화했습니다.",
-      "zh": "1. 信息透明度提升\n- 更新科技树 UI，无需深入层级即可直接显示每个节点所需的资源类型和数量。\n- 为“特殊物品”实现了工具提示或详情面板，提供清晰的功能描述和属性效果。\n\n2. 进度与平衡调整\n- 重构研究栏解锁机制，确保增长更加可预测，并向玩家明确传达解锁标准。\n- 调整技能树逻辑以减少随机性 (RNG)，支持更具策略性的确定性规划。\n\n3. 新游戏模式：无限模式\n- 开发了具有专门评分和难度缩放功能的独立“无限模式”。\n\n4. 高级排行榜系统\n- 实现了分类排名系统，根据单局时长（如 1 分钟组 vs 5 分钟组）划分排行榜。\n- 创建了游戏后流程，每当达成新纪录时都会提示玩家输入姓名。\n- 为玩家姓名实现唯一标识符逻辑（如短哈希后缀），以区分数据库中的重复条目。\n- 确保排名逻辑能够根据这些特定的时间类别进行数据更新和检索。",
-      "ja": "1. 情報の透明性の向上\n- テックツリーのUIを更新し、各ノードに必要なリソースの種類と量を深い階層に移動することなく直接表示するようにしました。\n- 「特殊アイテム」に対して、明確な機能説明とステータス効果を提供するツールチップまたは詳細パネルを実装しました。\n\n2. 進行状況とバランスの調整\n- より予測可能な成長を保証するために研究スロットの解放メカニズムを刷新し、プレイヤーに解放条件を明確に伝えます。\n- スキルツリーのロジックを調整してランダム性（RNG）を減らし、より戦略的で決定論的な計画が可能になるよう改善しました。\n\n3. 新しいゲームモード：インフィニットモード\n- 専用のスコアリングと難易度スケーリングを備えたスタンドアロンの「インフィニットモード」を開発しました。\n\n4. 高度なリーダーボードシステム\n- セッション時間（例：1分枠 vs 5分枠）に基づいてリーダーボードを分ける、カテゴリ別のランキングシステムを実装しました。\n- 新記録達成時にプレイヤーに名前の入力を促すポストゲームフローを作成しました。\n- データベース内の同一エントリを区別するため、プレイヤー名に固有の識別子（短いハッシュサフィックスなど）のロジックを実装しました。\n- 特定の時間ベースのカテゴリに基づいてデータを更新および取得するランキングロジックを適用しました。"
     }
   }
 ]

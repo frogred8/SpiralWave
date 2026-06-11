@@ -52,6 +52,7 @@ fastify.post('/end', async (request) => {
 });
 fastify.get('/leaderboard', GameController.handleGetLeaderboard);
 fastify.post('/leaderboard/reset', GameController.handleResetLeaderboard);
+fastify.get('/suggestions', GameController.handleGetSuggestions);
 
 fastify.get('/metrics', async () => {
   return {

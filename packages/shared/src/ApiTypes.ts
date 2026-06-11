@@ -33,6 +33,19 @@ export interface LeaderboardResponse {
     ranks: RankEntry[];
 }
 
+// GET /suggestions
+export interface SuggestionEntry {
+    seq_id: number;
+    score: number;
+    name: string;
+    msg: string;
+    emoji: string;
+}
+
+export interface SuggestionsResponse {
+    suggestions: SuggestionEntry[];
+}
+
 // POST /leaderboard/reset
 export interface LeaderboardResetRequest {
     secret_key: string;

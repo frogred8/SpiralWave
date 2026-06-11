@@ -42,6 +42,11 @@ export const GameController = {
     return await GameService.getLeaderboard();
   },
 
+  async handleGetSuggestions(request: FastifyRequest) {
+    request.log.info('Top update suggestions requested');
+    return await GameService.getSuggestions();
+  },
+
   async handleResetLeaderboard(request: FastifyRequest, reply: FastifyReply) {
     const body = request.body as LeaderboardResetRequest | undefined;
     const all = body?.all === true;

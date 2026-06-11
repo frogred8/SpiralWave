@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { I18n } from '@shared/I18n';
 import { GameStats } from './GameStats';
 import { INITIAL_STATS, RESOURCE_CONFIG, UPDATE_HISTORY } from '@shared/Constants';
-import { DeploymentEntry, RankEntry } from '@shared/ApiTypes';
+import { DeploymentEntry, RankEntry, SuggestionEntry } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { Utils } from './Utils';
@@ -13,6 +13,7 @@ export interface UIState {
     excludeSkillIds?: string[];
     selectedInitialSkills?: any[];
     leaderBoardRanks?: RankEntry[];
+    suggestions?: SuggestionEntry[];
     deployments?: DeploymentEntry[];
     isRestarted?: boolean;
     canReroll?: boolean;
@@ -24,6 +25,7 @@ export interface UICallbacks {
     onSendStartSignal: (skillId: number, playTimeSeconds: number) => void;
     onSendEndSignal: (name: string, msg: string) => void;
     onFetchLeaderboard: () => Promise<RankEntry[]>;
+    onFetchSuggestions: () => Promise<SuggestionEntry[]>;
     onFetchDeployments: () => Promise<DeploymentEntry[]>;
     onRefreshUI: () => void;
 }
@@ -45,6 +47,7 @@ export class UIManager {
     private deploymentsElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseElement: Phaser.GameObjects.Container | null = null;
     private leaderboardOverlayElement: Phaser.GameObjects.Container | null = null;
+    private suggestionsOverlayElement: Phaser.GameObjects.Container | null = null;
     private updateHistoryElement: Phaser.GameObjects.Container | null = null;
     private stableReleaseNoteMask: Phaser.GameObjects.Graphics | null = null;
     private stableReleaseWheelHandler: ((pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) => void) | null = null;
@@ -52,6 +55,7 @@ export class UIManager {
     private gameOverRenderId: number = 0;
     private isInitialSkillSelectionLocked: boolean = false;
     private leaderboardFetchPromise: Promise<RankEntry[]> | null = null;
+    private suggestionsFetchPromise: Promise<SuggestionEntry[]> | null = null;
 
     private statsUpdateListener: (() => void) | null = null;
 
@@ -222,6 +226,7 @@ export class UIManager {
         }).setOrigin(0.5).setDepth(2001);
         this.uiContainer.add(title);
         this.createCurrentVersionLabel(width, titleY - 32);
+        this.uiContainer.add(this.createSuggestionsButton(width / 2, titleY + 48));
         this.createGameTips(width, titleY + 100);
         void this.createDeploymentsPanel(width, height + 72);
 
@@ -293,6 +298,173 @@ export class UIManager {
         bg.on('pointerover', () => bg.setFillStyle(0x444444));
         bg.on('pointerout', () => bg.setFillStyle(0x222222));
         bg.on('pointerdown', () => this.showUpdateHistoryOverlay());
+        return button;
+    }
+
+    private createSuggestionsButton(x: number, y: number) {
+        const buttonWidth = 300;
+        const buttonHeight = 36;
+        const button = this.scene.add.container(x, y).setDepth(2002);
+        const bg = this.scene.add.rectangle(0, 0, buttonWidth, buttonHeight, 0x222222, 0.92)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.view_update_suggestions'), {
+            fontSize: '15px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        Utils.adjustFontSize(text, buttonWidth - 16, 10, 15);
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => bg.setFillStyle(0x444444));
+        bg.on('pointerout', () => bg.setFillStyle(0x222222));
+        bg.on('pointerdown', () => {
+            void this.showSuggestionsOverlay();
+        });
+        return button;
+    }
+
+    private async fetchSuggestions(forceRefresh: boolean = false) {
+        if (!forceRefresh && this.currentUIState.suggestions) {
+            return this.currentUIState.suggestions;
+        }
+
+        if (this.suggestionsFetchPromise) {
+            return this.suggestionsFetchPromise;
+        }
+
+        this.suggestionsFetchPromise = this.callbacks.onFetchSuggestions();
+        const suggestions = await this.suggestionsFetchPromise;
+        this.suggestionsFetchPromise = null;
+
+        if (suggestions) {
+            this.currentUIState.suggestions = suggestions;
+            return suggestions;
+        }
+
+        return this.currentUIState.suggestions || [];
+    }
+
+    private async showSuggestionsOverlay() {
+        this.destroySuggestionsOverlay();
+
+        const { width, height } = this.scene.scale;
+        const overlayContainer = this.scene.add.container(0, 0).setDepth(3200);
+        const overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.74)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true });
+        const loadingText = this.scene.add.text(width / 2, height / 2, I18n.t('ui.top_update_suggestions'), {
+            fontSize: '24px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        overlayContainer.add([overlay, loadingText]);
+        this.uiContainer.add(overlayContainer);
+        this.suggestionsOverlayElement = overlayContainer;
+
+        overlay.on('pointerdown', () => this.destroySuggestionsOverlay());
+
+        const suggestions = await this.fetchSuggestions(true);
+        if (this.suggestionsOverlayElement !== overlayContainer) return;
+
+        loadingText.destroy();
+        const panel = this.createSuggestionsUI(width, height, suggestions);
+        const closeButton = this.createSuggestionsCloseButton(width / 2, height / 2 + Math.min(520, height - 80) / 2 - 34);
+        overlayContainer.add([panel, closeButton]);
+    }
+
+    private createSuggestionsUI(width: number, height: number, suggestions: SuggestionEntry[]) {
+        const panelWidth = Math.min(760, width - 40);
+        const panelHeight = Math.min(520, height - 80);
+        const container = this.scene.add.container(width / 2, height / 2);
+        const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x151515, 0.98)
+            .setStrokeStyle(2, 0x22c55e);
+        const title = this.scene.add.text(0, -panelHeight / 2 + 30, I18n.t('ui.top_update_suggestions'), {
+            fontSize: '24px',
+            color: '#22c55e',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        container.add([bg, title]);
+
+        if (suggestions.length === 0) {
+            container.add(this.scene.add.text(0, 0, I18n.t('ui.no_suggestions'), {
+                fontSize: '18px',
+                color: '#888888'
+            }).setOrigin(0.5));
+            return container;
+        }
+
+        const leftX = -panelWidth / 2 + 28;
+        const scoreX = leftX + 72;
+        const playerX = leftX + 124;
+        const msgX = leftX + 260;
+        const msgWidth = panelWidth - 300;
+        const firstRowY = -panelHeight / 2 + 78;
+
+        suggestions.slice(0, 10).forEach((suggestion, index) => {
+            const y = firstRowY + index * 38;
+            const rankText = this.scene.add.text(leftX, y, `#${index + 1}`, {
+                fontSize: '15px',
+                color: '#22c55e',
+                fontStyle: 'bold'
+            }).setOrigin(0, 0.5).setPadding({ top: 3, bottom: 3 });
+            const scoreText = this.scene.add.text(scoreX, y, suggestion.score.toLocaleString(), {
+                fontSize: '14px',
+                color: '#d1fae5',
+                fontStyle: 'bold'
+            }).setOrigin(1, 0.5).setPadding({ top: 3, bottom: 3 });
+            const emojiText = this.scene.add.text(playerX, y, suggestion.emoji || '🌐', {
+                fontSize: '15px'
+            }).setOrigin(0, 0.5).setPadding({ top: 3, bottom: 3 });
+            const nameText = this.scene.add.text(playerX + 26, y, suggestion.name, {
+                fontSize: '14px',
+                color: '#ffffff',
+                fontStyle: 'bold'
+            }).setOrigin(0, 0.5).setPadding({ top: 3, bottom: 3 });
+            Utils.adjustFontSize(nameText, 96, 9, 14);
+
+            const msgText = this.scene.add.text(msgX, y, suggestion.msg, {
+                fontSize: '14px',
+                color: '#d1d5db',
+                maxLines: 2,
+                wordWrap: { width: msgWidth, useAdvancedWrap: true }
+            }).setOrigin(0, 0.5).setPadding({ top: 3, bottom: 3 });
+            if (msgText.height > 26 || suggestion.msg.indexOf('\n') >= 0) {
+                this.truncateStringByTextWidth(suggestion.msg, msgWidth, msgText);
+                msgText.setInteractive({ useHandCursor: true });
+                msgText.on('pointerover', (p: Phaser.Input.Pointer) => this.showTooltip(p.x, p.y, suggestion.msg));
+                msgText.on('pointerout', () => this.hideTooltip());
+            }
+
+            container.add([rankText, scoreText, emojiText, nameText, msgText]);
+        });
+
+        return container;
+    }
+
+    private createSuggestionsCloseButton(x: number, y: number) {
+        const button = this.scene.add.container(x, y);
+        const bg = this.scene.add.rectangle(0, 0, 180, 44, 0x222222, 0.9)
+            .setStrokeStyle(2, 0x00aa00)
+            .setInteractive({ useHandCursor: true });
+        const text = this.scene.add.text(0, 0, I18n.t('ui.close'), {
+            fontSize: '18px',
+            color: '#00ff00',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        button.add([bg, text]);
+        bg.on('pointerover', () => {
+            bg.setStrokeStyle(3, 0x00ff00);
+            bg.setFillStyle(0x444444);
+        });
+        bg.on('pointerout', () => {
+            bg.setStrokeStyle(2, 0x00aa00);
+            bg.setFillStyle(0x222222);
+        });
+        bg.on('pointerdown', () => this.destroySuggestionsOverlay());
         return button;
     }
 
@@ -1375,6 +1547,10 @@ export class UIManager {
             this.destroyLeaderboardOverlay();
         }
 
+        if (this.suggestionsOverlayElement && this.suggestionsOverlayElement.depth >= minDepth) {
+            this.destroySuggestionsOverlay();
+        }
+
         if (this.updateHistoryElement && this.updateHistoryElement.depth >= minDepth) {
             this.destroyUpdateHistoryOverlay();
         }
@@ -1386,6 +1562,7 @@ export class UIManager {
         this.destroyDeploymentsPanel();
         this.destroyStableReleasePanel();
         this.destroyLeaderboardOverlay();
+        this.destroySuggestionsOverlay();
         this.destroyUpdateHistoryOverlay();
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
@@ -1421,6 +1598,13 @@ export class UIManager {
         if (this.leaderboardOverlayElement) {
             this.leaderboardOverlayElement.destroy();
             this.leaderboardOverlayElement = null;
+        }
+    }
+
+    private destroySuggestionsOverlay() {
+        if (this.suggestionsOverlayElement) {
+            this.suggestionsOverlayElement.destroy();
+            this.suggestionsOverlayElement = null;
         }
     }
 

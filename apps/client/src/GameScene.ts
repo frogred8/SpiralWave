@@ -6,7 +6,7 @@ import { DURATIONS, RESOURCE_CONFIG, PHYSICS_CONFIG, LIMITS } from '@shared/Cons
 import { Utils } from './Utils';
 import { ResourceManager } from './ResourceManager';
 import { SpecialItem, Collectible } from './Types';
-import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse } from '@shared/ApiTypes';
+import { StartRequest, EndRequest, RankEntry, LeaderboardResponse, DeploymentEntry, DeploymentsResponse, SuggestionEntry, SuggestionsResponse } from '@shared/ApiTypes';
 import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
@@ -65,6 +65,7 @@ export class GameScene extends Phaser.Scene {
             onSendStartSignal: (id, playTimeSeconds) => this.sendStartGameSignal(id, playTimeSeconds),
             onSendEndSignal: (name, msg) => this.sendEndGameSignal(name, msg),
             onFetchLeaderboard: () => this.fetchLeaderboardData(),
+            onFetchSuggestions: () => this.fetchSuggestionsData(),
             onFetchDeployments: () => this.fetchDeploymentsData(),
             onRefreshUI: () => this.handleRefreshUI()
         });
@@ -703,6 +704,17 @@ export class GameScene extends Phaser.Scene {
             return data.deployments || [];
         } catch (err) {
             console.error('Failed to fetch deployments:', err);
+            return [];
+        }
+    }
+
+    private async fetchSuggestionsData(): Promise<SuggestionEntry[]> {
+        try {
+            const response = await fetch(`/suggestions`);
+            const data: SuggestionsResponse = await response.json();
+            return data.suggestions || [];
+        } catch (err) {
+            console.error('Failed to fetch suggestions:', err);
             return [];
         }
     }

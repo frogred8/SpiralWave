@@ -1,4 +1,5 @@
-import { INITIAL_STATS, type LeaderboardResponse } from '@repo/shared';
+import { INITIAL_STATS } from '@repo/shared';
+import type { LeaderboardResponse, SuggestionsResponse } from '@shared/ApiTypes';
 import db from '../config/db';
 
 /**
@@ -101,6 +102,30 @@ async function generateLeaderboard(): Promise<LeaderboardResponse> {
   }
 }
 
+async function generateSuggestions(): Promise<SuggestionsResponse> {
+  try {
+    const rows = await db('wish')
+      .select('seq_id', 'score', 'name', 'msg', 'emoji')
+      .whereNotNull('msg')
+      .whereRaw("btrim(msg) <> ''")
+      .orderBy('score', 'desc')
+      .limit(10);
+
+    const suggestions = rows.map(row => ({
+      seq_id: row.seq_id,
+      score: parseInt(row.score),
+      name: row.name,
+      msg: row.msg,
+      emoji: row.emoji || ''
+    }));
+
+    return { suggestions };
+  } catch (err) {
+    console.error('Failed to generate suggestions:', err);
+    return { suggestions: [] };
+  }
+}
+
 function isExpiredCache() {
   const now = Date.now();
   const isExpired = now - cache.lastUpdated > CACHE_TTL;
@@ -182,6 +207,10 @@ export const GameService = {
       await updateCache();
     }
     return cache.data || { ranks: [] };
+  },
+
+  async getSuggestions(): Promise<SuggestionsResponse> {
+    return await generateSuggestions();
   },
 
   async resetLeaderboard(seqIds?: number[], all = false) {

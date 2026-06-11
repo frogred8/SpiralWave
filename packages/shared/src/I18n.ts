@@ -82,6 +82,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': 'Version',
         'ui.no_release_note': 'No release note.',
         'ui.update_history': 'History',
+        'ui.view_update_suggestions': 'Top 10 Next Update Suggestions',
+        'ui.top_update_suggestions': 'Top 10 Next Update Suggestions',
+        'ui.no_suggestions': 'No update suggestions yet.',
         
         // Units
         'unit.second': 's',
@@ -200,6 +203,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': '버전',
         'ui.no_release_note': '릴리즈 노트가 없습니다.',
         'ui.update_history': '업데이트',
+        'ui.view_update_suggestions': '다음 업데이트 제안 Top 10',
+        'ui.top_update_suggestions': '다음 업데이트 제안 Top 10',
+        'ui.no_suggestions': '아직 업데이트 제안이 없습니다.',
         
         // Units
         'unit.second': '초',
@@ -317,6 +323,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': '版本',
         'ui.no_release_note': '暂无发布说明。',
         'ui.update_history': '更新',
+        'ui.view_update_suggestions': '下次更新建议 Top 10',
+        'ui.top_update_suggestions': '下次更新建议 Top 10',
+        'ui.no_suggestions': '暂无更新建议。',
         
         // Units
         'unit.second': '秒',
@@ -434,6 +443,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': 'バージョン',
         'ui.no_release_note': 'リリースノートはありません。',
         'ui.update_history': '履歴',
+        'ui.view_update_suggestions': '次回アップデート要望 Top 10',
+        'ui.top_update_suggestions': '次回アップデート要望 Top 10',
+        'ui.no_suggestions': 'アップデート要望はまだありません。',
 
         // Units
         'unit.second': '秒',

@@ -245,6 +245,7 @@ async function commitMetricsFileToMain(metricsFilePath: string) {
             '--',
             relativeMetricsPath,
         ]);
+        await execFileAsync('git', ['-C', PROJECT_ROOT, 'pull', '--rebase', 'origin', 'main']);
         await execFileAsync('git', ['-C', PROJECT_ROOT, 'push', 'origin', 'main']);
         console.log('metrics 변경사항을 main에 커밋하고 push했습니다.');
     } catch (error) {

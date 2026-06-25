@@ -20,6 +20,8 @@ export interface ActiveResearch {
     skillId: string;
     remainingTime: number;
     totalTime: number;
+    startedAt: number | null;
+    completesAt: number | null;
 }
 
 /**

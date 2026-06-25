@@ -144,7 +144,8 @@ export class SkillTreeUI {
                     // Add research time line
                     const timeLine = this.costLines[lineIdx++];
                     if (timeLine) {
-                        const seconds = (skill.researchTimes && skill.researchTimes[currentLevel]) || 0;
+                        const baseSeconds = (skill.researchTimes && skill.researchTimes[currentLevel]) || 0;
+                        const seconds = this.gameStats.getResearchDuration(baseSeconds);
                         timeLine.setText(`${I18n.t('skill.research_time')} ${seconds}${I18n.t('unit.second')}`)
                             .setColor('#ffff00')
                             .setPosition(10, currentY)

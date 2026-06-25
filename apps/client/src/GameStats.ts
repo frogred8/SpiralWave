@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { SkillData } from '@shared/SkillData';
-import { DURATIONS, INITIAL_STATS } from '@shared/Constants';
+import { DURATIONS, INITIAL_STATS, RESEARCH_TIME_CONFIG } from '@shared/Constants';
 import { ResourceType, ActiveResearch, SkillCosts } from './Types';
 
 /**
@@ -103,7 +103,8 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
         this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
 
-        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
+        this.researchReduction = INITIAL_STATS.RESEARCH_BONUS;
+        this.maxResearchSlots = INITIAL_STATS.MAX_RESEARCH_SLOTS;
         
         this.skillLevels = {};
         this.skillTreeData.forEach(skill => {
@@ -213,6 +214,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
             for (let i = 0; i < activeCount; i++) {
                 this.activeResearches[i].remainingTime -= timeToAdvance;
             }
+            this.refreshActiveResearchCompletionTimes();
             
             elapsedSeconds -= timeToAdvance;
             updated = true;
@@ -251,6 +253,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
 
             if (index !== -1) {
                 const promoted = this.researchQueue.splice(index, 1)[0];
+                this.startResearchTimer(promoted);
                 this.activeResearches.push(promoted);
             } else {
                 // 더 이상 연구 가능한 스킬이 큐에 없음
@@ -313,13 +316,47 @@ export class GameStats extends Phaser.Events.EventEmitter {
     reduceResearchTime(seconds: number) {
         if (this.activeResearches.length === 0) return;
 
-        // 현재 실제로 진행 중인 첫 번째 연구에 보너스 적용
-        const researchable = this.activeResearches[0];
-        if (researchable) {
-            researchable.remainingTime = Math.max(0, researchable.remainingTime - seconds);
+        const deduction = Math.max(0, seconds);
+        if (deduction <= 0) return;
+
+        this.activeResearches.forEach(researchable => {
+            researchable.remainingTime = Math.max(0, researchable.remainingTime - deduction);
+            researchable.completesAt = this.playtime + researchable.remainingTime;
             this.emit(GameStats.EVENTS.RESEARCH_REDUCED, researchable.skillId);
-            this.emit(GameStats.EVENTS.UPDATE_SCORE);
+        });
+
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    public getResearchDuration(baseDuration: number): number {
+        const reducedDuration = (baseDuration * RESEARCH_TIME_CONFIG.DURATION_MULTIPLIER) - RESEARCH_TIME_CONFIG.FIXED_DEDUCTION_SECONDS;
+        return Math.max(RESEARCH_TIME_CONFIG.MIN_DURATION_SECONDS, reducedDuration);
+    }
+
+    private createResearch(skill: SkillData, level: number): ActiveResearch {
+        const totalTime = this.getResearchDuration(skill.researchTimes[level]);
+
+        return {
+            skillId: skill.id,
+            remainingTime: totalTime,
+            totalTime,
+            startedAt: null,
+            completesAt: null
+        };
+    }
+
+    private startResearchTimer(research: ActiveResearch) {
+        if (research.startedAt === null) {
+            research.startedAt = this.playtime;
         }
+        research.completesAt = this.playtime + research.remainingTime;
+    }
+
+    private refreshActiveResearchCompletionTimes() {
+        this.activeResearches.forEach(research => {
+            this.startResearchTimer(research);
+            research.completesAt = this.playtime + Math.max(0, research.remainingTime);
+        });
     }
 
     /**
@@ -339,11 +376,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.consumeResources(costs);
         
         // 일단 무조건 큐에 추가
-        this.researchQueue.push({
-            skillId: skill.id,
-            remainingTime: skill.researchTimes[currentLevel],
-            totalTime: skill.researchTimes[currentLevel]
-        });
+        this.researchQueue.push(this.createResearch(skill, currentLevel));
 
         // 추가 직후 바로 활성 슬롯으로 이동 시도
         this.promoteFromQueue();

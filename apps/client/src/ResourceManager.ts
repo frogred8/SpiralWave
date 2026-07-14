@@ -351,28 +351,20 @@ export class ResourceManager {
     public spawnArmBlackHole(x: number, y: number) {
         const bh = this.scene.add.container(x, y);
         const boundary = this.scene.add.circle(0, 0, this.stats.armBlackHoleRadius, 0x190033, 0.18).setStrokeStyle(2, 0x8844ff, 0.7);
-        const core = this.scene.add.circle(0, 0, 9, 0x000000, 1);
-        const swirl = this.scene.add.circle(0, 0, 24, 0xaa66ff, 0.28);
-        const ring = this.scene.add.circle(0, 0, 34, 0x000000, 0).setStrokeStyle(2, 0xffffff, 0.25);
-
-        bh.add([boundary, ring, swirl, core]);
+        const core = this.scene.add.circle(0, 0, 4, 0x000000, 1);
+        const swirl = this.scene.add.circle(0, 0, 12, 0xaaaaff, 0.28);
+        
+        bh.add([boundary, swirl, core]);
         this.worldContainer.add(bh);
 
-        this.scene.tweens.add({
-            targets: [ring, swirl],
-            angle: 360,
-            duration: 900,
-            loop: -1
-        });
-
-        bh.setScale(0);
-        this.scene.tweens.add({ targets: bh, scale: 1, duration: 180, ease: 'Back.Out' });
+        bh.setScale(0.5);
+        this.scene.tweens.add({ targets: bh, scale: 1, duration: 300, ease: 'Back.Out' });
         this.armBlackHoles.push(bh);
 
         this.scene.time.delayedCall(DURATIONS.ARM_BLACK_HOLE_ACTIVE, () => {
             this.scene.tweens.add({
                 targets: bh,
-                scale: 0,
+                scale: 0.9,
                 alpha: 0,
                 duration: DURATIONS.ARM_BLACK_HOLE_SHRINK,
                 onComplete: () => {

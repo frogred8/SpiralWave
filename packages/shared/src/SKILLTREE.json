@@ -136,7 +136,7 @@
         "prerequisites": [],
         "researchTimes": [12, 15, 18],
         "effectProperty": "armBlackHole",
-        "effectValue": 30,
+        "effectValue": 15,
         "maxLevel": 3
     },
     {

@@ -52,6 +52,7 @@ export class UIManager {
     private gameOverRenderId: number = 0;
     private isInitialSkillSelectionLocked: boolean = false;
     private leaderboardFetchPromise: Promise<RankEntry[]> | null = null;
+    private isLanguageRefreshInProgress: boolean = false;
 
     private statsUpdateListener: (() => void) | null = null;
     private researchCompleteListener: ((skillId: string, level: number) => void) | null = null;
@@ -75,6 +76,7 @@ export class UIManager {
 
         if (this.skillTreeUI) {
             this.skillTreeUI.destroy();
+            this.skillTreeUI = null;
         }
         this.skillTreeUI = new SkillTreeUI(this.scene, this.uiContainer, this.stats, skillData);
     }
@@ -1348,6 +1350,8 @@ export class UIManager {
         item.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
 
         item.on('pointerdown', () => {
+            if (this.isLanguageRefreshInProgress) return;
+
             if (I18n.getLanguage() !== lang.code) {
                 I18n.setLanguage(lang.code as any);
                 this.isLanguageMenuOpen = false;
@@ -1389,23 +1393,36 @@ export class UIManager {
     }
 
     public async refreshUIAfterLanguageChange() {
-        this.hideTooltip();
-        const currentSkillData = this.stats.skillTreeData;
-        this.destroyCoffeeBanner();
-        this.destroyDeploymentsPanel();
-        this.uiContainer.removeAll(true);
-        this.topUiContainer.removeAll(true);
-        if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
+        if (this.isLanguageRefreshInProgress) return;
 
-        // UI 컴포넌트 재구성
-        this.setupMainUI();
-        await this.setupSkillTree(currentSkillData);
+        this.isLanguageRefreshInProgress = true;
+        try {
+            this.hideTooltip();
+            const currentSkillData = this.stats.skillTreeData;
+            this.destroySkillTreeUI();
+            this.detachStatsListeners();
+            this.destroyCoffeeBanner();
+            this.destroyDeploymentsPanel();
+            this.destroyStableReleasePanel();
+            this.destroyLeaderboardOverlay();
+            this.destroyUpdateHistoryOverlay();
+            this.destroyResearchToast();
+            this.uiContainer.removeAll(true);
+            this.topUiContainer.removeAll(true);
+            if (this.activeDOMElement) { this.activeDOMElement.destroy(); this.activeDOMElement = null; }
 
-        // 오버레이 상태 복구 (다국어 변경 시에도 오버레이 유지)
-        this.restoreUIState();
+            // UI 컴포넌트 재구성
+            this.setupMainUI();
+            await this.setupSkillTree(currentSkillData);
 
-        // Scene에 리프레시 알림 (리사이즈나 카메라 설정 등)
-        this.callbacks.onRefreshUI();
+            // 오버레이 상태 복구 (다국어 변경 시에도 오버레이 유지)
+            this.restoreUIState();
+
+            // Scene에 리프레시 알림 (리사이즈나 카메라 설정 등)
+            this.callbacks.onRefreshUI();
+        } finally {
+            this.isLanguageRefreshInProgress = false;
+        }
     }
 
     public updateUIPositions() {
@@ -1456,11 +1473,28 @@ export class UIManager {
 
     public destroy() {
         this.hideTooltip();
+        this.destroySkillTreeUI();
         this.destroyCoffeeBanner();
         this.destroyDeploymentsPanel();
         this.destroyStableReleasePanel();
         this.destroyLeaderboardOverlay();
         this.destroyUpdateHistoryOverlay();
+        this.detachStatsListeners();
+        this.destroyResearchToast();
+        if (this.activeDOMElement) this.activeDOMElement.destroy();
+        this.statsContainer.destroy();
+        this.uiContainer.removeAll(true);
+        this.topUiContainer.removeAll(true);
+    }
+
+    private destroySkillTreeUI() {
+        if (this.skillTreeUI) {
+            this.skillTreeUI.destroy();
+            this.skillTreeUI = null;
+        }
+    }
+
+    private detachStatsListeners() {
         if (this.statsUpdateListener) {
             this.stats.off(GameStats.EVENTS.UPDATE_SCORE, this.statsUpdateListener);
             this.statsUpdateListener = null;
@@ -1469,14 +1503,13 @@ export class UIManager {
             this.stats.off(GameStats.EVENTS.RESEARCH_COMPLETED, this.researchCompleteListener);
             this.researchCompleteListener = null;
         }
+    }
+
+    private destroyResearchToast() {
         if (this.researchToastContainer) {
             this.researchToastContainer.destroy();
             this.researchToastContainer = null;
         }
-        if (this.activeDOMElement) this.activeDOMElement.destroy();
-        this.statsContainer.destroy();
-        this.uiContainer.removeAll(true);
-        this.topUiContainer.removeAll(true);
     }
 
     private destroyDeploymentsPanel() {

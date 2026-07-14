@@ -16,6 +16,7 @@ export class SkillTreeUI {
     private tipText!: Phaser.GameObjects.Text;
     private costLines: Phaser.GameObjects.Text[] = [];
     private skillButtons: Record<string, Phaser.GameObjects.Container> = {};
+    private isDestroyed: boolean = false;
     public skillTreeData: SkillData[];
 
     constructor(scene: Phaser.Scene, uiContainer: Phaser.GameObjects.Container, gameStats: GameStats, skillTreeData: SkillData[]) {
@@ -185,16 +186,24 @@ export class SkillTreeUI {
     }
 
     public destroy() {
+        if (this.isDestroyed) return;
+        this.isDestroyed = true;
         this.gameStats.off(GameStats.EVENTS.UPDATE_SCORE, this.refreshSkillTreeUI, this);
         this.gameStats.off(GameStats.EVENTS.SKILL_UPGRADED, this.onSkillUpgraded, this);
         this.gameStats.off(GameStats.EVENTS.RESEARCH_REDUCED, this.onResearchTimeReduced, this);
+        this.skillButtons = {};
+        this.costLines = [];
+        if (this.skillContainer.active) this.skillContainer.destroy();
+        if (this.tooltip.active) this.tooltip.destroy();
     }
 
     private onResearchTimeReduced(skillId: string) {
+        if (this.isDestroyed || !this.skillContainer.active) return;
+
         const btn = this.skillButtons[skillId];
-        if (!btn) return;
+        if (!btn || !btn.active) return;
         const data = (btn as any).skillButtonData;
-        if (!data || !data.bg) return;
+        if (!data || !data.bg?.active) return;
         
         // 버튼 주변에 살짝 빛나는 후광 효과 추가
         const glow = this.scene.add.rectangle(btn.x, btn.y, UI_CONFIG.BUTTON.WIDTH + 10, UI_CONFIG.BUTTON.HEIGHT + 10, 0x00ffff, 0.7)
@@ -245,14 +254,16 @@ export class SkillTreeUI {
     }
 
     private refreshSkillTreeUI() {
+        if (this.isDestroyed || !this.lineGraphics.active) return;
+
         this.lineGraphics.clear();
 
         let queueIndex = 0;
         this.skillTreeData.forEach(skill => {
             const btn = this.skillButtons[skill.id];
-            if (!btn) return;
+            if (!btn || !btn.active) return;
             const data = (btn as any).skillButtonData;
-            if (!data) return; 
+            if (!data || !data.nameTxt?.active || !data.lvTxt?.active || !data.bg?.active) return; 
 
             // 언어 변경 등으로 이름이 바뀌었을 수 있으므로 갱신
             const skillName = I18n.t(`skill.${skill.id}.name`);
@@ -410,10 +421,12 @@ export class SkillTreeUI {
     }
 
     private onSkillUpgraded(skillId: string) {
+        if (this.isDestroyed) return;
+
         const btn = this.skillButtons[skillId];
-        if (!btn) return;
+        if (!btn || !btn.active) return;
         const data = (btn as any).skillButtonData;
-        if (!data || !data.bg) return;
+        if (!data || !data.bg?.active) return;
         this.scene.tweens.add({
             targets: data.bg,
             scaleX: 1.1,

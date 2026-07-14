@@ -83,6 +83,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': 'Version',
         'ui.no_release_note': 'No release note.',
         'ui.update_history': 'History',
+        'ui.research_complete': '{skill} Lv.{level} research complete',
         
         // Units
         'unit.second': 's',
@@ -202,6 +203,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': '버전',
         'ui.no_release_note': '릴리즈 노트가 없습니다.',
         'ui.update_history': '업데이트',
+        'ui.research_complete': '{skill} Lv.{level} 연구 완료',
         
         // Units
         'unit.second': '초',
@@ -320,6 +322,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': '版本',
         'ui.no_release_note': '暂无发布说明。',
         'ui.update_history': '更新',
+        'ui.research_complete': '{skill} Lv.{level} 研究完成',
         
         // Units
         'unit.second': '秒',
@@ -438,6 +441,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
         'ui.current_version': 'バージョン',
         'ui.no_release_note': 'リリースノートはありません。',
         'ui.update_history': '履歴',
+        'ui.research_complete': '{skill} Lv.{level} 研究完了',
 
         // Units
         'unit.second': '秒',

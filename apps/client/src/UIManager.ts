@@ -54,6 +54,8 @@ export class UIManager {
     private leaderboardFetchPromise: Promise<RankEntry[]> | null = null;
 
     private statsUpdateListener: (() => void) | null = null;
+    private researchCompleteListener: ((skillId: string, level: number) => void) | null = null;
+    private researchToastContainer: Phaser.GameObjects.Container | null = null;
 
     private isLanguageMenuOpen: boolean = false;
     public currentUIState: UIState = { overlay: null };
@@ -94,6 +96,7 @@ export class UIManager {
         this.uiContainer.add(this.timerText);
 
         this.createStatsPanel();
+        this.setupResearchCompleteNotification();
         this.setupLanguageSelector();
     }
 
@@ -113,6 +116,76 @@ export class UIManager {
 
     public setGameOverTimerStyle() {
         this.timerText.setText('00:00').setColor('#ff0000').setAlpha(1);
+    }
+
+    private setupResearchCompleteNotification() {
+        if (this.researchCompleteListener) {
+            this.stats.off(GameStats.EVENTS.RESEARCH_COMPLETED, this.researchCompleteListener);
+        }
+
+        this.researchCompleteListener = (skillId: string, level: number) => {
+            this.showResearchCompleteNotification(skillId, level);
+        };
+        this.stats.on(GameStats.EVENTS.RESEARCH_COMPLETED, this.researchCompleteListener);
+    }
+
+    private showResearchCompleteNotification(skillId: string, level: number) {
+        if (!this.timerText.visible) return;
+
+        if (this.researchToastContainer) {
+            this.researchToastContainer.destroy();
+            this.researchToastContainer = null;
+        }
+
+        const { width } = this.scene.scale;
+        const skillName = I18n.t(`skill.${skillId}.name`);
+        const message = I18n.t('ui.research_complete')
+            .replace('{skill}', skillName)
+            .replace('{level}', level.toString());
+
+        const container = this.scene.add.container(width / 2, 92)
+            .setScrollFactor(0)
+            .setDepth(1001)
+            .setAlpha(0);
+        const text = this.scene.add.text(0, 0, message, {
+            fontSize: '18px',
+            color: '#bbf7d0',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setPadding({ top: 4, bottom: 4 });
+        Utils.adjustFontSize(text, Math.min(520, width - 32), 11, 18);
+        const bg = this.scene.add.rectangle(0, 0, text.width + 28, text.height + 14, 0x102414, 0.88)
+            .setStrokeStyle(2, 0x22c55e)
+            .setOrigin(0.5);
+
+        container.add([bg, text]);
+        this.uiContainer.add(container);
+        this.researchToastContainer = container;
+
+        this.scene.tweens.add({
+            targets: container,
+            alpha: 1,
+            y: 98,
+            duration: 180,
+            ease: 'Sine.easeOut',
+            onComplete: () => {
+                this.scene.tweens.add({
+                    targets: container,
+                    alpha: 0,
+                    y: 88,
+                    delay: 1400,
+                    duration: 240,
+                    ease: 'Sine.easeIn',
+                    onComplete: () => {
+                        if (this.researchToastContainer === container) {
+                            this.researchToastContainer = null;
+                        }
+                        container.destroy();
+                    }
+                });
+            }
+        });
     }
 
     public createStatsPanel() {
@@ -1351,6 +1424,7 @@ export class UIManager {
     public handleResize() {
         const { width } = this.scene.scale;
         if (this.timerText) this.timerText.setPosition(width / 2, 40);
+        if (this.researchToastContainer) this.researchToastContainer.setPosition(width / 2, this.researchToastContainer.y);
         this.updateUIPositions();
     }
 
@@ -1387,6 +1461,18 @@ export class UIManager {
         this.destroyStableReleasePanel();
         this.destroyLeaderboardOverlay();
         this.destroyUpdateHistoryOverlay();
+        if (this.statsUpdateListener) {
+            this.stats.off(GameStats.EVENTS.UPDATE_SCORE, this.statsUpdateListener);
+            this.statsUpdateListener = null;
+        }
+        if (this.researchCompleteListener) {
+            this.stats.off(GameStats.EVENTS.RESEARCH_COMPLETED, this.researchCompleteListener);
+            this.researchCompleteListener = null;
+        }
+        if (this.researchToastContainer) {
+            this.researchToastContainer.destroy();
+            this.researchToastContainer = null;
+        }
         if (this.activeDOMElement) this.activeDOMElement.destroy();
         this.statsContainer.destroy();
         this.uiContainer.removeAll(true);

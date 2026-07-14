@@ -66,6 +66,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public static readonly EVENTS = {
         UPDATE_SCORE: 'updateScore',
         SKILL_UPGRADED: 'skillUpgraded',
+        RESEARCH_COMPLETED: 'researchCompleted',
         RESEARCH_REDUCED: 'researchTimeReduced',
         GAME_OVER: 'gameOver',
         SPAWN_RATE_CHANGED: 'spawnRateChanged',
@@ -232,7 +233,10 @@ export class GameStats extends Phaser.Events.EventEmitter {
                     i--;
                     activeCount--;
                     finishedAny = true;
-                    if (skill) this.applySkillUpgrade(skill);
+                    if (skill) {
+                        this.applySkillUpgrade(skill);
+                        this.emit(GameStats.EVENTS.RESEARCH_COMPLETED, skill.id, this.skillLevels[skill.id]);
+                    }
                     
                     // 하나라도 완료되면 즉시 큐에서 다음 연구 가능한 것을 채움
                     this.promoteFromQueue();

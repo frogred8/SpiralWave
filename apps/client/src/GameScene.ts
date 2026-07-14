@@ -401,8 +401,13 @@ export class GameScene extends Phaser.Scene {
 
     private syncArmsCount() {
         while (this.arms.length < this.gameStats.maxArms) {
-            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter));
+            this.arms.push(new RoboticArm(this, this.gameStats, this.spiralCenter, (x, y) => this.triggerArmBlackHole(x, y)));
         }
+    }
+
+    private triggerArmBlackHole(x: number, y: number) {
+        if (!this.gameStats.isArmBlackHoleEnabled) return;
+        this.resourceManager.spawnArmBlackHole(x, y);
     }
 
     private async setupUI(skillData: any) {
@@ -665,6 +670,28 @@ export class GameScene extends Phaser.Scene {
                 }
                 if (sbhDist < 30 * sbh.scale) {
                     this.collectResource(res, false, false, sbh.x, sbh.y);
+                    collectedBySBH = true;
+                }
+            });
+
+            this.resourceManager.getArmBlackHoles().forEach(bh => {
+                if (!res.active || collectedBySBH) return;
+                const bhDist = Utils.getDistance(res.x, res.y, bh.x, bh.y);
+                const bhRadius = this.gameStats.armBlackHoleRadius * bh.scale;
+                if (bhDist < bhRadius) {
+                    Utils.applyGravityToPoint(
+                        res,
+                        bhDist,
+                        bhRadius,
+                        bh.x,
+                        bh.y,
+                        this.gameStats.force * this.gameStats.armBlackHoleForceMultiplier,
+                        PHYSICS_CONFIG.ACCEL_BASE,
+                        PHYSICS_CONFIG.DRAG_BASE
+                    );
+                }
+                if (bhDist < 32 * bh.scale) {
+                    this.collectResource(res, false, false, bh.x, bh.y);
                     collectedBySBH = true;
                 }
             });

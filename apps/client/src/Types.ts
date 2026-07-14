@@ -83,5 +83,6 @@ export type EffectProperty =
     | 'satelliteCount'
     | 'smallBlackHole'
     | 'smallBlackHoleRange'
+    | 'armBlackHole'
     | 'netLength'
     | 'specialItemBooster';

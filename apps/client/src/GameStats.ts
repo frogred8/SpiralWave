@@ -32,6 +32,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
     public satelliteCount!: number;
     public smallBlackHoleCount: number = 0;
     public smallBlackHoleRadius: number = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
+    public isArmBlackHoleEnabled: boolean = false;
+    public armBlackHoleRadius: number = INITIAL_STATS.ARM_BLACK_HOLE_RADIUS;
+    public armBlackHoleForceMultiplier: number = INITIAL_STATS.ARM_BLACK_HOLE_FORCE_MULTIPLIER;
     public netDistance: number = 600;
     public specialItemInterval: number = 15000;
     
@@ -92,7 +95,7 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.isColorUnlocked = true; // 시작부터 개방된 상태
         
         this.maxArms = INITIAL_STATS.MAX_ARMS;
-        this.isAutoArmEnabled = false;
+        this.isAutoArmEnabled = true;
         this.armSpeedFactor = INITIAL_STATS.ARM_SPEED_FACTOR;
         this.spawnRateFactor = INITIAL_STATS.SPAWN_RATE_FACTOR;
         this.isNetEnabled = false;
@@ -100,6 +103,9 @@ export class GameStats extends Phaser.Events.EventEmitter {
         this.satelliteCount = 0;
         this.smallBlackHoleCount = 0;
         this.smallBlackHoleRadius = INITIAL_STATS.SMALL_BLACK_HOLE_RADIUS;
+        this.isArmBlackHoleEnabled = false;
+        this.armBlackHoleRadius = INITIAL_STATS.ARM_BLACK_HOLE_RADIUS;
+        this.armBlackHoleForceMultiplier = INITIAL_STATS.ARM_BLACK_HOLE_FORCE_MULTIPLIER;
         this.netDistance = INITIAL_STATS.NET_DISTANCE;
         this.specialItemInterval = INITIAL_STATS.SPECIAL_ITEM_INTERVAL;
 
@@ -506,6 +512,7 @@ getRecentCollectionAmount(): number {
             case 'satelliteCount': this.satelliteCount += val; break;
             case 'smallBlackHole': this.smallBlackHoleCount += val; break;
             case 'smallBlackHoleRange': this.smallBlackHoleRadius += val; break;
+            case 'armBlackHole': this.isArmBlackHoleEnabled = true; break;
             case 'netLength': this.netDistance += val; break;
             case 'specialItemBooster': 
                 this.specialItemInterval += val * 1000; // val is in seconds (-1), convert to ms (-1000)

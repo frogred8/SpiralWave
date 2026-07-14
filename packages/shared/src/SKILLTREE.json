@@ -125,15 +125,15 @@
         "maxLevel": 5
     },
     {
-        "id": "auto_arm",
+        "id": "arm_black_hole",
         "tree": 2,
         "row": 2,
         "costs": [
-            { "wood": 80 }
+            { "wood": 30, "rock": 30 }
         ],
         "prerequisites": [],
-        "researchTimes": [10],
-        "effectProperty": "autoArm",
+        "researchTimes": [12],
+        "effectProperty": "armBlackHole",
         "effectValue": 1,
         "maxLevel": 1
     },

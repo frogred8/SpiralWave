@@ -152,7 +152,7 @@ export const Utils = {
             case 'moveSpeed': return `${value.toFixed(2)}`;
             case 'netAngle': return `${value}°`;
             case 'satelliteCount': return `${value}`;
-            case 'armBlackHole': return level > 0 ? I18n.t('ui.enabled') : I18n.t('ui.disabled');
+            case 'armBlackHole': return `${Math.floor(value)}`;
             default: return `${value}`;
         }
     },
@@ -165,7 +165,6 @@ export const Utils = {
         switch (property) {
             case 'highDimProb': return `${sign}${(bonus * 100).toFixed(0)}%`;
             case 'autoArm': return level > 0 ? I18n.t('ui.enabled') : I18n.t('ui.disabled');
-            case 'armBlackHole': return level > 0 ? I18n.t('ui.enabled') : I18n.t('ui.disabled');
             case 'net': return level > 0 ? I18n.t('ui.activated') : I18n.t('ui.locked');
             case 'armSpeed':
             case 'spawnRate': return `${sign}${bonus.toFixed(1)}x`;

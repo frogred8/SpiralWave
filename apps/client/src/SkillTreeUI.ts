@@ -469,7 +469,7 @@ export class SkillTreeUI {
             case 'moveSpeed': return INITIAL_STATS.MOVE_SPEED;
             case 'net': return 0;
             case 'satelliteCount': return 0;
-            case 'armBlackHole': return 0;
+            case 'armBlackHole': return INITIAL_STATS.ARM_BLACK_HOLE_RADIUS;
             default: return 0;
         }
     }

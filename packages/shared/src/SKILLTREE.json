@@ -129,13 +129,15 @@
         "tree": 2,
         "row": 2,
         "costs": [
-            { "wood": 30, "rock": 30 }
+            { "wood": 30, "rock": 30 },
+            { "wood": 60, "rock": 60 },
+            { "wood": 100, "rock": 100 }
         ],
         "prerequisites": [],
-        "researchTimes": [12],
+        "researchTimes": [12, 15, 18],
         "effectProperty": "armBlackHole",
-        "effectValue": 1,
-        "maxLevel": 1
+        "effectValue": 30,
+        "maxLevel": 3
     },
     {
         "id": "r4",

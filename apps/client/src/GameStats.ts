@@ -512,7 +512,10 @@ getRecentCollectionAmount(): number {
             case 'satelliteCount': this.satelliteCount += val; break;
             case 'smallBlackHole': this.smallBlackHoleCount += val; break;
             case 'smallBlackHoleRange': this.smallBlackHoleRadius += val; break;
-            case 'armBlackHole': this.isArmBlackHoleEnabled = true; break;
+            case 'armBlackHole':
+                this.isArmBlackHoleEnabled = true;
+                this.armBlackHoleRadius += val;
+                break;
             case 'netLength': this.netDistance += val; break;
             case 'specialItemBooster': 
                 this.specialItemInterval += val * 1000; // val is in seconds (-1), convert to ms (-1000)

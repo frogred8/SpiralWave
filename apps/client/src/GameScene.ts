@@ -27,7 +27,7 @@ export class GameScene extends Phaser.Scene {
     
     private radiusMultiplier: number = 1.0;
     private boostTimerEvent?: Phaser.Time.TimerEvent;
-    private spawnTimer!: Phaser.Time.TimerEvent;
+    private spawnTimer?: Phaser.Time.TimerEvent;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private netTimerAccumulator: number = 0;
     private isGameStarted: boolean = false;
@@ -273,6 +273,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.startGame(playTimeSeconds);
         this.isGameStarted = true;
         this.setupTimers();
+        this.setupUiUpdateTimer();
         this.spawnSmallBlackHoles(this.gameStats.smallBlackHoleCount);
         const soundManager = SoundManager.getInstance();
         soundManager.play('background');
@@ -348,10 +349,14 @@ export class GameScene extends Phaser.Scene {
         this.resourceManager.clear();
         this.time.removeAllEvents();
         this.tweens.killAll();
-        this.arms.forEach(arm => arm.reset());
         this.orbitSystem.resetResourceState();
         this.radiusMultiplier = 1.0;
         this.netTimerAccumulator = 0;
+        this.currentGameId = '';
+        this.currentSelectSkillId = 0;
+        this.spawnTimer = undefined;
+        this.specialItemTimer = undefined;
+        this.uiUpdateTimer = undefined;
         if (this.boostTimerEvent) {
             this.boostTimerEvent.remove();
             this.boostTimerEvent = undefined;
@@ -373,7 +378,14 @@ export class GameScene extends Phaser.Scene {
         }
         this.gameStats.reset(skillData);
         this.orbitSystem.setSatelliteCount(this.gameStats.satelliteCount);
+        this.resetArms();
         return skillData;
+    }
+
+    private resetArms() {
+        this.arms.forEach(arm => arm.reset());
+        this.arms = [];
+        this.syncArmsCount();
     }
 
     private updateSpecialItemTimer() {
@@ -416,7 +428,19 @@ export class GameScene extends Phaser.Scene {
 
         this.setupGameStatsListeners();
         this.setupInputListeners();
+        this.setupUiUpdateTimer();
 
+        this.cameras.main.flash(1000, 255, 255, 255);
+        this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
+        if (this.uiManager.currentUIState.overlay) {
+            this.uiManager.restoreUIState();
+            return;
+        }
+
+        this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
+    }
+
+    private setupUiUpdateTimer() {
         if (this.uiUpdateTimer) this.uiUpdateTimer.remove();
         this.uiUpdateTimer = this.time.addEvent({
             delay: 1000,
@@ -427,15 +451,6 @@ export class GameScene extends Phaser.Scene {
             },
             loop: true
         });
-
-        this.cameras.main.flash(1000, 255, 255, 255);
-        this.gameStats.emit(GameStats.EVENTS.UPDATE_SCORE);
-        if (this.uiManager.currentUIState.overlay) {
-            this.uiManager.restoreUIState();
-            return;
-        }
-
-        this.uiManager.showInitialSkillSelection(skillData, [], null, this.isRestarted, this.canReroll);
     }
 
     private setupGameStatsListeners() {

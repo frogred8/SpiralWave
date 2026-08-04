@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260804_1000",
+    "type": "preview",
+    "title": "20260804_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260804_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260804_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-08-04T01:00:11.272Z",
+    "release_note": {
+      "en": "Update the resource collection logic for the \"Robot Arm Black Hole\" ability. When the black hole is activated, detect all resource objects within its effective radius and implement a batch processing mechanism to absorb them into the inventory simultaneously in a single frame, rather than sequential or individual collection.",
+      "ko": "'로봇 팔 블랙홀' 능력의 자원 수집 로직을 업데이트했습니다. 블랙홀이 활성화되면 유효 반경 내의 모든 자원 오브젝트를 감지하고, 순차적이거나 개별적인 수집 대신 단일 프레임 내에 인벤토리로 동시에 흡수하는 일괄 처리 메커니즘을 구현했습니다.",
+      "zh": "更新了“机械臂黑洞”能力的资源收集逻辑。当黑洞激活时，探测其有效半径内的所有资源对象，并实现批处理机制，使其在单帧内同时吸收入背包，而非顺序或单独收集。",
+      "ja": "「ロボットアーム・ブラックホール」アビリティのリソース収集ロジックを更新しました。ブラックホールが有効になると、有効半径内のすべてのリソースオブジェクトを検出し、順次または個別の収集ではなく、単一フレーム内で同時にインベントリに吸収する一括処理メカニズムを実装しました。"
+    }
+  },
+  {
     "id": "20260803_1000",
     "type": "preview",
     "title": "20260803_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "게임 내 업그레이드에 소요되는 시간을 단축하는 시스템을 구현했습니다. 기본 업그레이드 시간에 단축 계수(예: 0.5배 배수 또는 고정 시간 차감)를 적용하도록 업그레이드 로직을 수정했습니다. 게임 상태의 일관성을 유지하면서 모든 업그레이드 가능 항목의 남은 시간과 완료 타임스탬프가 정확하게 업데이트되도록 계산 방식을 개선했습니다.",
       "zh": "实现了缩短游戏内升级所需时间的系统。修改了升级逻辑，对基础升级时长应用缩减系数（例如 0.5 倍乘数或固定时间扣除）。在保持游戏状态一致性的同时，确保所有可升级实体的剩余时间及完成时间戳均能正确更新。",
       "ja": "ゲーム内のアップグレードに必要な時間を短縮するシステムを実装しました。基本のアップグレード時間に短縮係数（例：0.5倍の倍率や固定時間の短縮）を適用するようにアップグレードロジックを修正しました。ゲーム状態の一貫性を維持しながら、すべてのアップグレード可能なエンティティの残り時間と完了タイムスタンプが正しく更新されるよう計算を調整しました。"
-    }
-  },
-  {
-    "id": "20260611_1000",
-    "type": "preview",
-    "title": "20260611_1000 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260611_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260611_1000:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-06-11T01:00:15.905Z",
-    "release_note": {
-      "en": "Implement a UI component on the main title screen or start menu that allows users to view the \"Top 10 Next Update Suggestions\" list. This feature must ensure that the information is accessible before the user initiates the game session. The implementation should include a data fetching mechanism to retrieve the current top 10 suggestions and a dedicated UI element (such as a modal or a sidebar) to display these items clearly.",
-      "ko": "메인 타이틀 화면 또는 시작 메뉴에 사용자가 '다음 업데이트 제안 Top 10' 목록을 확인할 수 있는 UI 구성 요소를 구현했습니다. 이 기능은 사용자가 게임 세션을 시작하기 전에 해당 정보를 확인할 수 있도록 보장합니다. 구현 사항에는 현재 상위 10개 제안을 가져오는 데이터 페칭 메커니즘과 이를 명확하게 표시하기 위한 전용 UI 요소(모달 또는 사이드바 등)가 포함됩니다.",
-      "zh": "在主界面或开始菜单上实现了一个 UI 组件，允许用户查看“下一次更新建议 Top 10”列表。此功能确保用户在开始游戏会话之前即可访问该信息。实现内容包括用于检索当前前 10 条建议的数据获取机制，以及用于清晰显示这些项目的专用 UI 元素（如模态框或侧边栏）。",
-      "ja": "メインタイトル画面またはスタートメニューに、「次回のアップデート提案トップ10」リストを表示できるUIコンポーネントを実装しました。この機能により、ユーザーはゲームセッションを開始する前に情報を確認できるようになります。実装には、現在のトップ10候補を取得するためのデータ取得メカニズムと、これらを明確に表示するための専用UI要素（モーダルやサイドバーなど）が含まれています。"
     }
   }
 ]

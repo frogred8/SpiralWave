@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260805_1000",
+    "type": "preview",
+    "title": "20260805_1000 Build",
+    "url": "http://134.185.103.3:3303",
+    "branch": "20260805_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260805_1000:latest",
+    "container": "spiralwave",
+    "port": 3303,
+    "status": "active",
+    "released_at": "2026-08-05T01:00:50.545Z",
+    "release_note": {
+      "en": "Modify the logic for the \"Robot Arm Black Hole\" ability so that all resource items within the black hole's effective radius are absorbed simultaneously upon activation. Implement a function that detects all collectable entities within the defined area of the black hole and immediately transitions them to the collected state in a single batch, rather than pulling them individually or gradually over time. Ensure the code handles the instantaneous update of resource statuses and triggers the collection sequence for all affected items at once.",
+      "ko": "“로봇 팔 블랙홀” 능력의 로직을 수정하여 발동 시 블랙홀 유효 반경 내의 모든 자원 아이템이 동시에 흡수되도록 했습니다. 자원을 개별적으로 또는 점진적으로 끌어당기는 방식 대신, 지정된 영역 내의 모든 수집 가능한 엔티티를 감지하고 즉시 일괄 수집 상태로 전환하는 기능을 구현했습니다. 모든 대상 아이템의 상태를 즉시 업데이트하고 수집 시퀀스를 한꺼번에 트리거하도록 코드를 처리했습니다.",
+      "zh": "修改了“机械臂黑洞”能力的逻辑，使黑洞有效半径内的所有资源物品在激活时能够同时被吸收。实现了检测指定区域内所有可收集实体并将其立即一次性转换为收集状态的功能，而非逐个或逐渐吸引。确保代码能够处理资源状态的瞬时更新，并同时触发所有受影响物品的收集序列。",
+      "ja": "「ロボットアーム・ブラックホール」能力のロジックを修正し、発動時にブラックホールの有効半径内にあるすべてのリソースアイテムが同時に吸収されるようにしました。リソースを個別に、または時間をかけて徐々に引き寄せるのではなく、指定されたエリア内のすべての収集可能なエンティティを検出し、即座に一括で収集状態に移行させる機能を実装しました。すべての対象アイテムの状態を即座に更新し、収集シーケンスを一度に実行するようにコードを処理しています。"
+    }
+  },
+  {
     "id": "20260804_1000",
     "type": "preview",
     "title": "20260804_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "### 코드 생성 계획\n\n**1. 요구사항 분석**\n- **상태:** 입력에 사용자 요구사항이 제공되지 않았습니다.\n- **작업:** 번역, 분석 및 정리를 위해 다국어 사용자 요구사항 문자열을 대기 중입니다.\n\n**2. 실행 로직 (입력 시)**\n- **번역:** 표준화된 처리를 위해 모든 사용자 피드백을 영어로 변환합니다.\n- **필터링:** 다음 관련 요청을 자동으로 제외합니다:\n    - 게임 이외의 개선 사항.\n    - 리소스 생성 (음악, 미술 등).\n    - 시스템/보안/내부 구성 (API 키, DB 스키마, IP 주소).\n    - 모호한 UI/코드 요청 (리팩토링, CLI 버전, 라이브러리 세부 정보).\n    - 외부 서비스 연결.\n- **우선순위 지정:** 실행 가능한 기능 추가 및 기능적 게임 개선에만 집중합니다.\n\n**3. 다음 단계**\n- 특정 구현 코드 프롬프트를 생성하기 위해 사용자 요구사항 텍스트를 제공해 주세요.",
       "zh": "### 代码生成计划\n\n**1. 需求分析**\n- **状态：** 输入中未提供用户需求。\n- **操作：** 等待多语言用户需求字符串，以便进行翻译、分析和整理。\n\n**2. 执行逻辑（输入时）**\n- **翻译：** 将所有用户反馈转换为英文，以进行标准化处理。\n- **过滤：** 自动排除与以下内容相关的请求：\n    - 非游戏改进。\n    - 资源创建（音乐、美术等）。\n    - 系统/安全/内部配置（API 密钥、数据库架构、IP 地址）。\n    - 模糊的 UI/代码请求（重构、CLI 版本、库详情）。\n    - 外部服务连接。\n- **优先级：** 专门专注于可操作的功能添加和功能性游戏改进。\n\n**3. 下一步**\n- 请提供用户需求文本，以生成具体的实现代码提示。",
       "ja": "### コード生成計画\n\n**1. 要件分析**\n- **ステータス:** 入力にユーザー要件が提供されていません。\n- **アクション:** 翻訳、分析、整理のため、多言語のユーザー要件文字列を待機しています。\n\n**2. 実行ロジック (入力時)**\n- **翻訳:** 標準化された処理のために、すべてのユーザーフィードバックを英語に変換します。\n- **フィルタリング:** 以下の関連リクエストを自動的に除外します：\n    - ゲーム以外の改善。\n    - リソース作成（音楽、アートなど）。\n    - システム/セキュリティ/内部設定 (API キー、DB スキーマ、IP アドレス)。\n    - 曖昧な UI/コードリクエスト (リファクタリング、CLI バージョン、ライブラリの詳細)。\n    - 外部サービス接続。\n- **優先順位付け:** 実行可能な機能追加および機能的なゲームの改善にのみ専念します。\n\n**3. 次のステップ**\n- 具体的な実装コードプロンプトを生成するために、ユーザー要件テキストを提供してください。"
-    }
-  },
-  {
-    "id": "20260625_1000",
-    "type": "preview",
-    "title": "20260625_1000 Build",
-    "url": "http://134.185.103.3:3303",
-    "branch": "20260625_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260625_1000:latest",
-    "container": "spiralwave",
-    "port": 3303,
-    "status": "active",
-    "released_at": "2026-06-25T01:00:19.360Z",
-    "release_note": {
-      "en": "Implement a system to reduce the time required for upgrades within the game. Modify the upgrade logic to apply a reduction factor (e.g., a 0.5x multiplier or a fixed time deduction) to the base upgrade duration. Ensure the calculation correctly updates the remaining time and completion timestamps for all upgradable entities while maintaining consistency in the game state.",
-      "ko": "게임 내 업그레이드에 소요되는 시간을 단축하는 시스템을 구현했습니다. 기본 업그레이드 시간에 단축 계수(예: 0.5배 배수 또는 고정 시간 차감)를 적용하도록 업그레이드 로직을 수정했습니다. 게임 상태의 일관성을 유지하면서 모든 업그레이드 가능 항목의 남은 시간과 완료 타임스탬프가 정확하게 업데이트되도록 계산 방식을 개선했습니다.",
-      "zh": "实现了缩短游戏内升级所需时间的系统。修改了升级逻辑，对基础升级时长应用缩减系数（例如 0.5 倍乘数或固定时间扣除）。在保持游戏状态一致性的同时，确保所有可升级实体的剩余时间及完成时间戳均能正确更新。",
-      "ja": "ゲーム内のアップグレードに必要な時間を短縮するシステムを実装しました。基本のアップグレード時間に短縮係数（例：0.5倍の倍率や固定時間の短縮）を適用するようにアップグレードロジックを修正しました。ゲーム状態の一貫性を維持しながら、すべてのアップグレード可能なエンティティの残り時間と完了タイムスタンプが正しく更新されるよう計算を調整しました。"
     }
   }
 ]

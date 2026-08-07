@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260807_1000",
+    "type": "preview",
+    "title": "20260807_1000 Build",
+    "url": "http://134.185.103.3:3301",
+    "branch": "20260807_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260807_1000:latest",
+    "container": "spiralwave",
+    "port": 3301,
+    "status": "active",
+    "released_at": "2026-08-07T01:00:30.439Z",
+    "release_note": {
+      "en": "Implement a feature where the \"Robot Arm Black Hole\" ability instantly absorbs all resource entities within its effective radius. When the black hole is activated, detect all objects categorized as resources within the specified range and trigger their collection logic simultaneously. Ensure that instead of sequential or gradual attraction, all identified resources are processed and moved to the inventory or collection point in a single batch operation.",
+      "ko": "",
+      "zh": "",
+      "ja": ""
+    }
+  },
+  {
     "id": "20260806_1000",
     "type": "preview",
     "title": "20260806_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "'로봇 팔 블랙홀' 능력의 자원 수집 로직을 업데이트했습니다. 블랙홀이 활성화되면 유효 반경 내의 모든 자원 오브젝트를 감지하고, 순차적이거나 개별적인 수집 대신 단일 프레임 내에 인벤토리로 동시에 흡수하는 일괄 처리 메커니즘을 구현했습니다.",
       "zh": "更新了“机械臂黑洞”能力的资源收集逻辑。当黑洞激活时，探测其有效半径内的所有资源对象，并实现批处理机制，使其在单帧内同时吸收入背包，而非顺序或单独收集。",
       "ja": "「ロボットアーム・ブラックホール」アビリティのリソース収集ロジックを更新しました。ブラックホールが有効になると、有効半径内のすべてのリソースオブジェクトを検出し、順次または個別の収集ではなく、単一フレーム内で同時にインベントリに吸収する一括処理メカニズムを実装しました。"
-    }
-  },
-  {
-    "id": "20260803_1000",
-    "type": "preview",
-    "title": "20260803_1000 Build",
-    "url": "http://134.185.103.3:3301",
-    "branch": "20260803_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260803_1000:latest",
-    "container": "spiralwave",
-    "port": 3301,
-    "status": "active",
-    "released_at": "2026-08-03T01:00:12.344Z",
-    "release_note": {
-      "en": "Modify the robotic arm's black hole mechanic so that all resources within its effective radius are absorbed instantly and simultaneously upon activation. Transition the resource collection logic from individual or sequential movement to a batch processing system, ensuring all resource entities detected within the area of effect are added to the player's inventory at the same time.",
-      "ko": "로봇 팔의 블랙홀 메커니즘을 수정하여 활성화 시 유효 반경 내의 모든 자원이 즉시 동시에 흡수되도록 했습니다. 자원 수집 로직을 개별 또는 순차적 이동 방식에서 일괄 처리 시스템으로 전환하여, 효과 범위 내에서 감지된 모든 자원 개체가 플레이어의 인벤토리에 동시에 추가되도록 보장합니다.",
-      "zh": "修改机械臂的黑洞机制，使其在激活时能立即且同时吸收有效半径内的所有资源。将资源收集逻辑从单个或顺序移动转变为批量处理系统，确保在影响范围内检测到的所有资源实体都能同时添加到玩家的背包中。",
-      "ja": "ロボットアームのブラックホールメカニズムを修正し、起動時に有効半径内のすべてのリソースが即座に、かつ同時に吸収されるようにしました。リソース収集のロジックを個別または順次移動からバッチ処理システムへと移行し、効果範囲内で検出されたすべてのリソースエンティティがプレイヤーのインベントリに同時に追加されるようにしました。"
     }
   }
 ]

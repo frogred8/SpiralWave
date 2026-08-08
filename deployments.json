@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260808_1000",
+    "type": "preview",
+    "title": "20260808_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260808_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260808_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-08-08T01:00:13.615Z",
+    "release_note": {
+      "en": "Modify the 'Black Hole' skill logic of the robotic arm. When the black hole is activated, implement a feature that detects all resource objects within its effective radius and absorbs them into the inventory simultaneously in a single batch, replacing any existing sequential or gradual collection mechanics. Ensure the implementation efficiently handles multiple entity detections and state updates for all resources within the area of effect.",
+      "ko": "로봇 팔의 '블랙홀' 스킬 로직을 수정했습니다. 블랙홀 활성화 시 유효 반경 내의 모든 자원 오브젝트를 감지하여, 기존의 순차적 또는 점진적 수집 방식 대신 인벤토리로 한 번에 동시에 흡수하는 기능을 구현했습니다. 효과 범위 내 모든 자원에 대한 다중 엔티티 감지 및 상태 업데이트를 효율적으로 처리하도록 보장했습니다.",
+      "zh": "修改了机械臂的“黑洞”技能逻辑。当黑洞激活时，实现了检测其有效半径内所有资源对象并将其一次性同步吸收到背包中的功能，取代了原有的顺序或渐进式收集机制。确保该实现能够高效地处理影响范围内所有资源的多实体检测和状态更新。",
+      "ja": "ロボットアームの「ブラックホール」スキルのロジックを修正しました。ブラックホール発動時、有効半径内のすべてのリソースオブジェクトを検出し、従来の順次的または段階的な収集メカニズムに代わり、一括で同時にインベントリへ吸収する機能を実装しました。効果範囲内のすべてのリソースに対する複数のエンティティ検出および状態更新を効率的に処理するように実装されています。"
+    }
+  },
+  {
     "id": "20260807_1000",
     "type": "preview",
     "title": "20260807_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "“로봇 팔 블랙홀” 능력의 로직을 수정하여 발동 시 블랙홀 유효 반경 내의 모든 자원 아이템이 동시에 흡수되도록 했습니다. 자원을 개별적으로 또는 점진적으로 끌어당기는 방식 대신, 지정된 영역 내의 모든 수집 가능한 엔티티를 감지하고 즉시 일괄 수집 상태로 전환하는 기능을 구현했습니다. 모든 대상 아이템의 상태를 즉시 업데이트하고 수집 시퀀스를 한꺼번에 트리거하도록 코드를 처리했습니다.",
       "zh": "修改了“机械臂黑洞”能力的逻辑，使黑洞有效半径内的所有资源物品在激活时能够同时被吸收。实现了检测指定区域内所有可收集实体并将其立即一次性转换为收集状态的功能，而非逐个或逐渐吸引。确保代码能够处理资源状态的瞬时更新，并同时触发所有受影响物品的收集序列。",
       "ja": "「ロボットアーム・ブラックホール」能力のロジックを修正し、発動時にブラックホールの有効半径内にあるすべてのリソースアイテムが同時に吸収されるようにしました。リソースを個別に、または時間をかけて徐々に引き寄せるのではなく、指定されたエリア内のすべての収集可能なエンティティを検出し、即座に一括で収集状態に移行させる機能を実装しました。すべての対象アイテムの状態を即座に更新し、収集シーケンスを一度に実行するようにコードを処理しています。"
-    }
-  },
-  {
-    "id": "20260804_1000",
-    "type": "preview",
-    "title": "20260804_1000 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260804_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260804_1000:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-08-04T01:00:11.272Z",
-    "release_note": {
-      "en": "Update the resource collection logic for the \"Robot Arm Black Hole\" ability. When the black hole is activated, detect all resource objects within its effective radius and implement a batch processing mechanism to absorb them into the inventory simultaneously in a single frame, rather than sequential or individual collection.",
-      "ko": "'로봇 팔 블랙홀' 능력의 자원 수집 로직을 업데이트했습니다. 블랙홀이 활성화되면 유효 반경 내의 모든 자원 오브젝트를 감지하고, 순차적이거나 개별적인 수집 대신 단일 프레임 내에 인벤토리로 동시에 흡수하는 일괄 처리 메커니즘을 구현했습니다.",
-      "zh": "更新了“机械臂黑洞”能力的资源收集逻辑。当黑洞激活时，探测其有效半径内的所有资源对象，并实现批处理机制，使其在单帧内同时吸收入背包，而非顺序或单独收集。",
-      "ja": "「ロボットアーム・ブラックホール」アビリティのリソース収集ロジックを更新しました。ブラックホールが有効になると、有効半径内のすべてのリソースオブジェクトを検出し、順次または個別の収集ではなく、単一フレーム内で同時にインベントリに吸収する一括処理メカニズムを実装しました。"
     }
   }
 ]

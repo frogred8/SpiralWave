@@ -1,4 +1,16 @@
 
+# Update - 20260809_1000
+
+## User Feedback
+```
+로봇팔 블랙홀이 발동되면 그 블랙홀 범위 내에 있는 자원이 한번에 흡수되도록 변경해주세요.
+```
+
+## Gemini AI Plan
+Modify the logic for the "Robot Arm Black Hole" ability. When the black hole is activated, implement a function to detect all collectable resource objects within its radius and trigger their absorption simultaneously. Instead of individual or sequential processing, ensure all detected resources are instantly transferred to the collection point or inventory in a single update cycle. Update the skill's collision or trigger logic to handle batch resource processing upon activation.
+
+---
+
 # Update - 20260808_1000
 
 ## User Feedback

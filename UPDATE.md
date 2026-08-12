@@ -1,4 +1,32 @@
 
+# Update - 20260812_1000
+
+## User Feedback
+```
+로봇팔 블랙홀이 발동되면 그 블랙홀 범위 내에 있는 자원이 한번에 흡수되도록 변경해주세요.
+```
+
+## Gemini AI Plan
+### Prompt for Code Generation
+
+**Task:** Refactor the activation logic for the "Robot Arm Black Hole" to implement simultaneous resource absorption.
+
+**Requirements:**
+1.  **Trigger Mechanism:** Upon activation of the `RobotArmBlackHole` effect, perform a spatial query (e.g., `OverlapCircle`, `SphereCast`, or proximity check) to identify all active `Resource` entities within the effect's radius.
+2.  **Batch Processing:** Instead of sequential or one-by-one attraction, apply the collection/absorption logic to all detected `Resource` objects in a single frame or a synchronized batch transition.
+3.  **State Update:** For each identified `Resource` entity:
+    *   Disable its individual movement or physics logic.
+    *   Trigger the `OnAbsorbed` or `Collect` event immediately.
+    *   Move the resource position to the center of the black hole or directly to the player's inventory.
+4.  **Optimization:** Ensure the spatial query is filtered by the appropriate layer or tag (e.g., `Layer: Resources`) to maintain performance.
+
+**Input Variables:**
+*   `blackHoleRadius`: The range of the effect.
+*   `absorptionPoint`: The destination transform (Robot Arm or Black Hole center).
+*   `resourceLayerMask`: The layer mask used to identify collectible items.
+
+---
+
 # Update - 20260811_1000
 
 ## User Feedback

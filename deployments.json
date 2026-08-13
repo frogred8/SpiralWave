@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260813_1000",
+    "type": "preview",
+    "title": "20260813_1000 Build",
+    "url": "http://134.185.103.3:3303",
+    "branch": "20260813_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260813_1000:latest",
+    "container": "spiralwave",
+    "port": 3303,
+    "status": "active",
+    "released_at": "2026-08-13T01:00:19.202Z",
+    "release_note": {
+      "en": "Modify the \"Robot Arm Black Hole\" skill logic to implement an instantaneous resource collection mechanic. When the black hole effect is activated, detect all resource entities within its effective radius and trigger a batch absorption process. Instead of individual or sequential movement, update the state of all detected resources to be added to the player's inventory simultaneously in a single frame or action.",
+      "ko": "'로봇 팔 블랙홀' 스킬 로직을 수정하여 즉각적인 자원 수집 메커니즘을 구현했습니다. 블랙홀 효과가 활성화되면 유효 반경 내의 모든 자원 엔티티를 감지하고 일괄 흡수 프로세스를 트리거합니다. 개별적 또는 순차적인 이동 대신, 감지된 모든 자원의 상태를 업데이트하여 단일 프레임 또는 동작 내에 플레이어의 인벤토리에 동시에 추가되도록 합니다.",
+      "zh": "修改“机器人手臂黑洞”技能逻辑，以实现瞬时资源收集机制。当黑洞效果激活时，检测其有效半径内的所有资源实体并触发批量吸收流程。不再采用单个或顺序移动的方式，而是在单帧或动作中更新所有检测到的资源状态，使其同时添加到玩家的背包中。",
+      "ja": "「ロボットアーム・ブラックホール」スキルのロジックを修正し、即時リソース回収メカニズムを実装しました。ブラックホール効果が有効になると、有効半径内のすべてのリソースエンティティを検出し、一括吸収プロセスをトリガーします。個別または順次移動する代わりに、検出されたすべてのリソースの状態を更新し、1フレームまたはアクションでプレイヤーのインベントリに同時に追加されるようにしました。"
+    }
+  },
+  {
     "id": "20260812_1000",
     "type": "preview",
     "title": "20260812_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "\"로봇 팔 블랙홀\" 능력 로직을 업데이트하여 즉시 자원 수집 메커니즘을 구현했습니다:\n\n1. 탐지: 블랙홀 능력이 발동되면 유효 반경 내의 모든 수집 가능한 자원 개체를 식별합니다.\n2. 흡수 로직: 수집 동작을 수정하여, 탐지된 모든 자원이 순차적으로 또는 서서히 끌려오는 대신 플레이어의 인벤토리나 수집 포인트로 즉시 동시에 이동하도록 했습니다.\n3. 상태 동기화: 즉각적인 대량 흡수 효과를 반영하기 위해 모든 관련 자원의 상태가 단일 프레임 내에 '수집됨'으로 업데이트되도록 보장합니다.",
       "zh": "更新“机械臂黑洞”技能逻辑，以实现即时资源收集机制：\n\n1. 检测：当黑洞技能触发时，识别其定义的有效半径内的所有可收集资源实体。\n2. 吸收逻辑：修改收集行为，使所有检测到的资源立即同步转移到玩家的背包或收集点，而不是依次或逐渐被拉动。\n3. 状态同步：确保所有受影响资源的状态在单帧内更新为“已收集”，以体现即时大规模吸收的效果。",
       "ja": "「ロボットアーム・ブラックホール」スキルのロジックを更新し、即時リソース回収メカニズムを実装しました：\n\n1. 検知：ブラックホールスキルが発動した際、定義された有効半径内にあるすべての回収可能なリソースエンティティを識別します。\n2. 吸収ロジック：回収動作を修正し、検知されたすべてのリソースが順次または徐々に引き寄せられるのではなく、プレイヤーのインベントリまたは回収地点に同時かつ即座に移動するようにしました。\n3. 状態同期：即時の大量吸収効果を反映するため、影響を受けるすべてのリソースの状態が単一フレーム内で「回収済み」に更新されるようにします。"
-    }
-  },
-  {
-    "id": "20260809_1000",
-    "type": "preview",
-    "title": "20260809_1000 Build",
-    "url": "http://134.185.103.3:3303",
-    "branch": "20260809_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260809_1000:latest",
-    "container": "spiralwave",
-    "port": 3303,
-    "status": "active",
-    "released_at": "2026-08-09T01:00:12.796Z",
-    "release_note": {
-      "en": "Modify the logic for the \"Robot Arm Black Hole\" ability. When the black hole is activated, implement a function to detect all collectable resource objects within its radius and trigger their absorption simultaneously. Instead of individual or sequential processing, ensure all detected resources are instantly transferred to the collection point or inventory in a single update cycle. Update the skill's collision or trigger logic to handle batch resource processing upon activation.",
-      "ko": "'로봇 팔 블랙홀' 능력의 로직을 수정했습니다. 블랙홀 활성화 시 반경 내의 모든 수집 가능한 자원 오브젝트를 감지하고 동시에 흡수를 트리거하는 기능을 구현했습니다. 개별 또는 순차적 처리 대신, 한 번의 업데이트 사이클 내에 감지된 모든 자원이 수집 지점이나 인벤토리로 즉시 전송되도록 보장합니다. 활성화 시 일괄 자원 처리가 가능하도록 스킬의 충돌 또는 트리거 로직을 업데이트했습니다.",
-      "zh": "修改了“机器人手臂黑洞”能力的逻辑。当黑洞激活时，实现了检测其半径内所有可收集资源对象并同时触发吸收的功能。确保在单个更新周期内将所有检测到的资源即时转移到收集点或库存，而不是进行单独或顺序处理。更新了技能的碰撞或触发逻辑，以在激活时实现批量资源处理。",
-      "ja": "「ロボットアーム・ブラックホール」アビリティのロジックを修正しました。ブラックホールが有効化された際、半径内にあるすべての収集可能なリソースオブジェクトを検出し、同時に吸収をトリガーする機能を実装しました。個別または逐次的な処理ではなく、単一の更新サイクル内ですべての検出されたリソースが即座に収集ポイントやインベントリに転送されるようにしました。有効化時にリソースを一括処理できるよう、スキルの衝突またはトリガーロジックを更新しました。"
     }
   }
 ]

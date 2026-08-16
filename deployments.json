@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260816_1000",
+    "type": "preview",
+    "title": "20260816_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260816_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260816_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-08-16T01:00:29.073Z",
+    "release_note": {
+      "en": "Modify the 'Robot Arm Black Hole' skill logic to implement immediate batch resource collection. When the black hole is activated, perform a spatial check to identify all resource entities within its effective radius and trigger a simultaneous absorption event that adds all detected items to the inventory instantly, replacing any existing sequential or gradual collection mechanisms.",
+      "ko": "'로봇 팔 블랙홀' 스킬 로직을 수정하여 자원을 즉시 일괄 수집하도록 변경했습니다. 블랙홀이 활성화되면 유효 반경 내의 모든 자원 개체를 공간 체크를 통해 식별하며, 기존의 순차적 또는 점진적 수집 방식 대신 감지된 모든 아이템을 즉시 인벤토리에 추가하는 동시 흡수 이벤트를 트리거합니다.",
+      "zh": "修改“机械臂黑洞”技能逻辑，实现即时批量资源收集。当黑洞激活时，将进行空间检查以识别其有效半径内的所有资源实体，并触发同步吸收事件，将所有检测到的物品立即添加到物品栏中，取代现有的顺序或逐渐收集机制。",
+      "ja": "「ロボットアーム・ブラックホール」のスキルロジックを修正し、リソースの即時一括回収を実装しました。ブラックホールが有効になると、有効半径内のすべてのリソースエンティティを空間チェックで特定し、従来の順次または段階的な回収メカニズムに代わり、検出されたすべてのアイテムを即座にインベントリに追加する同時吸収イベントをトリガーします。"
+    }
+  },
+  {
     "id": "20260815_1000",
     "type": "preview",
     "title": "20260815_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "'로봇 팔 블랙홀' 스킬 로직을 수정하여 즉각적인 자원 수집 메커니즘을 구현했습니다. 블랙홀 효과가 활성화되면 유효 반경 내의 모든 자원 엔티티를 감지하고 일괄 흡수 프로세스를 트리거합니다. 개별적 또는 순차적인 이동 대신, 감지된 모든 자원의 상태를 업데이트하여 단일 프레임 또는 동작 내에 플레이어의 인벤토리에 동시에 추가되도록 합니다.",
       "zh": "修改“机器人手臂黑洞”技能逻辑，以实现瞬时资源收集机制。当黑洞效果激活时，检测其有效半径内的所有资源实体并触发批量吸收流程。不再采用单个或顺序移动的方式，而是在单帧或动作中更新所有检测到的资源状态，使其同时添加到玩家的背包中。",
       "ja": "「ロボットアーム・ブラックホール」スキルのロジックを修正し、即時リソース回収メカニズムを実装しました。ブラックホール効果が有効になると、有効半径内のすべてのリソースエンティティを検出し、一括吸収プロセスをトリガーします。個別または順次移動する代わりに、検出されたすべてのリソースの状態を更新し、1フレームまたはアクションでプレイヤーのインベントリに同時に追加されるようにしました。"
-    }
-  },
-  {
-    "id": "20260812_1000",
-    "type": "preview",
-    "title": "20260812_1000 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260812_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260812_1000:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-08-12T01:00:21.472Z",
-    "release_note": {
-      "en": "### Prompt for Code Generation\n\n**Task:** Refactor the activation logic for the \"Robot Arm Black Hole\" to implement simultaneous resource absorption.\n\n**Requirements:**\n1.  **Trigger Mechanism:** Upon activation of the `RobotArmBlackHole` effect, perform a spatial query (e.g., `OverlapCircle`, `SphereCast`, or proximity check) to identify all active `Resource` entities within the effect's radius.\n2.  **Batch Processing:** Instead of sequential or one-by-one attraction, apply the collection/absorption logic to all detected `Resource` objects in a single frame or a synchronized batch transition.\n3.  **State Update:** For each identified `Resource` entity:\n    *   Disable its individual movement or physics logic.\n    *   Trigger the `OnAbsorbed` or `Collect` event immediately.\n    *   Move the resource position to the center of the black hole or directly to the player's inventory.\n4.  **Optimization:** Ensure the spatial query is filtered by the appropriate layer or tag (e.g., `Layer: Resources`) to maintain performance.\n\n**Input Variables:**\n*   `blackHoleRadius`: The range of the effect.\n*   `absorptionPoint`: The destination transform (Robot Arm or Black Hole center).\n*   `resourceLayerMask`: The layer mask used to identify collectible items.",
-      "ko": "### 코드 생성을 위한 프롬프트\n\n**작업:** '로봇 팔 블랙홀'의 활성화 로직을 리팩토링하여 자원의 동시 흡수를 구현합니다.\n\n**요구 사항:**\n1. **트리거 메커니즘:** 효과 반경 내의 모든 활성 'Resource' 엔티티를 식별하기 위해 공간 쿼리(예: `OverlapCircle`, `SphereCast` 또는 근접 확인)를 수행합니다.\n2. **배치 처리:** 순차적인 흡수 대신 단일 프레임 또는 동기화된 배치 전환으로 모든 감지된 자원 객체에 수집/흡수 로직을 적용합니다.\n3. **상태 업데이트:** 각 자원 엔티티에 대해 다음을 수행합니다.\n    * 개별 이동 또는 물리 로직 비활성화.\n    * `OnAbsorbed` 또는 `Collect` 이벤트를 즉시 트리거.\n    * 자원 위치를 블랙홀 중심 또는 플레이어 인벤토리로 즉시 이동.\n4. **최적화:** 성능 유지를 위해 공간 쿼리가 적절한 레이어나 태그(예: `Layer: Resources`)로 필터링되도록 합니다.\n\n**입력 변수:**\n* `blackHoleRadius`: 효과의 범위.\n* `absorptionPoint`: 대상 트랜스폼(로봇 팔 또는 블랙홀 중심).\n* `resourceLayerMask`: 수집 가능한 아이템을 식별하는 데 사용되는 레이어 마스크.",
-      "zh": "### 代码生成提示词\n\n**任务：** 重构“机械臂黑洞”的激活逻辑，以实现资源的同步吸收。\n\n**需求：**\n1. **触发机制：** 在激活效果时，执行空间查询（如 `OverlapCircle`、`SphereCast` 或距离检测），以识别半径内的所有活性“Resource”实体。\n2. **批量处理：** 取代逐一吸引的方式，在单帧或同步批次中对所有检测到的资源对象应用收集/吸收逻辑。\n3. **状态更新：** 对于每个识别出的资源实体：\n    * 禁用其独立的移动或物理逻辑。\n    * 立即触发 `OnAbsorbed` 或 `Collect` 事件。\n    * 将资源位置移动至黑洞中心或直接放入玩家背包。\n4. **优化：** 确保空间查询通过适当的图层或标签（如 `Layer: Resources`）进行过滤，以保持性能。\n\n**输入变量：**\n* `blackHoleRadius`：效果范围。\n* `absorptionPoint`：目标变换（机械臂或黑洞中心）。\n* `resourceLayerMask`：用于识别可收集物品的图层遮罩。",
-      "ja": "### コード生成用プロンプト\n\n**タスク：**「ロボットアーム・ブラックホール」の起動ロジックをリファクタリングし、リソースの同時吸引を実装します。\n\n**要件：**\n1. **トリガーメカニズム：** 効果の範囲内にあるすべてのアクティブな「Resource」エンティティを特定するために、空間クエリ（例：`OverlapCircle`、`SphereCast`、または近接チェック）を実行します。\n2. **バッチ処理：** 逐次的な吸引ではなく、単一フレームまたは同期されたバッチ遷移内で、検出されたすべてのリソースオブジェクトに収集/吸引ロジックを適用します。\n3. **状態更新：** 特定された各リソースエンティティに対して：\n    * 個別の移動または物理ロジックを無効化します。\n    * `OnAbsorbed` または `Collect` イベントを即座に実行します。\n    * リソースの位置をブラックホールの中心またはプレイヤーのインベントリに直接移動させます。\n4. **最適化：** パフォーマンスを維持するため、空間クエリが適切なレイヤーまたはタグ（例：`Layer: Resources`）でフィルタリングされていることを確認してください。\n\n**入力変数：**\n* `blackHoleRadius`: 効果の範囲。\n* `absorptionPoint`: 移動先のトランスフォーム（ロボットアームまたはブラックホールの中心）。\n* `resourceLayerMask`: 収集可能なアイテムを識別するために使用されるレイヤーマスク。"
     }
   }
 ]

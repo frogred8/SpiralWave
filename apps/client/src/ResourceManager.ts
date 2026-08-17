@@ -115,41 +115,21 @@ export class ResourceManager {
     }
 
     public spawnMeteor() {
-        const { width, height } = this.getSpawnDimensions();
-        const offsetX = (width - this.scene.scale.width) / 2;
-        const offsetY = (height - this.scene.scale.height) / 2;
-        
-        // 무작위 시작 지점과 목표 지점 설정 (화면 밖에서 시작해서 밖으로)
-        const side = Phaser.Math.Between(0, 3);
-        let startX, startY, endX, endY;
-        
-        if (side === 0) { // Bottom to Top
-            startX = Phaser.Math.Between(0, width); startY = height + 100;
-            endX = Phaser.Math.Between(0, width); endY = -100;
-        } else if (side === 1) { // Top to Bottom
-            startX = Phaser.Math.Between(0, width); startY = -100;
-            endX = Phaser.Math.Between(0, width); endY = height + 100;
-        } else if (side === 2) { // Right to Left
-            startX = width + 100; startY = Phaser.Math.Between(0, height);
-            endX = -100; endY = Phaser.Math.Between(0, height);
-        } else { // Left to Right
-            startX = -100; startY = Phaser.Math.Between(0, height);
-            endX = width + 100; endY = Phaser.Math.Between(0, height);
-        }
-
-        // Adjust coordinates relative to actual screen center
-        startX -= offsetX; startY -= offsetY;
-        endX -= offsetX; endY -= offsetY;
+        const width = this.scene.scale.width;
+        const height = this.scene.scale.height;
+        const start = Utils.getRandomEdgePosition(width, height);
+        const startX = start.x;
+        const startY = start.y;
+        const endX = this.spiralCenter.x;
+        const endY = this.spiralCenter.y;
 
         const meteor = this.scene.add.text(startX, startY, RESOURCE_CONFIG.ICONS.meteor, { fontSize: '70px' }).setOrigin(0.5);
         this.worldContainer.add(meteor);
         this.meteors.push(meteor);
 
-        // 진행 방향으로 회전 (기존 대비 180도 반전하여 머리가 앞으로 오게 수정)
         const angle = Phaser.Math.Angle.Between(startX, startY, endX, endY);
         meteor.setRotation(angle + this.getMeteorRotationOffset()); 
 
-        // 파티클 효과 (꼬리)
         const emitter = this.scene.add.particles(0, 0, 'spark', {
             speed: { min: 20, max: 100 },
             scale: { start: 1.5, end: 0 },
@@ -165,23 +145,41 @@ export class ResourceManager {
             targets: meteor,
             x: endX,
             y: endY,
-            duration: 4000,
-            onUpdate: (tween) => {
-                // 일정 간격으로 자원 생성 (진행도 1.25% 마다, 기존 5%에서 4배 증가)
-                const progress = tween.progress;
-                if (Math.floor(progress * 80) > Math.floor((tween as any).lastResourceProgress * 80 || 0)) {
-                    this.createResourceAt(meteor.x, meteor.y);
-                    (tween as any).lastResourceProgress = progress;
-                }
-            },
+            duration: RESOURCE_CONFIG.METEOR.TRAVEL_DURATION,
+            ease: 'Sine.easeIn',
             onComplete: () => {
+                this.explodeMeteor(meteor.x, meteor.y);
                 emitter.destroy();
                 this.emitters = this.emitters.filter(e => e !== emitter);
                 meteor.destroy();
                 this.meteors = this.meteors.filter(m => m !== meteor);
             }
         });
-        (this.scene.tweens.getTweensOf(meteor)[0] as any).lastResourceProgress = 0;
+    }
+
+    private explodeMeteor(x: number, y: number) {
+        const burst = this.scene.add.particles(0, 0, 'spark', {
+            speed: { min: 120, max: 420 },
+            scale: { start: 2.4, end: 0 },
+            lifespan: 550,
+            tint: [0xffaa00, 0xff4400, 0xffffcc],
+            blendMode: 'ADD',
+            emitting: false
+        });
+        this.worldContainer.add(burst);
+        this.emitters.push(burst);
+        burst.emitParticle(60, x, y);
+
+        const availableSlots = Math.max(0, INITIAL_STATS.MAX_RESOURCES - this.resources.getLength());
+        const spawnCount = Math.min(RESOURCE_CONFIG.METEOR.BURST_COUNT, availableSlots);
+        for (let i = 0; i < spawnCount; i++) {
+            this.createResourceAt(x, y);
+        }
+
+        this.scene.time.delayedCall(700, () => {
+            burst.destroy();
+            this.emitters = this.emitters.filter(e => e !== burst);
+        });
     }
 
     public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {

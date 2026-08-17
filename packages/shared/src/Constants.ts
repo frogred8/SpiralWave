@@ -92,6 +92,10 @@ export const RESOURCE_CONFIG = {
         MIN_DIST_OFFSET: 150,
         MAX_DIST_BASE: 800,
         MIN_GAP: 300
+    },
+    METEOR: {
+        BURST_COUNT: 16,
+        TRAVEL_DURATION: 2200
     }
 };
 

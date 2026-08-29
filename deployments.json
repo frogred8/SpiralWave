@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260829_1000",
+    "type": "preview",
+    "title": "20260829_1000 Build",
+    "url": "http://134.185.103.3:3304",
+    "branch": "20260829_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260829_1000:latest",
+    "container": "spiralwave",
+    "port": 3304,
+    "status": "active",
+    "released_at": "2026-08-29T01:00:51.872Z",
+    "release_note": {
+      "en": "### Development Plan for Code Generation\n\nNo valid feature additions or improvements were identified for analysis based on the provided input and filtering criteria.\n\n**Requirement Analysis Summary:**\n- **Input:** \"1\"\n- **Status:** Excluded\n- **Reason:** The requirement is too vague and lacks clear functional details or instructions for implementation.",
+      "ko": "### 코드 생성 개발 계획\n\n제공된 입력 및 필터링 기준에 따라 분석을 위해 확인된 유효한 기능 추가 또는 개선 사항이 없습니다.\n\n**요구사항 분석 요약:**\n- **입력:** \"1\"\n- **상태:** 제외됨\n- **사유:** 요구사항이 너무 모호하고 명확한 기능적 세부 정보나 구현을 위한 지침이 부족합니다.",
+      "zh": "### 代码生成开发计划\n\n根据提供的输入和过滤标准，未识别出可供分析的有效功能添加或改进。\n\n**需求分析摘要：**\n- **输入：** \"1\"\n- **状态：** 已排除\n- **原因：** 需求过于模糊，缺乏明确的功能细节或实施说明。",
+      "ja": "### コード生成の開発計画\n\n提供された入力およびフィルタリング基準に基づき、分析対象となる有効な機能の追加または改善は特定されませんでした。\n\n**要件分析の概要：**\n- **入力：** \"1\"\n- **ステータス：** 除外\n- **理由：** 要件が曖昧すぎて、明確な機能の詳細や実装のための指示が不足しています。"
+    }
+  },
+  {
     "id": "20260817_1000",
     "type": "preview",
     "title": "20260817_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "'로봇 팔' 개체의 '블랙홀' 능력 로직을 수정했습니다. 블랙홀 효과가 활성화되면 현재 유효 반경 내에 있는 모든 자원 오브젝트를 식별합니다. 기존의 순차적 또는 점진적으로 끌어당기던 방식 대신, 탐지된 모든 자원을 플레이어의 인벤토리로 즉시 동시에 흡수하도록 수집 메커니즘을 업데이트했습니다.",
       "zh": "修改了“机械臂”实体的“黑洞”能力逻辑。当黑洞效果激活时，识别当前其有效半径内的所有资源对象。更新了收集机制，将所有检测到的资源同时立即吸收到玩家的库存中，取代了之前的顺序或渐进式吸引行为。",
       "ja": "「ロボットアーム」エンティティの「ブラックホール」能力のロジックを修正しました。ブラックホール効果が有効になると、有効半径内にあるすべてのリソースオブジェクトを特定します。従来の順次的または段階的な引き寄せ動作に代わり、検知されたすべてのリソースをプレイヤーのインベントリに即座に同時に吸収するように収集メカニズムを更新しました。"
-    }
-  },
-  {
-    "id": "20260814_1000",
-    "type": "preview",
-    "title": "20260814_1000 Build",
-    "url": "http://134.185.103.3:3304",
-    "branch": "20260814_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260814_1000:latest",
-    "container": "spiralwave",
-    "port": 3304,
-    "status": "active",
-    "released_at": "2026-08-14T01:00:16.799Z",
-    "release_note": {
-      "en": "Modify the 'Robot Arm Black Hole' ability logic. Implement a system where all resource entities within the black hole's effect radius are detected and absorbed simultaneously upon activation. The logic should shift from individual item attraction/processing to a batch collection process for all valid targets currently within the area of effect.",
-      "ko": "'로봇 팔 블랙홀' 능력 로직을 수정했습니다. 블랙홀 활성화 시 효과 범위 내의 모든 자원 개체를 동시에 감지하고 흡수하는 시스템을 구현했습니다. 기존의 개별 아이템 인력 및 처리 방식에서 범위 내의 모든 유효 대상을 일괄 수집하는 방식으로 로직이 변경되었습니다.",
-      "zh": "修改了“机械臂黑洞”能力逻辑。实现了在激活时同时检测并吸收黑洞效果半径内所有资源实体的系统。逻辑从原本的单个物品吸引与处理，转变为对效果范围内所有有效目标进行批量收集。",
-      "ja": "「ロボットアーム・ブラックホール」のアビリティロジックを修正しました。ブラックホールの有効範囲内にあるすべてのリソースエンティティを、発動時に同時に検知・吸収するシステムを実装しました。個別のアイテムを引き寄せて処理する方式から、範囲内のすべての有効な対象を一括で収集するロジックに変更されました。"
     }
   }
 ]

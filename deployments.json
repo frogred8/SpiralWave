@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260831_1000",
+    "type": "preview",
+    "title": "20260831_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260831_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260831_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-08-31T01:00:31.068Z",
+    "release_note": {
+      "en": "### Code Generation Plan\n\n**1. Requirement Analysis (English)**\n- **User Input:** \"1\"\n- **Analysis:** The input \"1\" is identified as \"overly vague or unclear\" and does not specify any functional additions or improvements. According to the exclusion criteria, this input is filtered out from the development plan.\n\n**2. Implementation Tasks**\n- No actionable features or code improvements have been identified based on the provided requirement. \n- **Status:** Pending valid user input.",
+      "ko": "### 코드 생성 계획\n\n**1. 요구사항 분석**\n- **사용자 입력:** \"1\"\n- **분석:** 입력 \"1\"은 \"지나치게 모호하거나 불분명함\"으로 식별되었으며, 어떠한 기능적 추가나 개선 사항도 명시하지 않았습니다. 제외 기준에 따라 이 입력은 개발 계획에서 제외되었습니다.\n\n**2. 구현 작업**\n- 제공된 요구사항을 바탕으로 식별된 실행 가능한 기능이나 코드 개선 사항이 없습니다.\n- **상태:** 유효한 사용자 입력 대기 중",
+      "zh": "### 代码生成计划\n\n**1. 需求分析**\n- **用户输入：** \"1\"\n- **分析：** 输入 \"1\" 被识别为 \"过度模糊或不明确\"，且未指定任何功能添加或改进。根据排除标准，此输入已从开发计划中过滤掉。\n\n**2. 实施任务**\n- 根据提供的需求，未发现可操作的功能或代码改进。\n- **状态：** 等待有效的用户输入",
+      "ja": "### コード生成プラン\n\n**1. 要件分析**\n- **ユーザー入力:** \"1\"\n- **分析:** 入力 \"1\" は「非常に曖昧または不明確」であると判断され、機能の追加や改善を特定していません。除外基準に基づき、この入力は開発計画から除外されました。\n\n**2. 実装タスク**\n- 提供された要件に基づいて特定された実行可能な機能やコードの改善はありません。\n- **ステータス:** 有効なユーザー入力待ち"
+    }
+  },
+  {
     "id": "20260830_1000",
     "type": "preview",
     "title": "20260830_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "1. '로봇 팔 블랙홀' 메커니즘을 업데이트하여 활성화 시 자원 개체를 개별적으로 끌어당기는 대신 유효 반경 내의 모든 자원 개체를 즉시 수집하도록 수정했습니다.\n2. '메테오' 이벤트를 구현했습니다: 화면 경계에서 중앙으로 이동하는 메테오 개체를 생성하며, 중앙 지점에 도달하면 폭발을 일으켜 해당 좌표에 여러 자원 아이템을 동시에 생성합니다.",
       "zh": "1. 更新“机械臂黑洞”机制，激活时将立即收集有效半径内的所有资源实体，而不再是逐个拉取。\n2. 实现“流星”事件：创建一个从屏幕边界移动到中心的流星实体；到达中点时触发爆炸，并在爆炸坐标处同时生成多个资源物品。",
       "ja": "1. 「ロボットアーム・ブラックホール」の仕組みを更新し、発動時にリソースエンティティを個別に引き寄せるのではなく、有効半径内のすべてのリソースを即座に回収するように変更しました。\n2. 「メテオ」イベントを実装しました：画面の端から中央に向かって移動するメテオエンティティを生成し、中間地点に到達すると爆発を引き起こして、その座標に複数のリソースアイテムを同時に生成します。"
-    }
-  },
-  {
-    "id": "20260816_1000",
-    "type": "preview",
-    "title": "20260816_1000 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260816_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260816_1000:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-08-16T01:00:29.073Z",
-    "release_note": {
-      "en": "Modify the 'Robot Arm Black Hole' skill logic to implement immediate batch resource collection. When the black hole is activated, perform a spatial check to identify all resource entities within its effective radius and trigger a simultaneous absorption event that adds all detected items to the inventory instantly, replacing any existing sequential or gradual collection mechanisms.",
-      "ko": "'로봇 팔 블랙홀' 스킬 로직을 수정하여 자원을 즉시 일괄 수집하도록 변경했습니다. 블랙홀이 활성화되면 유효 반경 내의 모든 자원 개체를 공간 체크를 통해 식별하며, 기존의 순차적 또는 점진적 수집 방식 대신 감지된 모든 아이템을 즉시 인벤토리에 추가하는 동시 흡수 이벤트를 트리거합니다.",
-      "zh": "修改“机械臂黑洞”技能逻辑，实现即时批量资源收集。当黑洞激活时，将进行空间检查以识别其有效半径内的所有资源实体，并触发同步吸收事件，将所有检测到的物品立即添加到物品栏中，取代现有的顺序或逐渐收集机制。",
-      "ja": "「ロボットアーム・ブラックホール」のスキルロジックを修正し、リソースの即時一括回収を実装しました。ブラックホールが有効になると、有効半径内のすべてのリソースエンティティを空間チェックで特定し、従来の順次または段階的な回収メカニズムに代わり、検出されたすべてのアイテムを即座にインベントリに追加する同時吸収イベントをトリガーします。"
     }
   }
 ]

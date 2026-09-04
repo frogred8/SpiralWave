@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260904_1000",
+    "type": "preview",
+    "title": "20260904_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260904_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260904_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-09-04T01:00:33.623Z",
+    "release_note": {
+      "en": "### Code Generation Plan\n\n**1. Analyzed User Requirements**\n- **Translated Input:** \"1\"\n- **Status:** Excluded\n- **Reasoning:** The provided input \"1\" is excessively vague and lacks any specific functional requirements or actionable game improvement details. It falls under the category of \"vague or broad content\" which is excluded per the instruction criteria.\n\n**2. Implementation Roadmap**\n- **Actionable Tasks:** None.\n- **Details:** No code changes or feature implementations have been planned as no valid requirements were identified in the user input.",
+      "ko": "### 코드 생성 계획\n\n**1. 분석된 사용자 요구사항**\n- **번역된 입력:** \"1\"\n- **상태:** 제외됨\n- **사유:** 제공된 입력 \"1\"은 지나치게 모호하며 구체적인 기능 요구사항이나 실행 가능한 게임 개선 세부 사항이 부족합니다. 이는 지침 기준에 따라 제외되는 \"모호하거나 광범위한 콘텐츠\" 범주에 해당합니다.\n\n**2. 구현 로드맵**\n- **실행 가능한 작업:** 없음.\n- **세부 사항:** 사용자 입력에서 유효한 요구사항이 식별되지 않았으므로 코드 변경이나 기능 구현이 계획되지 않았습니다.",
+      "zh": "### 代码生成计划\n\n**1. 分析的用户需求**\n- **翻译后的输入：** \"1\"\n- **状态：** 已排除\n- **原因：** 提供的输入 “1” 过于模糊，缺乏任何具体的功能要求或可操作的游戏改进细节。它属于指令标准中排除的“模糊或广泛内容”类别。\n\n**2. 实施路线图**\n- **可操作任务：** 无。\n- **详情：** 由于在用户输入中未识别出有效需求，因此未计划任何代码更改或功能实现。",
+      "ja": "### コード生成計画\n\n**1. 分析されたユーザー要件**\n- **翻訳された入力:** 「1」\n- **ステータス:** 除外\n- **理由:** 提供された入力「1」は非常に曖昧であり、具体的な機能要件や実行可能なゲーム改善の詳細が欠けています。これは、指示基準に従って除外される「曖昧または広範なコンテンツ」のカテゴリに該当します。\n\n**2. 実装ロードマップ**\n- **実行可能なタスク:** なし。\n- **詳細:** ユーザー入力で有効な要件が特定されなかったため、コードの変更や機能の実装は計画されていません。"
+    }
+  },
+  {
     "id": "20260903_1000",
     "type": "preview",
     "title": "20260903_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "",
       "zh": "",
       "ja": ""
-    }
-  },
-  {
-    "id": "20260831_1000",
-    "type": "preview",
-    "title": "20260831_1000 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260831_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260831_1000:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-08-31T01:00:31.068Z",
-    "release_note": {
-      "en": "### Code Generation Plan\n\n**1. Requirement Analysis (English)**\n- **User Input:** \"1\"\n- **Analysis:** The input \"1\" is identified as \"overly vague or unclear\" and does not specify any functional additions or improvements. According to the exclusion criteria, this input is filtered out from the development plan.\n\n**2. Implementation Tasks**\n- No actionable features or code improvements have been identified based on the provided requirement. \n- **Status:** Pending valid user input.",
-      "ko": "### 코드 생성 계획\n\n**1. 요구사항 분석**\n- **사용자 입력:** \"1\"\n- **분석:** 입력 \"1\"은 \"지나치게 모호하거나 불분명함\"으로 식별되었으며, 어떠한 기능적 추가나 개선 사항도 명시하지 않았습니다. 제외 기준에 따라 이 입력은 개발 계획에서 제외되었습니다.\n\n**2. 구현 작업**\n- 제공된 요구사항을 바탕으로 식별된 실행 가능한 기능이나 코드 개선 사항이 없습니다.\n- **상태:** 유효한 사용자 입력 대기 중",
-      "zh": "### 代码生成计划\n\n**1. 需求分析**\n- **用户输入：** \"1\"\n- **分析：** 输入 \"1\" 被识别为 \"过度模糊或不明确\"，且未指定任何功能添加或改进。根据排除标准，此输入已从开发计划中过滤掉。\n\n**2. 实施任务**\n- 根据提供的需求，未发现可操作的功能或代码改进。\n- **状态：** 等待有效的用户输入",
-      "ja": "### コード生成プラン\n\n**1. 要件分析**\n- **ユーザー入力:** \"1\"\n- **分析:** 入力 \"1\" は「非常に曖昧または不明確」であると判断され、機能の追加や改善を特定していません。除外基準に基づき、この入力は開発計画から除外されました。\n\n**2. 実装タスク**\n- 提供された要件に基づいて特定された実行可能な機能やコードの改善はありません。\n- **ステータス:** 有効なユーザー入力待ち"
     }
   }
 ]

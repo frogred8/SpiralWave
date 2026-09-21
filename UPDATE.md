@@ -1,4 +1,16 @@
 
+# Update - 20260921_1000
+
+## User Feedback
+```
+스피키 운석이 추가되어야합니다.
+```
+
+## Gemini AI Plan
+Implement a new game entity called 'SpikyMeteor' by extending the existing meteor logic. Define its unique movement patterns, collision detection, and damage values to distinguish it from standard meteors. Update the game's spawning system or wave manager to include the 'SpikyMeteor' in the spawning pool and manage its lifecycle within the game loop.
+
+---
+
 # Update - 20260913_1000
 
 ## User Feedback

@@ -1,4 +1,22 @@
 
+# Update - 20260922_1000
+
+## User Feedback
+```
+스피키 운석이 추가되어야합니다.
+```
+
+## Gemini AI Plan
+Create a code implementation plan to add a new gameplay element: "Spiky Meteor."
+
+The plan should include:
+1. **Object Definition**: Define a `SpikyMeteor` class or extend the existing meteor entity to include a "Spiky" type.
+2. **Visual Implementation**: Add logic to render the meteor with a spiky visual style (e.g., using a specific sprite or geometric spikes).
+3. **Collision & Mechanics**: Implement collision detection and specify the gameplay impact (e.g., increased damage or unique interaction upon hitting the player).
+4. **Spawning Logic**: Update the meteor spawning manager to include the Spiky Meteor in the generation pool with an assigned spawn frequency and speed.
+
+---
+
 # Update - 20260921_1000
 
 ## User Feedback

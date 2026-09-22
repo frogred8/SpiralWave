@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260922_1000",
+    "type": "preview",
+    "title": "20260922_1000 Build",
+    "url": "http://134.185.103.3:3302",
+    "branch": "20260922_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260922_1000:latest",
+    "container": "spiralwave",
+    "port": 3302,
+    "status": "active",
+    "released_at": "2026-09-22T01:00:17.182Z",
+    "release_note": {
+      "en": "Create a code implementation plan to add a new gameplay element: \"Spiky Meteor.\"\n\nThe plan should include:\n1. **Object Definition**: Define a `SpikyMeteor` class or extend the existing meteor entity to include a \"Spiky\" type.\n2. **Visual Implementation**: Add logic to render the meteor with a spiky visual style (e.g., using a specific sprite or geometric spikes).\n3. **Collision & Mechanics**: Implement collision detection and specify the gameplay impact (e.g., increased damage or unique interaction upon hitting the player).\n4. **Spawning Logic**: Update the meteor spawning manager to include the Spiky Meteor in the generation pool with an assigned spawn frequency and speed.",
+      "ko": "새로운 게임 플레이 요소인 '가시 운석(Spiky Meteor)'을 추가하기 위한 코드 구현 계획을 수립합니다.\n\n계획에는 다음 내용이 포함되어야 합니다:\n1. 객체 정의: SpikyMeteor 클래스를 정의하거나 기존 운석 엔티티를 확장하여 '가시(Spiky)' 타입을 포함합니다.\n2. 시각적 구현: 가시 돋친 시각적 스타일(예: 특정 스프라이트 또는 기하학적 가시 사용)로 운석을 렌더링하는 로직을 추가합니다.\n3. 충돌 및 메커니즘: 충돌 감지를 구현하고 게임 플레이 영향(예: 피해량 증가 또는 플레이어 충돌 시 고유한 상호작용)을 지정합니다.\n4. 생성 로직: 운석 생성 관리자를 업데이트하여 지정된 생성 빈도와 속도로 생성 풀에 가시 운석을 포함합니다.",
+      "zh": "制定添加新游戏元素“尖刺陨石 (Spiky Meteor)”的代码实现计划。\n\n该计划应包括：\n1. 对象定义：定义 SpikyMeteor 类或扩展现有的陨石实体以包含“尖刺 (Spiky)”类型。\n2. 视觉实现：添加以尖刺视觉风格（例如使用特定精灵或几何尖刺）渲染陨石的逻辑。\n3. 碰撞与机制：实现碰撞检测并指定游戏影响（例如增加伤害或与玩家碰撞时的独特交互）。\n4. 生成逻辑：更新陨石生成管理器，将尖刺陨石以指定的生成频率和速度包含在生成池中。",
+      "ja": "新しいゲームプレイ要素「スパイキー・メテオ（棘付き隕石）」を追加するためのコード実装計画を作成します。\n\n計画には以下を含める必要があります：\n1. オブジェクト定義：SpikyMeteor クラスを定義するか、既存のメテオエンティティを拡張して「スパイキー」タイプを含めます。\n2. ビジュアル実装：スパイキーな視覚スタイル（例：特定のスプライトや幾何学的な棘の使用）でメテオをレンダリングするロジックを追加します。\n3. 衝突とメカニクス：衝突判定を実装し、ゲームプレイへの影響（例：ダメージの増加やプレイヤーとの接触時の独自のインタラクション）を指定します。\n4. スポーンロジック：メテオ生成マネージャーを更新し、割り当てられた生成頻度と速度で生成プールにスパイキー・メテオを含めます。"
+    }
+  },
+  {
     "id": "20260921_1000",
     "type": "preview",
     "title": "20260921_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "### 코드 생성 계획\n\n**1. 요구사항 분석**\n- **번역된 요구사항:** \"1\"\n- **분석 결과:** 제외됨\n- **사유:** 입력 내용이 너무 모호하고 게임 개선을 위한 구체적인 기능적 세부 사항이나 명확한 목표가 부족합니다. 코드 생성을 위한 실행 가능한 정보를 제공하지 않습니다.\n\n**2. 구현 작업**\n- 개발 계획을 생성하기 위해 식별된 유효한 기능 추가 또는 개선 사항이 없습니다.",
       "zh": "### 代码生成计划\n\n**1. 需求分析**\n- **已翻译需求:** \"1\"\n- **分析结果:** 已排除\n- **原因:** 输入内容过于模糊，缺乏具体的功能细节或明确的游戏改进目标。未能提供用于代码生成的有效信息。\n\n**2. 实施任务**\n- 未发现有效的功能添加或改进项，无法生成开发计划。",
       "ja": "### コード生成計画\n\n**1. 要件分析**\n- **翻訳された要件:** \"1\"\n- **分析結果:** 除外\n- **理由:** 入力が曖昧すぎて、ゲームの改善に向けた具体的な機能の詳細や明確な目標が欠けています。コード生成のための実行可能な情報を提供していません。\n\n**2. 実装タスク**\n- 開発計画を生成するための有効な機能追加または改善事項は特定されませんでした。"
-    }
-  },
-  {
-    "id": "20260904_1000",
-    "type": "preview",
-    "title": "20260904_1000 Build",
-    "url": "http://134.185.103.3:3302",
-    "branch": "20260904_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260904_1000:latest",
-    "container": "spiralwave",
-    "port": 3302,
-    "status": "active",
-    "released_at": "2026-09-04T01:00:33.623Z",
-    "release_note": {
-      "en": "### Code Generation Plan\n\n**1. Analyzed User Requirements**\n- **Translated Input:** \"1\"\n- **Status:** Excluded\n- **Reasoning:** The provided input \"1\" is excessively vague and lacks any specific functional requirements or actionable game improvement details. It falls under the category of \"vague or broad content\" which is excluded per the instruction criteria.\n\n**2. Implementation Roadmap**\n- **Actionable Tasks:** None.\n- **Details:** No code changes or feature implementations have been planned as no valid requirements were identified in the user input.",
-      "ko": "### 코드 생성 계획\n\n**1. 분석된 사용자 요구사항**\n- **번역된 입력:** \"1\"\n- **상태:** 제외됨\n- **사유:** 제공된 입력 \"1\"은 지나치게 모호하며 구체적인 기능 요구사항이나 실행 가능한 게임 개선 세부 사항이 부족합니다. 이는 지침 기준에 따라 제외되는 \"모호하거나 광범위한 콘텐츠\" 범주에 해당합니다.\n\n**2. 구현 로드맵**\n- **실행 가능한 작업:** 없음.\n- **세부 사항:** 사용자 입력에서 유효한 요구사항이 식별되지 않았으므로 코드 변경이나 기능 구현이 계획되지 않았습니다.",
-      "zh": "### 代码生成计划\n\n**1. 分析的用户需求**\n- **翻译后的输入：** \"1\"\n- **状态：** 已排除\n- **原因：** 提供的输入 “1” 过于模糊，缺乏任何具体的功能要求或可操作的游戏改进细节。它属于指令标准中排除的“模糊或广泛内容”类别。\n\n**2. 实施路线图**\n- **可操作任务：** 无。\n- **详情：** 由于在用户输入中未识别出有效需求，因此未计划任何代码更改或功能实现。",
-      "ja": "### コード生成計画\n\n**1. 分析されたユーザー要件**\n- **翻訳された入力:** 「1」\n- **ステータス:** 除外\n- **理由:** 提供された入力「1」は非常に曖昧であり、具体的な機能要件や実行可能なゲーム改善の詳細が欠けています。これは、指示基準に従って除外される「曖昧または広範なコンテンツ」のカテゴリに該当します。\n\n**2. 実装ロードマップ**\n- **実行可能なタスク:** なし。\n- **詳細:** ユーザー入力で有効な要件が特定されなかったため、コードの変更や機能の実装は計画されていません。"
     }
   }
 ]

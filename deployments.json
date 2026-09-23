@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260923_1000",
+    "type": "preview",
+    "title": "20260923_1000 Build",
+    "url": "http://134.185.103.3:3303",
+    "branch": "20260923_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260923_1000:latest",
+    "container": "spiralwave",
+    "port": 3303,
+    "status": "active",
+    "released_at": "2026-09-23T01:00:15.248Z",
+    "release_note": {
+      "en": "Implement a new game obstacle called 'Spiky Meteor' by extending the existing meteor entity class. Define specific properties for the 'SpikyMeteor', such as increased damage or a unique movement pattern, and update the spawning logic to include this new variety within the gameplay loop. Ensure collision detection accounts for the spiky characteristics and integrate the entity into the current rendering and physics systems.",
+      "ko": "기존 메테오 엔티티 클래스를 확장하여 '가시 메테오(Spiky Meteor)'라는 새로운 게임 장애물을 구현했습니다. 증가된 피해량이나 고유한 이동 패턴 등 '가시 메테오'만의 특정 속성을 정의하고, 게임플레이 루프 내에 이 새로운 변종이 포함되도록 생성 로직을 업데이트했습니다. 가시의 특성을 반영하여 충돌 감지를 조정하고, 현재의 렌더링 및 물리 시스템에 해당 엔티티를 통합했습니다.",
+      "zh": "通过扩展现有的流星实体类，实现了一个名为“尖刺流星 (Spiky Meteor)”的新游戏障碍物。为“尖刺流星”定义了特定属性，例如增加的伤害或独特的移动模式，并更新了生成逻辑，以在游戏循环中包含这一新变体。确保碰撞检测考虑了尖刺特征，并将该实体整合到当前的渲染和物理系统中。",
+      "ja": "既存のメテオ（隕石）エンティティクラスを拡張し、「スパイキー・メテオ（Spiky Meteor）」という新しいゲーム障害物を実装しました。ダメージの増加や独自の移動パターンなど、「スパイキー・メテオ」固有のプロパティを定義し、ゲームプレイのループ内にこの新しいバリエーションが含まれるよう生成ロジックを更新しました。トゲのある特性を考慮して衝突判定を調整し、現在のレンダリングおよび物理システムにエンティティを統合しました。"
+    }
+  },
+  {
     "id": "20260922_1000",
     "type": "preview",
     "title": "20260922_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "### 코드 생성 계획\n- 제공된 입력 내용(\"1\")이 너무 모호하고 구현을 위한 구체적인 세부 사항이 부족하여, 실행 가능한 게임 개선 사항이나 기능적 요구 사항이 식별되지 않았습니다.",
       "zh": "### 代码生成计划\n- 提供的输入（“1”）过于模糊，缺乏具体的实现细节，因此未识别出可执行的游戏改进或功能需求。",
       "ja": "### コード生成計画\n- 提供された入力（「1」）は非常に曖昧で、実装のための具体的な詳細が不足しているため、実行可能なゲームの改善や機能要件は特定されませんでした。"
-    }
-  },
-  {
-    "id": "20260905_1000",
-    "type": "preview",
-    "title": "20260905_1000 Build",
-    "url": "http://134.185.103.3:3303",
-    "branch": "20260905_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260905_1000:latest",
-    "container": "spiralwave",
-    "port": 3303,
-    "status": "active",
-    "released_at": "2026-09-05T01:00:38.847Z",
-    "release_note": {
-      "en": "### Code Generation Plan\n\n**1. Requirement Analysis**\n- **Translated Requirement:** \"1\"\n- **Analysis Result:** Excluded\n- **Reason:** The input is too vague and lacks specific functional details or clear objectives for game improvement. It does not provide actionable information for code generation.\n\n**2. Implementation Tasks**\n- No valid feature additions or improvements were identified to generate a development plan.",
-      "ko": "### 코드 생성 계획\n\n**1. 요구사항 분석**\n- **번역된 요구사항:** \"1\"\n- **분석 결과:** 제외됨\n- **사유:** 입력 내용이 너무 모호하고 게임 개선을 위한 구체적인 기능적 세부 사항이나 명확한 목표가 부족합니다. 코드 생성을 위한 실행 가능한 정보를 제공하지 않습니다.\n\n**2. 구현 작업**\n- 개발 계획을 생성하기 위해 식별된 유효한 기능 추가 또는 개선 사항이 없습니다.",
-      "zh": "### 代码生成计划\n\n**1. 需求分析**\n- **已翻译需求:** \"1\"\n- **分析结果:** 已排除\n- **原因:** 输入内容过于模糊，缺乏具体的功能细节或明确的游戏改进目标。未能提供用于代码生成的有效信息。\n\n**2. 实施任务**\n- 未发现有效的功能添加或改进项，无法生成开发计划。",
-      "ja": "### コード生成計画\n\n**1. 要件分析**\n- **翻訳された要件:** \"1\"\n- **分析結果:** 除外\n- **理由:** 入力が曖昧すぎて、ゲームの改善に向けた具体的な機能の詳細や明確な目標が欠けています。コード生成のための実行可能な情報を提供していません。\n\n**2. 実装タスク**\n- 開発計画を生成するための有効な機能追加または改善事項は特定されませんでした。"
     }
   }
 ]

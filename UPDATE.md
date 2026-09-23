@@ -1,4 +1,16 @@
 
+# Update - 20260923_1000
+
+## User Feedback
+```
+스피키 운석이 추가되어야합니다.
+```
+
+## Gemini AI Plan
+Implement a new game obstacle called 'Spiky Meteor' by extending the existing meteor entity class. Define specific properties for the 'SpikyMeteor', such as increased damage or a unique movement pattern, and update the spawning logic to include this new variety within the gameplay loop. Ensure collision detection accounts for the spiky characteristics and integrate the entity into the current rendering and physics systems.
+
+---
+
 # Update - 20260922_1000
 
 ## User Feedback

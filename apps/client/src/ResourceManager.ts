@@ -5,6 +5,7 @@ import { Utils } from './Utils';
 import { DURATIONS, RESOURCE_CONFIG, INITIAL_STATS, SPAWN_BOUNDARY } from '@shared/Constants';
 import { Resource, SpecialItem, Collectible } from './Types';
 import { getResourceMetadata } from './ResourceRegistry';
+import { BaseMeteor, MeteorPath, SpikyMeteor } from './entities/Meteor';
 
 export class ResourceManager {
     private scene: Phaser.Scene;
@@ -16,7 +17,9 @@ export class ResourceManager {
     private whiteHoles: Phaser.GameObjects.Container[] = [];
     private smallBlackHoles: Phaser.GameObjects.Container[] = [];
     private armBlackHoles: Phaser.GameObjects.Container[] = [];
-    private meteors: Phaser.GameObjects.Text[] = [];
+    private meteors: BaseMeteor[] = [];
+    private meteorTweens = new Map<BaseMeteor, Phaser.Tweens.Tween>();
+    private meteorEmitters = new Map<BaseMeteor, Phaser.GameObjects.Particles.ParticleEmitter>();
     private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
     constructor(scene: Phaser.Scene, stats: GameStats, renderer: GameRenderer, worldContainer: Phaser.GameObjects.Container, spiralCenter: Phaser.Math.Vector2) {
@@ -43,6 +46,10 @@ export class ResourceManager {
 
     public getArmBlackHoles(): Phaser.GameObjects.Container[] {
         return this.armBlackHoles;
+    }
+
+    public getMeteors(): BaseMeteor[] {
+        return this.meteors;
     }
 
     public syncSmallBlackHoleDisplayRadius() {
@@ -141,47 +148,67 @@ export class ResourceManager {
         startX -= offsetX; startY -= offsetY;
         endX -= offsetX; endY -= offsetY;
 
-        const meteor = this.scene.add.text(startX, startY, RESOURCE_CONFIG.ICONS.meteor, { fontSize: '70px' }).setOrigin(0.5);
+        const path: MeteorPath = { startX, startY, endX, endY };
+        const meteor = Math.random() < RESOURCE_CONFIG.SPIKY_METEOR.SPAWN_RATE
+            ? new SpikyMeteor(this.scene, path)
+            : new BaseMeteor(this.scene, path);
+        this.scene.add.existing(meteor);
         this.worldContainer.add(meteor);
         this.meteors.push(meteor);
 
         // 진행 방향으로 회전 (기존 대비 180도 반전하여 머리가 앞으로 오게 수정)
         const angle = Phaser.Math.Angle.Between(startX, startY, endX, endY);
-        meteor.setRotation(angle + this.getMeteorRotationOffset()); 
+        meteor.setTravelRotation(angle + this.getMeteorRotationOffset()); 
 
         // 파티클 효과 (꼬리)
+        const isSpiky = meteor instanceof SpikyMeteor;
         const emitter = this.scene.add.particles(0, 0, 'spark', {
-            speed: { min: 20, max: 100 },
-            scale: { start: 1.5, end: 0 },
-            lifespan: 600,
-            tint: [0xffaa00, 0xff4400, 0xffff00],
+            speed: { min: isSpiky ? 40 : 20, max: isSpiky ? 140 : 100 },
+            scale: { start: isSpiky ? 1.8 : 1.5, end: 0 },
+            lifespan: isSpiky ? 450 : 600,
+            tint: isSpiky ? [0xff3300, 0xffdd55, 0xffffff] : [0xffaa00, 0xff4400, 0xffff00],
             blendMode: 'ADD',
             follow: meteor
         });
         this.worldContainer.add(emitter);
         this.emitters.push(emitter);
+        this.meteorEmitters.set(meteor, emitter);
 
-        this.scene.tweens.add({
-            targets: meteor,
-            x: endX,
-            y: endY,
-            duration: 4000,
+        const tween = this.scene.tweens.addCounter({
+            from: 0,
+            to: 1,
+            duration: meteor.duration,
             onUpdate: (tween) => {
                 // 일정 간격으로 자원 생성 (진행도 1.25% 마다, 기존 5%에서 4배 증가)
-                const progress = tween.progress;
-                if (Math.floor(progress * 80) > Math.floor((tween as any).lastResourceProgress * 80 || 0)) {
+                const progress = tween.getValue() ?? 0;
+                meteor.updateTravelProgress(progress);
+                if (Math.floor(progress * meteor.resourceTrailSteps) > Math.floor((tween as any).lastResourceProgress * meteor.resourceTrailSteps || 0)) {
                     this.createResourceAt(meteor.x, meteor.y);
                     (tween as any).lastResourceProgress = progress;
                 }
             },
             onComplete: () => {
-                emitter.destroy();
-                this.emitters = this.emitters.filter(e => e !== emitter);
-                meteor.destroy();
-                this.meteors = this.meteors.filter(m => m !== meteor);
+                this.destroyMeteor(meteor);
             }
         });
-        (this.scene.tweens.getTweensOf(meteor)[0] as any).lastResourceProgress = 0;
+        (tween as any).lastResourceProgress = 0;
+        this.meteorTweens.set(meteor, tween);
+    }
+
+    public destroyMeteor(meteor: BaseMeteor) {
+        const tween = this.meteorTweens.get(meteor);
+        if (tween) {
+            tween.remove();
+            this.meteorTweens.delete(meteor);
+        }
+        const emitter = this.meteorEmitters.get(meteor);
+        if (emitter) {
+            emitter.destroy();
+            this.meteorEmitters.delete(meteor);
+            this.emitters = this.emitters.filter(e => e !== emitter);
+        }
+        meteor.destroy();
+        this.meteors = this.meteors.filter(m => m !== meteor);
     }
 
     public createResourceAt(x: number, y: number, isWhiteHole: boolean = false) {
@@ -401,6 +428,9 @@ export class ResourceManager {
         
         this.meteors.forEach(m => m.destroy());
         this.meteors = [];
+        this.meteorTweens.forEach(tween => tween.remove());
+        this.meteorTweens.clear();
+        this.meteorEmitters.clear();
         
         this.emitters.forEach(e => e.destroy());
         this.emitters = [];

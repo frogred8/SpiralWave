@@ -88,6 +88,23 @@ export const RESOURCE_CONFIG = {
         MIN_DIST_OFFSET: 100,
         MAX_DIST: 500
     },
+    METEOR: {
+        DAMAGE: 8,
+        DURATION: 4000,
+        COLLISION_WIDTH: 58,
+        COLLISION_HEIGHT: 58,
+        RESOURCE_TRAIL_STEPS: 80
+    },
+    SPIKY_METEOR: {
+        SPAWN_RATE: 0.25,
+        DAMAGE: 22,
+        DURATION: 2800,
+        COLLISION_WIDTH: 96,
+        COLLISION_HEIGHT: 96,
+        RESOURCE_TRAIL_STEPS: 60,
+        WAVE_AMPLITUDE: 34,
+        WAVE_FREQUENCY: 3
+    },
     SMALL_BLACK_HOLE: {
         MIN_DIST_OFFSET: 150,
         MAX_DIST_BASE: 800,

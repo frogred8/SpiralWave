@@ -11,6 +11,7 @@ import { SoundManager } from './SoundManager';
 import skillTreeData from '@shared/SKILLTREE.json';
 import { UIManager } from './UIManager';
 import { OrbitSystem } from './OrbitSystem';
+import { BaseMeteor } from './entities/Meteor';
 
 export class GameScene extends Phaser.Scene {
     private spiralCenter!: Phaser.Math.Vector2;
@@ -587,6 +588,7 @@ export class GameScene extends Phaser.Scene {
 
         this.gameRenderer.drawBoundaries(this.radiusMultiplier);
         this.processResources();
+        this.processMeteors();
     }
 
     private handleBlackHoleMovement() {
@@ -716,6 +718,27 @@ export class GameScene extends Phaser.Scene {
                 else Utils.limitSpeed(res, dist, PHYSICS_CONFIG.MIN_SPEED_NEAR_CENTER, PHYSICS_CONFIG.MIN_SPEED_NORMAL, PHYSICS_CONFIG.MAX_SPEED);
             }
         });
+    }
+
+    private processMeteors() {
+        const effectiveRadius = this.getCurrentRadius();
+        this.resourceManager.getMeteors().forEach(meteor => {
+            if (!meteor.active) return;
+            if (!meteor.collidesWithCircle(this.spiralCenter.x, this.spiralCenter.y, effectiveRadius)) return;
+
+            this.applyMeteorDamage(meteor);
+        });
+    }
+
+    private applyMeteorDamage(meteor: BaseMeteor) {
+        const appliedDamage = this.gameStats.applyHazardDamage(meteor.damage);
+        const displayDamage = appliedDamage > 0 ? appliedDamage : meteor.damage;
+
+        this.gameRenderer.emitCollisionSpark(meteor.x, meteor.y);
+        this.uiManager.showFloatingText(meteor.x, meteor.y - 20, `-${displayDamage}`, '#ff4d4d', true, '22px', this.worldContainer);
+        this.cameras.main.shake(180, 0.008);
+        SoundManager.getInstance().play('specialitem');
+        this.resourceManager.destroyMeteor(meteor);
     }
 
     private async fetchLeaderboardData(): Promise<RankEntry[]> {

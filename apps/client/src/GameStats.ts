@@ -458,7 +458,37 @@ addCollected(type: ResourceType, amount: number = 1, x?: number, y?: number) {
     if (x !== undefined && y !== undefined) {
         this.emit('worldResourceCollected', { type, amount, x, y });
     }
-}/**
+}
+
+/**
+ * 장애물 피해 처리
+ */
+applyHazardDamage(amount: number): number {
+    if (amount <= 0) return 0;
+
+    let remaining = Math.floor(amount);
+    let applied = 0;
+    const resourceOrder: ResourceType[] = this.collected.rock >= this.collected.wood ? ['rock', 'wood'] : ['wood', 'rock'];
+
+    resourceOrder.forEach(type => {
+        if (remaining <= 0) return;
+
+        const loss = Math.min(this.collected[type], remaining);
+        this.collected[type] -= loss;
+        this.totalCollected[type] = Math.max(0, this.totalCollected[type] - loss);
+        remaining -= loss;
+        applied += loss;
+    });
+
+    if (applied > 0) {
+        this.totalAll = Math.max(0, this.totalAll - applied);
+        this.emit(GameStats.EVENTS.UPDATE_SCORE);
+    }
+
+    return applied;
+}
+
+/**
  * 최근 10초간의 자원 획득량 합계 반환
  */
 getRecentCollectionAmount(): number {

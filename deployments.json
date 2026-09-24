@@ -18,6 +18,24 @@
     }
   },
   {
+    "id": "20260924_1000",
+    "type": "preview",
+    "title": "20260924_1000 Build",
+    "url": "http://134.185.103.3:3304",
+    "branch": "20260924_1000",
+    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260924_1000:latest",
+    "container": "spiralwave",
+    "port": 3304,
+    "status": "active",
+    "released_at": "2026-09-24T01:00:20.795Z",
+    "release_note": {
+      "en": "Add a new game hazard called \"Spiky Meteor\" with the following specifications:\n- Create a new entity or class `SpikyMeteor` that inherits properties from the base meteor object.\n- Implement distinct movement behavior or increased speed to differentiate it from standard meteors.\n- Assign a higher damage value to the player upon collision compared to regular meteors.\n- Update the game's spawning logic to integrate Spiky Meteors into the current obstacle generation system with a defined spawn rate.\n- Ensure the collision detection box accurately reflects the \"spiky\" nature of the object.",
+      "ko": "다음 사양을 갖춘 새로운 게임 장애물 '가시 운석(Spiky Meteor)' 추가:\n- 기본 운석 객체의 속성을 상속받는 새로운 엔티티 또는 클래스 `SpikyMeteor` 생성\n- 일반 운석과 차별화하기 위해 독특한 이동 동작 또는 증가된 속도 구현\n- 충돌 시 플레이어에게 일반 운석보다 높은 데미지 값 부여\n- 정해진 스폰 확률에 따라 현재의 장애물 생성 시스템에 가시 운석을 통합하도록 게임의 스폰 로직 업데이트\n- 충돌 감지 박스가 객체의 '가시 돋친' 특성을 정확하게 반영하도록 보장",
+      "zh": "添加名为“尖刺陨石”的新游戏障碍，具体规格如下：\n- 创建继承自基础陨石对象的新实体或类 `SpikyMeteor`。\n- 实现独特的移动行为或提高速度，以区别于标准陨石。\n- 碰撞时对玩家造成的伤害值高于普通陨石。\n- 更新游戏的生成逻辑，按设定的生成率将尖刺陨石整合到当前的障碍物生成系统中。\n- 确保碰撞检测框能准确反映物体的“尖刺”特性。",
+      "ja": "以下の仕様を持つ新しいゲーム障害物「スパイキー・メテオ」を追加：\n- 基本のメテオオブジェクトのプロパティを継承する新しいエンティティまたはクラス `SpikyMeteor` を作成\n- 標準的なメテオと区別するため、独自の移動動作または速度向上を実装\n- 衝突時にプレイヤーに与えるダメージ値を通常のメテオよりも高く設定\n- 設定された出現率に基づき、現在の障害物生成システムにスパイキー・メテオを統合するようスポーンロジックを更新\n- 衝突判定ボックスがオブジェクトの「トゲのある」形状を正確に反映するように調整"
+    }
+  },
+  {
     "id": "20260923_1000",
     "type": "preview",
     "title": "20260923_1000 Build",
@@ -69,24 +87,6 @@
       "ko": "기존 운석 로직을 확장하여 'SpikyMeteor'라는 새로운 게임 엔티티를 구현했습니다. 일반 운석과 차별화하기 위해 고유한 이동 패턴, 충돌 감지 및 데미지 수치를 정의했습니다. 게임의 스폰 시스템 또는 웨이브 매니저를 업데이트하여 'SpikyMeteor'를 스폰 풀에 포함하고 게임 루프 내에서 생명 주기를 관리하도록 했습니다.",
       "zh": "通过扩展现有的陨石逻辑，实现了名为 'SpikyMeteor' 的新游戏实体。定义了其独特的移动模式、碰撞检测和伤害值，以区别于标准陨石。更新了游戏的生成系统或波次管理器，将 'SpikyMeteor' 包含在生成池中，并在游戏循环中管理其生命周期。",
       "ja": "既存の隕石ロジックを拡張し、新しいゲームエンティティ「SpikyMeteor」を実装しました。標準的な隕石と区別するため、独自の移動パターン、衝突判定、ダメージ値を定義しました。ゲームのスポーンシステムまたはウェーブマネージャーを更新し、「SpikyMeteor」をスポーンプールに追加して、ゲームループ内でそのライフサイクルを管理するようにしました。"
-    }
-  },
-  {
-    "id": "20260913_1000",
-    "type": "preview",
-    "title": "20260913_1000 Build",
-    "url": "http://134.185.103.3:3304",
-    "branch": "20260913_1000",
-    "image": "ap-chuncheon-1.ocir.io/axanqyysnllh/spiralwave_20260913_1000:latest",
-    "container": "spiralwave",
-    "port": 3304,
-    "status": "active",
-    "released_at": "2026-09-13T01:01:47.444Z",
-    "release_note": {
-      "en": "### Code Generation Plan\n- No actionable game improvements or functional requirements were identified in the provided input (\"1\") as it is too vague and lacks specific detail for implementation.",
-      "ko": "### 코드 생성 계획\n- 제공된 입력 내용(\"1\")이 너무 모호하고 구현을 위한 구체적인 세부 사항이 부족하여, 실행 가능한 게임 개선 사항이나 기능적 요구 사항이 식별되지 않았습니다.",
-      "zh": "### 代码生成计划\n- 提供的输入（“1”）过于模糊，缺乏具体的实现细节，因此未识别出可执行的游戏改进或功能需求。",
-      "ja": "### コード生成計画\n- 提供された入力（「1」）は非常に曖昧で、実装のための具体的な詳細が不足しているため、実行可能なゲームの改善や機能要件は特定されませんでした。"
     }
   }
 ]
